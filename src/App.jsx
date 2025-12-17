@@ -1,10 +1,13 @@
 import React from 'react';
-import FileUpload from './components/FileUpload';
+
 import './App.css';
+import FileUpload from './components/FileUpload';
 import RichEditor from "./components/RichEditor.jsx";
-import SvarGridExample from "./SvarGridExample.jsx";
+import Button from './components/ui/Button'; // 공통 버튼 컴포넌트 추가
 import Counter from './components/Counter.jsx';
 import { AuthProvider } from './context/AuthContext';
+import MainLayout from './layouts/MainLayout'; // 레이아웃 추가
+import SvarGridExample from "./SvarGridExample.jsx";
 
 // 공통 콜백 함수
 const handleUploadComplete = (results) => {
@@ -18,7 +21,8 @@ const handleUploadComplete = (results) => {
 function App() {
   return (
     <AuthProvider>
-      <div className="App">
+      {/* MainLayout으로 전체 구조 감싸기 */}
+      <MainLayout>
         <style>{`
         /* --- 글로벌 스타일 --- */
         .file-upload__dropzone { border: 2px dashed #ccc; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all .2s; }
@@ -53,7 +57,8 @@ function App() {
         .type-3-container .file-upload__list-container { max-height: 300px; overflow-y: auto; }
       `}</style>
 
-      <main className="component-container">
+      {/* 기존 main 태그를 div로 변경 (MainLayout에 main이 이미 존재함) */}
+      <div className="component-container">
         {/* Zustand Counter 예제 추가 */}
         <section>
           <h2>Zustand Counter Example</h2>
@@ -67,7 +72,10 @@ function App() {
             <div className="type-1-container">
               <div className="type-1-header">
                 <h3>선택된 파일</h3>
-                <FileUpload.Trigger>파일 선택</FileUpload.Trigger>
+                {/* FileUpload.Trigger 내부 구현이 Button을 사용하지 않는다면 추후 교체 고려 */}
+                <FileUpload.Trigger>
+                  <Button label="파일 선택" variant="secondary" size="small" />
+                </FileUpload.Trigger>
               </div>
               <FileUpload.List />
               <FileUpload.Submit />
@@ -81,9 +89,13 @@ function App() {
           <FileUpload onUploadComplete={handleUploadComplete}>
             <div className="type-2-container">
               <FileUpload.Dropzone>
-                <p>여기에 파일을 드래그하거나, <FileUpload.Trigger>클릭하여 선택</FileUpload.Trigger>하세요.</p>
-              </FileUpload.Dropzone>
-              <FileUpload.List />
+                  <p>
+                    여기에 파일을 드래그하거나,{" "}
+                    <FileUpload.Trigger>클릭하여 선택</FileUpload.Trigger>
+                    하세요.
+                  </p>
+                </FileUpload.Dropzone>
+                <FileUpload.List />
               <FileUpload.Submit />
             </div>
           </FileUpload>
@@ -107,8 +119,8 @@ function App() {
 
           {/* Svar Grid 예제 추가 */}
           <SvarGridExample />
-      </main>
-    </div>
+      </div>
+      </MainLayout>
     </AuthProvider>
   );
 }
