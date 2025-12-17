@@ -1,0 +1,38 @@
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #fff;
+  background-color: #0056b3; /* 공공기관 신뢰 색상 (Blue 계열) */
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s;
+}
+
+.ui-button:hover:not(:disabled) {
+  background-color: #004494;
+}
+
+/* 접근성: 키보드 포커스 시 명확한 시각적 피드백 필수 */
+.ui-button:focus-visible {
+  outline: 3px solid #ffc107; /* 배경과 대비되는 색상 */
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(0, 86, 179, 0.2);
+}
+
+.ui-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+/* 변형 스타일: 보조 버튼 */
+.ui-button--secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}

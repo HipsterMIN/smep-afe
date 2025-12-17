@@ -35,8 +35,9 @@ const baseRules = {
 };
 
 const formattingRules = {
-  // Prettier를 ESLint 규칙으로 실행
-  "prettier/prettier": "error",
+  // Prettier 강제 규칙 해제: 작은 따옴표('')와 큰 따옴표("") 혼용 허용
+  // (Prettier는 기본적으로 일관된 스타일을 강제하므로, 자유로운 사용을 위해 에러 표시를 끔)
+  "prettier/prettier": "off",
 };
 
 const importSortRules = {
