@@ -72,10 +72,7 @@ function App() {
             <div className="type-1-container">
               <div className="type-1-header">
                 <h3>선택된 파일</h3>
-                {/* FileUpload.Trigger 내부 구현이 Button을 사용하지 않는다면 추후 교체 고려 */}
-                <FileUpload.Trigger>
-                  <Button label="파일 선택" variant="secondary" size="small" />
-                </FileUpload.Trigger>
+                <FileUpload.Trigger />
               </div>
               <FileUpload.List />
               <FileUpload.Submit />

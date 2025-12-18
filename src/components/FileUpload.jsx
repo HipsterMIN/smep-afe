@@ -4,6 +4,7 @@ import React, {
 } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import Button from './ui/Button';
 
 // --- 아이콘 (변경 없음) ---
 const Icon = {
@@ -185,15 +186,27 @@ const Dropzone = ({ children, className = '' }) => {
 
 const Trigger = ({ children, className = '' }) => {
   const { openFileDialog } = useContext(FileUploadContext);
+  
+  if (typeof children === 'string' || !children) {
+    return (
+      <Button
+        label={children || "파일 선택"}
+        onClick={openFileDialog}
+        className={`file-upload__trigger ${className}`}
+      />
+    );
+  }
+
   return (
-    <button
-      type="button"
-      className={`file-upload__trigger ${className}`}
+    <div
+      className={`file-upload__trigger-wrapper ${className}`}
       onClick={openFileDialog}
-      aria-label="파일 선택"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openFileDialog(); } }}
     >
       {children}
-    </button>
+    </div>
   );
 };
 
@@ -234,9 +247,13 @@ const Item = React.memo(({ file }) => {
         {status === 'success' && <Icon.CheckCircle style={{ color: '#4caf50' }} />}
         {status === 'error' && <Icon.ErrorCircle style={{ color: '#f44336' }} />}
       </div>
-      <button type="button" className="file-upload__item-remove" title="파일 제거" onClick={() => removeFile(id)}>
-        <Icon.Remove />
-      </button>
+      <Button
+        variant="secondary"
+        className="file-upload__item-remove"
+        ariaLabel="파일 제거"
+        onClick={() => removeFile(id)}
+        label={<Icon.Remove />}
+      />
     </li>
   );
 });
@@ -248,9 +265,12 @@ const Submit = ({ children, className = '' }) => {
   if (files.length === 0) return null;
 
   return (
-    <button type="button" className={`file-upload__submit ${className}`} onClick={uploadAll} disabled={pendingCount === 0}>
-      {children || (pendingCount > 0 ? `${pendingCount}개 파일 업로드` : '업로드 완료')}
-    </button>
+    <Button
+      className={`file-upload__submit ${className}`}
+      onClick={uploadAll}
+      disabled={pendingCount === 0}
+      label={children || (pendingCount > 0 ? `${pendingCount}개 파일 업로드` : '업로드 완료')}
+    />
   );
 };
 
