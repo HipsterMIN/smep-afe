@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build:local": "vite build --mode localhost",
+    "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
@@ -28,7 +31,6 @@
     "@tiptap/react": "^2.8.0",
     "@tiptap/starter-kit": "^2.8.0",
     "axios": "^1.13.2",
-    "prettier": "^3.3.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "zustand": "^4.5.4"
@@ -41,11 +43,16 @@
     "@vitejs/plugin-react": "^4.2.1",
     "@vitest/ui": "^1.1.0",
     "eslint": "^8.57.0",
-    "eslint-plugin-react": "^7.34.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "0.4.24",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
     "jsdom": "^23.0.1",
-    "vite": "^5.3.5",
-    "vitest": "^1.1.0"
+    "prettier": "^3.7.4",
+    "vite": "^5.4.21",
+    "vitest": "^1.6.1"
   }
 }

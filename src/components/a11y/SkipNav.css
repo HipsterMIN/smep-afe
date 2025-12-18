@@ -1,0 +1,21 @@
+/* 접근성: 본문 바로가기 링크 스타일 */
+.skip-nav {
+  position: absolute;
+  top: -9999px;
+  left: 0;
+  z-index: 9999; /* 최상위 레벨 보장 */
+  width: 100%;
+  background: #000;
+  text-align: center;
+}
+
+/* 포커스를 받았을 때만 화면에 표시 */
+.skip-nav a:focus {
+  display: block;
+  padding: 10px;
+  color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+  outline: 2px solid #fff; /* 고대비 모드 지원 */
+  outline-offset: -2px;
+}
