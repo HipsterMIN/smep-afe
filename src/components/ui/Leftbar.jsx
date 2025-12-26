@@ -17,24 +17,29 @@ export default function Leftbar() {
     <aside className="onleftbar">
       <div className="onlinksystem">시스템 관리</div>
       <nav>
-        <ul className="navdepth1">
-          {menuItems.map((item, index) => (
-            <li key={index} className="navdepth1-list">
-              <NavLink
-                to={item.path}
-                className={({ isActive }) => (isActive ? 'on' : '')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  height: '60px',
-                  color: '#fff',
-                  paddingLeft: '7px',
-                }}
-              >
-                {item.name}
-              </NavLink>
-            </li>
-          ))}
+        <ul className="onleftbar-navlink navdepth1">
+          <li className="navdepth1-list">
+            <button>
+              <span>회원/권한 관리</span>
+            </button>
+          </li>
+          <li className="navdepth1-list on">
+            <button>
+              <span>시스템 설정</span>
+            </button>
+            <ul className="navdepth2">
+              {menuItems.map((item, index) => (
+                  <li key={index} className="navdepth2-list">
+                    <NavLink
+                        to={item.path}
+                        className={({isActive}) => (isActive ? 'on' : '')}
+                    >
+                    {item.name}
+                    </NavLink>
+                  </li>
+              ))}
+            </ul>
+          </li>
         </ul>
       </nav>
     </aside>
