@@ -1,5 +1,5 @@
-import Button from './Button'
-import Contents from './Contents'
+import Button from './Button';
+import Contents from './Contents';
 
 // 관리자 - 컨텐츠 영역
 export default function Contentbox({ contentType }) {
@@ -23,15 +23,19 @@ export default function Contentbox({ contentType }) {
             <a href="#">게시판 관리</a>
             <i className="close" />
           </li>
-          <li className={(contentType === 'type5' || contentType === 'type6') ? 'active' : ''}>
+          <li
+            className={
+              contentType === 'type5' || contentType === 'type6' ? 'active' : ''
+            }
+          >
             <a href="#">사업정보 관리</a>
             <i className="close" />
           </li>
         </ul>
-        <Button btnType='closeAll' btnNames='전체닫기' />
+        <Button btnType="closeAll" btnNames="전체닫기" />
       </div>
 
       <Contents contentType={contentType} />
     </div>
-  )
-} 
+  );
+}

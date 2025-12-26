@@ -1,5 +1,4 @@
-
-// 관리자 화면 - 라디오 버튼 컴포넌트 
+// 관리자 화면 - 라디오 버튼 컴포넌트
 export default function RadioButton({
   groupId,
   radioGroup,
@@ -7,9 +6,9 @@ export default function RadioButton({
   disabled,
   radioName,
   selectedValue,
-  onChange
+  onChange,
 }) {
-  const isChecked = selectedValue === radioValue
+  const isChecked = selectedValue === radioValue;
 
   return (
     <label
@@ -27,5 +26,5 @@ export default function RadioButton({
       />
       <span className="onnames">{radioName}</span>
     </label>
-  )
+  );
 }

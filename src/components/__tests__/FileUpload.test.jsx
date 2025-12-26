@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import FileUpload from '../FileUpload';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it } from 'vitest';
+
 import { AuthProvider } from '../../context/AuthContext';
+import FileUpload from '../FileUpload';
 
 describe('FileUpload Component', () => {
   it('should render FileUpload with Trigger button', () => {

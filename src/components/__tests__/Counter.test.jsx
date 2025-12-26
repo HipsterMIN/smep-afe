@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import Counter from '../Counter';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import useCounterStore from '../../store/useCounterStore';
+import Counter from '../Counter';
 
 describe('Counter Component', () => {
   beforeEach(() => {

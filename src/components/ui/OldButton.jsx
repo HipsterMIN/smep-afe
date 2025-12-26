@@ -11,13 +11,13 @@ import React from 'react';
  * @param {boolean} [disabled=false] - 비활성화 여부
  * @param {function} onClick - 클릭 핸들러
  */
-const Button = ({ 
-  label, 
-  ariaLabel, 
-  variant = 'primary', 
-  type = 'button', 
-  className = '', 
-  ...props 
+const Button = ({
+  label,
+  ariaLabel,
+  variant = 'primary',
+  type = 'button',
+  className = '',
+  ...props
 }) => {
   return (
     <button

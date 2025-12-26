@@ -1,6 +1,7 @@
-import React from 'react';
-import { Grid, Willow } from '@svar-ui/react-grid';
 import '@svar-ui/react-grid/all.css';
+
+import { Grid, Willow } from '@svar-ui/react-grid';
+import React from 'react';
 
 // 예제 데이터
 const data = [
@@ -23,7 +24,10 @@ const SvarGridExample = () => {
   return (
     <div style={{ padding: '20px' }}>
       <h1>SVAR React DataGrid Example</h1>
-      <p>This is an example of <strong>@svar-ui/react-grid</strong> with the Willow theme.</p>
+      <p>
+        This is an example of <strong>@svar-ui/react-grid</strong> with the
+        Willow theme.
+      </p>
       <div style={{ height: '400px', width: '100%', marginTop: '20px' }}>
         <Willow>
           <Grid data={data} columns={columns} />
