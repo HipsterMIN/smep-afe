@@ -1,42 +1,37 @@
 
-// 관리자 - 좌측 Nav 메뉴
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+
 export default function Leftbar() {
+  // 메뉴 데이터 구성
+  const menuItems = [
+    { name: '공통코드 관리', path: '/admin/common-code' },
+    { name: '권한 관리', path: '/admin/auth-mgmt' },
+    { name: '관리자 메뉴관리', path: '/admin/menu-mgmt' },
+    { name: '게시판 관리', path: '/admin/board-mgmt' },
+    { name: '사업정보 관리', path: '/admin/biz-info' },
+    { name: '사업정보 등록/수정', path: '/admin/biz-reg' },
+    { name: 'SVAR 그리드 예제', path: '/admin/grid-example' },
+  ];
+
   return (
-    <div className="onleftbar">
-      <a href="#" className="onlinksystem">시스템 관리</a>
-      <ul className='onleftbar-navlink navdepth1'>
-        <li className="navdepth1-list">
-          <a href="#" herf="#">회원/권한 관리</a>
-        </li>
-        <li className="navdepth1-list on">
-          <button>
-            <span>시스템 설정</span>
-          </button>
-          <ul className="navdepth2">
-            <li className="navdepth2-list">
-              <a href="#" herf="#">관리자 메뉴관리</a>
-            </li>
-            <li className="navdepth2-list">
-              <a href="#" herf="#">사용자 메뉴관리</a>
-            </li>
-            <li className="navdepth2-list">
-              <a href="#" herf="#">게시판 관리</a>
-            </li>
-            <li className="navdepth2-list">
-              <a href="#" herf="#">게시물 관리</a>
-            </li>
-            <li className="navdepth2-list on">
-              <a href="#" herf="#">공통코드 관리</a>
-            </li>
-            <li className="navdepth2-list">
-              <a href="#" herf="#">보안설정</a>
-            </li>
-            <li className="navdepth2-list">
-              <a href="#" herf="#">API 연계 관리</a>
-            </li>
+      <aside className="onleftbar">
+        <div className="onlinksystem">시스템 관리</div>
+        <nav>
+          <ul className="navdepth1">
+            {menuItems.map((item, index) => (
+                <li key={index} className="navdepth1-list">
+                  <NavLink
+                      to={item.path}
+                      className={({ isActive }) => (isActive ? 'on' : '')}
+                      style={{ display: 'flex', alignItems: 'center', height: '60px', color: '#fff', paddingLeft: '7px' }}
+                  >
+                    {item.name}
+                  </NavLink>
+                </li>
+            ))}
           </ul>
-        </li>
-      </ul>
-    </div>
-  )
-} 
+        </nav>
+      </aside>
+  );
+}
