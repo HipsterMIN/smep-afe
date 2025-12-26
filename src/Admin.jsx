@@ -21,7 +21,7 @@ export default function Admin() {
             <Header />
             <div className="onlayout">
                 <Leftbar />
-                <main className="oncontentbox-wrap">
+                <main>
                     {/* Contentbox 내부의 .container 클래스가 중앙 정렬을 유도하므로
               여기서 감싸는 div 없이 바로 Outlet을 꽂습니다. */}
                     <Outlet />
