@@ -13,7 +13,9 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "format": "prettier --write \"src/**/*.{js,jsx,css,json}\"",
+    "lint:fix": "eslint src --fix"
   },
   "dependencies": {
     "@svar-ui/react-grid": "^2.3.2",

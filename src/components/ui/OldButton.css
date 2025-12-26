@@ -11,7 +11,9 @@
   border: 1px solid transparent;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out, box-shadow 0.2s;
+  transition:
+    background-color 0.2s ease-in-out,
+    box-shadow 0.2s;
 }
 
 .ui-button:hover:not(:disabled) {

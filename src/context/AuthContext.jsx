@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useState } from 'react';
 
 /**
  * AuthContext
@@ -49,7 +49,7 @@ export function AuthProvider({ children }) {
       setUser(mockUser);
       return { success: true, user: mockUser };
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error('Login failed:', error);
       return { success: false, error: error.message };
     } finally {
       setLoading(false);
@@ -103,7 +103,7 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
+    throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
 }

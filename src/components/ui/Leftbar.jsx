@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
@@ -15,23 +14,29 @@ export default function Leftbar() {
   ];
 
   return (
-      <aside className="onleftbar">
-        <div className="onlinksystem">시스템 관리</div>
-        <nav>
-          <ul className="navdepth1">
-            {menuItems.map((item, index) => (
-                <li key={index} className="navdepth1-list">
-                  <NavLink
-                      to={item.path}
-                      className={({ isActive }) => (isActive ? 'on' : '')}
-                      style={{ display: 'flex', alignItems: 'center', height: '60px', color: '#fff', paddingLeft: '7px' }}
-                  >
-                    {item.name}
-                  </NavLink>
-                </li>
-            ))}
-          </ul>
-        </nav>
-      </aside>
+    <aside className="onleftbar">
+      <div className="onlinksystem">시스템 관리</div>
+      <nav>
+        <ul className="navdepth1">
+          {menuItems.map((item, index) => (
+            <li key={index} className="navdepth1-list">
+              <NavLink
+                to={item.path}
+                className={({ isActive }) => (isActive ? 'on' : '')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  height: '60px',
+                  color: '#fff',
+                  paddingLeft: '7px',
+                }}
+              >
+                {item.name}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </aside>
   );
 }

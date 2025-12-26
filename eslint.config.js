@@ -38,6 +38,10 @@ const formattingRules = {
   // Prettier 강제 규칙 해제: 작은 따옴표('')와 큰 따옴표("") 혼용 허용
   // (Prettier는 기본적으로 일관된 스타일을 강제하므로, 자유로운 사용을 위해 에러 표시를 끔)
   "prettier/prettier": "off",
+  // 들여쓰기 2칸 강제 규칙 추가
+  "indent": ["error", 2, { "SwitchCase": 1 }],
+  "react/jsx-indent": ["error", 2],
+  "react/jsx-indent-props": ["error", 2],
 };
 
 const importSortRules = {
