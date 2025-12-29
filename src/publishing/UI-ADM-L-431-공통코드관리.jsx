@@ -15,7 +15,6 @@ export default function CommonCode() {
                     <li className="on">공통코드 관리</li>
                 </ul>
             </div>
-
             <div className="oncontents space">
                 <div className="oncontentBox">
                     <div className="ongrid-form">
