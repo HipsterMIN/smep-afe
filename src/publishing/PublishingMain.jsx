@@ -40,6 +40,31 @@ export default function PublishingMain() {
 
     return (
         <div className="onpage">
+            {/* 우측 상단 퍼블 밴드: 전체 레이아웃 최상단 고정 */}
+            <div style={{
+                position: 'fixed',
+                top: '20px',
+                right: '-40px',
+                width: '160px',
+                height: '32px',
+                // rgba를 사용하여 배경만 투명하게 처리 (글자는 선명 유지)
+                background: 'rgba(255, 71, 87, 0.8)',
+                color: '#fff',
+                textAlign: 'center',
+                lineHeight: '32px',
+                fontSize: '15px',
+                fontWeight: '800',
+                transform: 'rotate(45deg)',
+                zIndex: 10000,
+                boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                // 아래 요소를 클릭할 수 있게 해주는 핵심 속성
+                pointerEvents: 'none',
+                letterSpacing: '2px',
+                // 전체적인 부드러운 투명도 추가 (선택 사항)
+                opacity: 0.9
+            }}>
+                퍼블
+            </div>
             <Header />
             <div className="onlayout">
                 {/* 사이드바 */}
