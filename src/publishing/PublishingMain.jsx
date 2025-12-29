@@ -3,6 +3,9 @@ import { Link, Outlet, useLocation,useNavigate } from 'react-router-dom';
 
 import { autoPublishingRoutes } from '../routes/autoRoutes.jsx';
 import useTabStore from '../store/useTabStore';
+import Header from '../publishing/components/Header.jsx';
+import Leftbar from '../publishing/components/Leftbar.jsx';
+import Button from "../components/ui/Button.jsx";
 
 export default function PublishingMain() {
     const navigate = useNavigate();
@@ -37,87 +40,39 @@ export default function PublishingMain() {
 
     return (
         <div className="onpage">
-            <header className="pub-header" style={{ height: '50px', background: '#222', color: '#fff', display: 'flex', alignItems: 'center', padding: '0 20px' }}>
-                <h3>Publishing Lab (Tabs Enabled)</h3>
-            </header>
-
-            <div className="onlayout" style={{ display: 'flex', height: 'calc(100vh - 50px)' }}>
+            <Header />
+            <div className="onlayout">
                 {/* 사이드바 */}
-                <nav style={{ width: '220px', background: '#f4f4f4', borderRight: '1px solid #ddd', overflowY: 'auto' }}>
-                    <ul style={{ listStyle: 'none', padding: '10px' }}>
-                        {autoPublishingRoutes.map(route => (
-                            <li key={route.path} style={{ marginBottom: '5px' }}>
-                                <Link to={`/publishing/${route.path}`} style={{ textDecoration: 'none', color: '#333', fontSize: '14px' }}>
-                                    📁 {route.path}
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
-
+                <Leftbar />
                 {/* 메인 영역 (탭 + 컨텐츠) */}
-                <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <main>
                     {/* 탭 바 (Tab Bar) */}
-                    <div className="tab-container" style={{ display: 'flex', alignItems: 'flex-end', background: '#eee', borderBottom: '1px solid #ccc', padding: '0 5px' }}>
-                        <div className="tab-bar" style={{ display: 'flex', flex: 1, overflowX: 'auto' }}>
-                            {openTabs.map(tab => (
-                                <div
-                                    key={tab.path}
-                                    onClick={() => { setActiveTab(tab.path); navigate(`/publishing/${tab.path}`); }}
-                                    style={{
-                                        padding: '8px 15px',
-                                        marginRight: '2px',
-                                        background: activeTabPath === tab.path ? '#fff' : '#ddd',
-                                        border: '1px solid #ccc',
-                                        borderBottom: 'none',
-                                        borderRadius: '5px 5px 0 0',
-                                        cursor: 'pointer',
-                                        fontSize: '12px',
-                                        whiteSpace: 'nowrap',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px'
-                                    }}
-                                >
-                                    {tab.name}
-                                    <span
-                                        onClick={(e) => {
+                    <div className="oncontentbox-wrap">
+                        <div className="oncontentTab">
+                            <ul>
+                                {openTabs.map(tab => (
+                                    <li className={activeTabPath === tab.path ? 'active' : ''}
+                                        key={tab.path}
+                                        onClick={() => {
+                                            setActiveTab(tab.path);
+                                            navigate(`/publishing/${tab.path}`);
+                                        }}>
+                                        <a href="#">{tab.name}</a>
+                                        <i className="close" onClick={(e) => {
                                             e.stopPropagation();
                                             removeTab(tab.path);
                                             if(activeTabPath === tab.path) navigate('/publishing');
-                                        }}
-                                        style={{ color: '#999', fontSize: '16px', fontWeight: 'bold' }}
-                                    >
-                    ×
-                  </span>
-                                </div>
-                            ))}
+                                        }}/>
+                                    </li>
+                                ))}
+                            </ul>
+                            {/* 전체 닫기 버튼 */}
+                            {openTabs.length > 0 && (
+                                <Button btnType="closeAll" btnNames="전체닫기" onClick={handleClearAll}/>
+                            )}
                         </div>
-
-                        {/* 전체 닫기 버튼 */}
-                        {openTabs.length > 0 && (
-                            <button
-                                onClick={handleClearAll}
-                                style={{
-                                    margin: '5px',
-                                    padding: '4px 10px',
-                                    fontSize: '11px',
-                                    backgroundColor: '#666',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '3px',
-                                    cursor: 'pointer',
-                                    whiteSpace: 'nowrap'
-                                }}
-                            >
-                                전체닫기
-                            </button>
-                        )}
-                    </div>
-
-                    {/* 실제 컨텐츠 영역 */}
-                    <div style={{ flex: 1, overflowY: 'auto', background: '#fff', padding: '20px' }}>
-                        <Outlet />
+                        {/* 실제 컨텐츠 영역 */}
+                        <Outlet/>
                     </div>
                 </main>
             </div>
