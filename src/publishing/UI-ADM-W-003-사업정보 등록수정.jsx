@@ -109,7 +109,7 @@ export default function CommonCode() {
                           <td colSpan={3}>
                             <MenuInputBox
                               menuType="input"
-                              menuSize="380px"
+                              menuSize="300px"
                               placeholder="검색어를 입력하세요."
                             />
                             <span className="onsubinfo">

@@ -21,11 +21,11 @@ export default function Admin() {
       <Header />
       <Layout>
         <Leftbar />
-        {/* <Contentbox contentType="type1" /> */}
+        <Contentbox contentType="type1" />
         {/* <Contentbox contentType="type2" /> */}
         {/* <Contentbox contentType="type3" /> */}
         {/* <Contentbox contentType="type4" /> */}
-        <Contentbox contentType="type5" />
+        {/* <Contentbox contentType="type5" /> */}
         {/* <Contentbox contentType="type6" /> */}
       </Layout>
     </>
