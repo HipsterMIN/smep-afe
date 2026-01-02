@@ -23,47 +23,44 @@ export default function CommonCode() {
         <div className="oncontent">
           <div className="onselect-form open">
             {/** open 클래스로 동작, 펼치기/접기 */}
-            <div className="onparagraph dashed">
+            <div className="onparagraph">
               <MenuInputBox
                 menuType="select"
                 menuName="연계시스템"
                 selectOption="2025"
-                menuSize='150px'
               />
               <MenuInputBox
                 menuType="select"
                 menuName="공개여부"
                 selectOption=""
-                menuSize='150px'
               />
               <MenuInputBox
                 menuType="select"
                 menuName="진행상태"
                 selectOption=""
-                menuSize='150px'
               />
               <MenuInputBox
                 menuType="select"
                 menuName="공개구분"
                 selectOption=""
-                menuSize='150px'
               />
               <MenuInputBox
                 menuType="input"
                 menuName="공고명"
-                menuSize='200px'
+                menuSize='300px'
               />
-              <div className="ondatepickerbox">
-                <DatepickerBox menuName="신청기간" />
-                <span className="onunit">~</span>
-                <DatepickerBox />
-                <DatepickerTimeBox />
-              </div>
               <div style={{ marginLeft: 'auto' }}>
                 <Button btnType="detail" btnNames="상세조건 접기" />
               </div>
               <div className="onbtn">
                 <Button btnType="menuSearch" btnNames="검색" />
+              </div>
+            </div>
+            <div className="onparagraph middle dashed">
+              <div className="ondatepickerbox">
+                <DatepickerBox menuName="신청기간" />
+                <span className="onunit">~</span>
+                <DatepickerBox />
               </div>
             </div>
             <div className="onparagraph column">

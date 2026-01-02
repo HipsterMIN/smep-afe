@@ -397,6 +397,9 @@ caption {
   width: 100%;
   padding: 16px 24px;
 }
+.onselect-form .onparagraph.middle {
+  padding-top: 0;
+}
 .onselect-form .onparagraph.column {
   display: none;
 }
