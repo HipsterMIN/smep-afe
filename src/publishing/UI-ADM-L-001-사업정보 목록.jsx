@@ -30,7 +30,7 @@ export default function CommonCode() {
                      />
                      <MenuInputBox
                        menuType="input"
-                       menuSize="380px"
+                       menuSize="300px"
                        menuName="사업명"
                        placeholder="사업명을 입력하세요."
                      />

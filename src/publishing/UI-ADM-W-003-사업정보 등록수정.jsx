@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import MenuInputBox from "../components/ui/MenuInputBox.jsx";
 import RadioButton  from "../components/ui/RadioButton.jsx";
 import Button  from "../components/ui/Button.jsx";
+import FileUpload  from "../components/ui/FileUpload.jsx";
+import CheckBox  from "../components/ui/CheckBox.jsx";
 
 export default function CommonCode() {
   const [selectedValue, setSelectedValue] = useState(null); // radio button 분기변수
@@ -107,7 +109,7 @@ export default function CommonCode() {
                           <td colSpan={3}>
                             <MenuInputBox
                               menuType="input"
-                              menuSize="380px"
+                              menuSize="300px"
                               placeholder="검색어를 입력하세요."
                             />
                             <span className="onsubinfo">
@@ -125,18 +127,184 @@ export default function CommonCode() {
                       <colgroup>
                         <col style={{ width: '180px' }} />
                         <col style={{ width: 'auto' }} />
+                      </colgroup>
+                      <tbody>
+                        <tr>
+                          <td>사업명</td>
+                          <td>oooo지원사업</td>
+                        </tr>
+                        <tr>
+                          <td>사업개요</td>
+                          <td>
+                            <div className="oneditcontent" />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <h4 className="ontableTitle">사업개요</h4>
+                  <div className="ontableBox">
+                    <table>
+                      <colgroup>
+                        <col style={{ width: '180px' }} />
                         <col style={{ width: 'auto' }} />
                       </colgroup>
                       <tbody>
                         <tr>
-                          <td>사업ID</td>
-                          <td className="br-right">ABC1234</td>
-                          <td className="noneBg">2</td>
+                          <td>지원규모</td>
+                          <td>
+                            <div className="oneditcontent" />
+                          </td>
                         </tr>
                         <tr>
-                          <td>콘텐츠</td>
-                          <td colSpan={2}>
+                          <td>지원대상</td>
+                          <td>
                             <div className="oneditcontent" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>비지원대상</td>
+                          <td>
+                            <div className="oneditcontent" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>지원내용</td>
+                          <td>
+                            <div className="oneditcontent" />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <h4 className="ontableTitle">신청 절차</h4>
+                  <div className="ontableBox">
+                    <table>
+                      <colgroup>
+                        <col style={{ width: '180px' }} />
+                        <col style={{ width: 'auto' }} />
+                      </colgroup>
+                      <tbody>
+                        <tr>
+                          <td>신청접수</td>
+                          <td>
+                            <div className="oneditcontent" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>신청시기</td>
+                          <td>
+                            <div className="oneditcontent" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>제출서류</td>
+                          <td>
+                            <div className="oneditcontent" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>처리절차</td>
+                          <td>
+                            <div className="oneditcontent" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>심사평가내용</td>
+                          <td>
+                            <div className="oneditcontent" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>첨부파일</td>
+                          <td>
+                            <Button btnType="addfile" btnNames="파일 선택"/>
+                            <input type="file" />
+                            <div className="onflex onflexcolumn">
+                              <FileUpload mode="edit"/>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <h4 className="ontableTitle">문의처</h4>
+                  <div className="ontableBox">
+                    <table>
+                      <colgroup>
+                        <col style={{ width: '180px' }} />
+                        <col style={{ width: 'auto' }} />
+                      </colgroup>
+                      <tbody>
+                        <tr>
+                          <td>문의처</td>
+                          <td>
+                            <div className="oneditcontent" />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <h4 className="ontableTitle">제한조건</h4>
+                  <div className="ontableBox">
+                    <table>
+                      <colgroup>
+                        <col style={{ width: '180px' }} />
+                        <col style={{ width: 'auto' }} />
+                      </colgroup>
+                      <tbody>
+                        <tr>
+                          <td>기업규모</td>
+                          <td>
+                            <div className="oncheckBox">
+                              <CheckBox chkId="1_1" chkName="전체" />
+                              <CheckBox chkId="1_2" chkName="중소기업" />
+                              <CheckBox chkId="1_3" chkName="소상공인" />
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>업력</td>
+                          <td>
+                            <div className="oncheckBox">
+                              <CheckBox chkId="1_1" chkName="전체" />
+                              <CheckBox chkId="1_2" chkName="중소기업" />
+                              <CheckBox chkId="1_3" chkName="소상공인" />
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>근로자 수</td>
+                          <td>
+                            <div className="oncheckBox">
+                              <CheckBox chkId="1_1" chkName="전체" />
+                              <CheckBox chkId="1_2" chkName="중소기업" />
+                              <CheckBox chkId="1_3" chkName="소상공인" />
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>인증</td>
+                          <td>
+                            <div className="oncheckBox">
+                              <CheckBox chkId="1_1" chkName="전체" />
+                              <CheckBox chkId="1_2" chkName="중소기업" />
+                              <CheckBox chkId="1_3" chkName="소상공인" />
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>기업소재지</td>
+                          <td>
+                            <div className="oncheckBox">
+                              <CheckBox chkId="1_1" chkName="전체" />
+                              <CheckBox chkId="1_2" chkName="중소기업" />
+                              <CheckBox chkId="1_3" chkName="소상공인" />
+                            </div>
                           </td>
                         </tr>
                       </tbody>
@@ -148,8 +316,7 @@ export default function CommonCode() {
                     <Button btnType="list" btnNames="목록" />
                   </div>
                   <Button btnType="del" btnNames="삭제" />
-                  <Button btnType="edit" btnNames="수정" />
-                  <Button btnType="add" btnNames="등록" />
+                  <Button btnType="add" btnNames="저장" />
                 </div>
               </div>
             </div>

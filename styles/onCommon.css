@@ -75,6 +75,7 @@
 /* Reset */
 * {
   box-sizing: border-box;
+  font-family: 'Pretendard';
 }
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -90,7 +91,6 @@ figure, figcaption, footer, header, hgroup,
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
 	font-size: inherit;
-  font-family: 'Pretendard';
   font-weight: 400;
 	padding: 0;
 	margin: 0;
@@ -164,6 +164,10 @@ select::-ms-expand {
   -moz-appearance: none;
   appearance: none;
 }
+input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, input[type="tel"]:focus, input[type="url"]:focus, input[type="search"]:focus, select:focus, textarea:focus,
+input[type="text"]:active, input[type="email"]:active, input[type="password"]:active, input[type="tel"]:active, input[type="url"]:active, input[type="search"]:active, select:active, textarea:active{
+  outline: 1px solid #101010;
+}
 html {
   width: 100%;
   height: 100%;
@@ -229,8 +233,23 @@ caption {
 
 /* contentbox css */
 .oncontentbox-wrap {background-color: #f2f6ff; flex: 1 1 calc(100% - 276px); padding: 25px; width: calc(100vw - 276px); display: flex; flex-direction: column;}
-.onflex {display: flex; gap: 10px; }
+.onflex {display: flex;}
 .onflexcolumn {flex-direction: column;}
+.flexColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.flexColumn.centerGap {
+  align-items: center;
+  gap: 10px;
+}
+.flexRow {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
 .onflexbtns {
   display: flex;
   gap: 10px;
@@ -298,6 +317,13 @@ caption {
   margin: 0 20px 24px;
   padding: 24px 0px 21px;
   border-bottom: 1px solid #E9E9E9;
+}
+.onsubtitle {
+  color: #000;
+  font-family: Pretendard;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -1.2px;
 }
 .oncontentbox.full .oncontentTitle {
   margin: 0 20px;
@@ -381,7 +407,7 @@ caption {
 }
 .onselect-form.open {
   padding: 0;
-  height: 180px;
+  min-height: 180px;
   flex-direction: column;
 }
 .onselect-form .onparagraph {
@@ -389,10 +415,12 @@ caption {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: 20px;
   width: 100%;
   padding: 16px 24px;
+}
+.onselect-form .onparagraph.middle {
+  padding-top: 0;
 }
 .onselect-form .onparagraph.column {
   display: none;
@@ -462,7 +490,8 @@ caption {
   align-items: center;
   gap: 4px;
 }
-.ontable-legend .onbtns button {
+.ontable-legend .onbtns button.onallopen-ico,
+.ontable-legend .onbtns button.onallclose-ico {
   position: relative;
   display: flex;
   align-items: center;
@@ -487,12 +516,17 @@ caption {
   height: 14px;
   background: url("../src/assets/images/common/ico_all_close.svg") center center / cover no-repeat;
 }
+.ontable-legend.flexEnd {
+  display: flex;
+  justify-content: flex-end;
+}
 .onmenubox {
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
 }
 .onmenubox input {
+  font-size: 14px;
   display: flex;
   width: auto;
   height: 32px;
@@ -502,10 +536,22 @@ caption {
   border-radius: 5px;
   border: 1px solid #D7D7D7;
   background: #FFF;
+  font-weight: 500;
 }
-.onmenubox input:focus {
-  border: 1px solid #000;
+.onmenubox textarea {
+  font-size: 14px;
+  display: flex;
+  width: auto;
+  padding: 7px 12px;
+  border-radius: 5px;
+  border: 1px solid #d7d7d7;
+  background: #fff;
+  font-weight: 500;
 }
+.onmenubox textarea::placeholder {
+  color: #555;
+}
+
 .onmenubox select {
   display: flex;
   align-items: center;
@@ -521,8 +567,10 @@ caption {
   border-radius: 5px;
   border: 1px solid #D7D7D7;
   background: #FFF;
+  font-weight: 500;
 }
 .onmenunames {
+  flex: 0 0 auto;
   color: #333;
   font-family: Pretendard;
   font-size: 14px;
@@ -547,6 +595,35 @@ caption {
   height: 100%;
   background-color: rgba(0,0,0, 0.2);
   z-index: 100;
+}
+
+/* icon css */
+.onicon {
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center center;
+  mask-size: contain;
+  forced-color-adjust: none;
+  display: inline-flex;
+  /* -webkit-mask-image: */
+  /* mask-image: */
+  background-color: #000;
+}
+.onicon.clip {
+  -webkit-mask-image: url('../src/assets/images/common/ico_clip.svg');
+  mask-size: url('../src/assets/images/common/ico_clip.svg');
+  width: 18px;
+  height: 18px;
+  background-color: #999
+}
+.onicon.close {
+  -webkit-mask-image: url('../src/assets/images/common/ico_close.svg');
+  mask-size: url('../src/assets/images/common/ico_close.svg');
+  width: 12px;
+  height: 12px;
+  background-color: #666;
 }
 
 /* header css */
@@ -684,7 +761,8 @@ button.defaultbutton.detail::before {
   height: 15px;
   background: url("../src/assets/images/common/ico_detail.svg") center center / cover no-repeat;
 }
-button.defaultbutton.add {
+button.defaultbutton.add,
+button.defaultbutton.addfile {
   background-color: #2750BB;
 }
 button.defaultbutton.del {
@@ -692,6 +770,7 @@ button.defaultbutton.del {
 }
 button.defaultbutton.edit {
   background-color: #707070;
+  line-height: 0;
 }
 button.defaultbutton.list {
   color: #555;
@@ -763,9 +842,6 @@ input.searchBox {
   border-radius: 5px;
   border: 1px solid #D7D7D7;
   background: #FFF;
-}
-input.searchBox:focus {
-  border: 1px solid #000;
 }
 input.searchBox::placeholder {
   color: #666;
@@ -864,13 +940,24 @@ input.searchBox::placeholder {
   letter-spacing: -0.84px;
   margin-left: 15px;
 }
+.ontableBox table tr td .oncheckBox + .onmenuspace {
+  margin-top: 20px;
+}
+.ontableBox table tr td .onmenuspace {
+  display: flex;
+  gap: 50px;
+}
+.ontableBox table tr td .onmenuspace .onmenubox {
+  gap: 8px;
+}
 .ontableBox table tr td .onmenubox {
   gap: 0;
 }
 .ontableBox table tr td .onmenubox.fullSize {
   width: 100%;
 }
-.ontableBox table tr td .onradioBox {
+.ontableBox table tr td .onradioBox,
+.ontableBox table tr td .oncheckBox {
   display: flex;
   align-items: center;
   gap: 20px;
@@ -914,6 +1001,45 @@ input.searchBox::placeholder {
 }
 
 /* downloadlink css */
-.ondownloadlinkbox {display: flex; align-items: center; gap: 10px;}
-.ondownloadlinkbox + .ondownloadlinkbox {margin-top: 5px;}
-.ondownloadlink {text-decoration: underline; color: #41a5ff}
+.ondownloadlinkbox {display: flex; align-items: center; gap: 8px;}
+.ondownloadlink { color: #666; font-size: 14px; font-weight: 500; text-decoration: underline; display: flex; align-items: center; gap: 8px; }
+.ondownloadlinkbox + .ondownloadlinkbox {margin-top: 8px;}
+
+/* file upload css */
+.addfile {margin-bottom: 12px;}
+.addfile + input[type='file']{display: none;}
+
+/* datepicker css */
+.ondatepickerbox {position: relative; z-index: 200; display: flex; align-items: center; gap: 8px;}
+.ondatepickerbox .onunit { color: #666; font-size: 14px; font-weight: 500; }
+.ondatepicker-wrapper { position: relative; display: inline-flex; align-items: center; }
+.ondatepicker-wrapper .ondatepicker { width: 126px; height: 32px; padding: 7px 30px 7px 12px; border-radius: 5px; border: 1px solid #D7D7D7; background: #FFF; color: #555; font-family: Pretendard; font-size: 14px; font-weight: 500; letter-spacing: -0.84px; }
+.ondatepicker-wrapper.time .ondatepicker { width: 100px; }
+.ondatepicker-wrapper .ondatepicker:focus { border: 1px solid #000; }
+.ondatepicker-wrapper .ondatepicker-icon { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; pointer-events: none; }
+
+/* onaddUserForm css */
+.onaddUserForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.onaddUserForm .onaddUser {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.onaddUserForm .onaddUser span {
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-position: under;
+}
+
+.onDelBox {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

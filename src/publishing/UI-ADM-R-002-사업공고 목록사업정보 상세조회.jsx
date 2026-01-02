@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import Button from '../components/ui/Button';
+import FileUpload from '../components/ui/FileUpload';
 
 export default function CommonCode() {
   const onClickDownload = (e) => {
@@ -141,18 +142,9 @@ export default function CommonCode() {
                   <td>첨부파일</td>
                   <td>
                     <div className="onflex onflexcolumn">
-                      <div className="ondownloadlinkbox">
-                        <a href="#" className="ondownloadlink" onClick={onClickDownload}>별첨파일.hwp(23 KB, 다운로드 0회)</a>
-                        <Button btnType="edit" btnNames="미리보기" />          
-                      </div>
-                      <div className="ondownloadlinkbox">
-                        <a href="#" className="ondownloadlink" onClick={onClickDownload}>별첨파일.hwp(23 KB, 다운로드 0회)</a>
-                        <Button btnType="edit" btnNames="미리보기" />          
-                      </div>
-                      <div className="ondownloadlinkbox">
-                        <a href="#" className="ondownloadlink" onClick={onClickDownload}>별첨파일.hwp(23 KB, 다운로드 0회)</a>
-                        <Button btnType="edit" btnNames="미리보기" />          
-                      </div>
+                       <FileUpload mode="view"/>
+                       <FileUpload mode="view"/>
+                       <FileUpload mode="view"/>
                     </div>
                   </td>
                 </tr>

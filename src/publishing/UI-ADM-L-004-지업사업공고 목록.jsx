@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import MenuInputBox from "../components/ui/MenuInputBox.jsx";
 import CheckBox from "../components/ui/CheckBox.jsx";
 import GridTable from '../components/ui/GridTable';
-import SearchBox from '../components/ui/SearchBox';
+import DatepickerBox from '../components/ui/DatepickerBox.jsx';
+import DatepickerTimeBox from '../components/ui/DatepickerTimeBox.jsx';
 
 import Button from '../components/ui/Button';
 
@@ -20,22 +21,9 @@ export default function CommonCode() {
       </div>
       <div className="oncontents">
         <div className="oncontent">
-          <div className="ongrid-form">
-            <h4>권한그룹</h4>
-            <div className="ongrid-btnbox">
-              <SearchBox
-                inputId="searchFormGroup"
-                placeholder="검색어를 입력하세요."
-              />
-              <Button btnType="search" btnNames="검색" />
-              <Button btnType="add" btnNames="추가" />
-            </div>
-          </div>
-        </div>
-        <div className="oncontent">
           <div className="onselect-form open">
             {/** open 클래스로 동작, 펼치기/접기 */}
-            <div className="onparagraph dashed">
+            <div className="onparagraph">
               <MenuInputBox
                 menuType="select"
                 menuName="연계시스템"
@@ -65,6 +53,18 @@ export default function CommonCode() {
               </div>
               <div className="onbtn">
                 <Button btnType="menuSearch" btnNames="검색" />
+              </div>
+            </div>
+            <div className="onparagraph middle dashed">
+              <MenuInputBox
+                menuType="input"
+                menuName="공고명"
+                menuSize='300px'
+              />
+              <div className="ondatepickerbox">
+                <DatepickerBox menuName="신청기간" />
+                <span className="onunit">~</span>
+                <DatepickerBox />
               </div>
             </div>
             <div className="onparagraph column">
