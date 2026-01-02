@@ -20,19 +20,6 @@ export default function CommonCode() {
       </div>
       <div className="oncontents">
         <div className="oncontent">
-          <div className="ongrid-form">
-            <h4>권한그룹</h4>
-            <div className="ongrid-btnbox">
-              <SearchBox
-                inputId="searchFormGroup"
-                placeholder="검색어를 입력하세요."
-              />
-              <Button btnType="search" btnNames="검색" />
-              <Button btnType="add" btnNames="추가" />
-            </div>
-          </div>
-        </div>
-        <div className="oncontent">
           <div className="onselect-form open">
             {/** open 클래스로 동작, 펼치기/접기 */}
             <div className="onparagraph dashed">
@@ -53,6 +40,17 @@ export default function CommonCode() {
                 menuName="진행상태"
                 selectOption=""
                 menuSize='150px'
+              />
+              <MenuInputBox
+                menuType="select"
+                menuName="공개구분"
+                selectOption=""
+                menuSize='150px'
+              />
+              <MenuInputBox
+                menuType="input"
+                menuName="공고명"
+                menuSize='200px'
               />
               <MenuInputBox
                 menuType="select"

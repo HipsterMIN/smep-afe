@@ -24,8 +24,8 @@ export default function Admin() {
         {/* <Contentbox contentType="type2" /> */}
         {/* <Contentbox contentType="type3" /> */}
         {/* <Contentbox contentType="type4" /> */}
-        {/* <Contentbox contentType="type5" /> */}
-        <Contentbox contentType="type6" />
+        <Contentbox contentType="type5" />
+        {/* <Contentbox contentType="type6" /> */}
       </Layout>
     </>
   );
