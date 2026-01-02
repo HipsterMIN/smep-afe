@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import Button from '../components/ui/Button';
-import FileUpload2 from '../components/ui/FileUpload2';
+import FileUpload from '../components/ui/FileUpload';
 
 export default function CommonCode() {
   const onClickDownload = (e) => {
@@ -142,9 +142,9 @@ export default function CommonCode() {
                   <td>첨부파일</td>
                   <td>
                     <div className="onflex onflexcolumn">
-                       <FileUpload2 mode="view"/>
-                       <FileUpload2 mode="view"/>
-                       <FileUpload2 mode="view"/>
+                       <FileUpload mode="view"/>
+                       <FileUpload mode="view"/>
+                       <FileUpload mode="view"/>
                     </div>
                   </td>
                 </tr>

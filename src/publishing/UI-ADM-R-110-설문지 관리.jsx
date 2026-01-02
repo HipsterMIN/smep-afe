@@ -1,5 +1,5 @@
 import Button from '../components/ui/Button';
-import FileUpload2 from '../components/ui/FileUpload2';
+import FileUpload from '../components/ui/FileUpload';
 import MenuInputBox from "../components/ui/MenuInputBox.jsx";
 import DatepickerBox  from "../components/ui/DatepickerBox.jsx";
 import GridTable from '../components/ui/GridTable';

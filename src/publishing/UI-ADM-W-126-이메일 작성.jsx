@@ -1,5 +1,5 @@
 import Button from '../components/ui/Button';
-import FileUpload2 from '../components/ui/FileUpload2';
+import FileUpload from '../components/ui/FileUpload';
 import MenuInputBox from "../components/ui/MenuInputBox.jsx";
 import DatepickerBox  from "../components/ui/DatepickerBox.jsx";
 import DatepickerTimeBox  from "../components/ui/DatepickerTimeBox.jsx";
@@ -110,8 +110,8 @@ export default function CommonCode() {
                   <td>첨부파일</td>
                   <td colSpan={3}>
                     <Button btnType="addfile" btnNames="파일 선택"/>
-                    <FileUpload2 mode="edit" />
-                    <FileUpload2 mode="edit" />
+                    <FileUpload mode="edit" />
+                    <FileUpload mode="edit" />
                   </td>
                 </tr>
                 <tr>

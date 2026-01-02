@@ -1,5 +1,4 @@
 import '../styles/onCommon.css'
-import '../styles/onCommon2.css'
 import Header from './components/ui/Header'
 import Layout from './components/ui/Layout'
 import Leftbar from './components/ui/Leftbar'

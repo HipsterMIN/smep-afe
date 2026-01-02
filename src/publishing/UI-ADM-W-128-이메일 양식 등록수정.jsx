@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import MenuInputBox from "../components/ui/MenuInputBox.jsx";
 import RadioButton  from "../components/ui/RadioButton.jsx";
 import Button  from "../components/ui/Button.jsx";
-import FileUpload2  from "../components/ui/FileUpload2.jsx";
+import FileUpload  from "../components/ui/FileUpload.jsx";
 import CheckBox  from "../components/ui/CheckBox.jsx";
 
 export default function CommonCode() {
@@ -48,8 +48,8 @@ export default function CommonCode() {
                     <Button btnType="addfile" btnNames="파일 선택"/>
                     <input type="file" />
                     <div className="onflex onflexcolumn">
-                      <FileUpload2 mode="edit"/>
-                      <FileUpload2 mode="edit"/>
+                      <FileUpload mode="edit"/>
+                      <FileUpload mode="edit"/>
                     </div>
                   </td>
                 </tr>

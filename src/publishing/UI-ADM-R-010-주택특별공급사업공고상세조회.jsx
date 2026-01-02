@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import MenuInputBox from "../components/ui/MenuInputBox.jsx";
 import RadioButton  from "../components/ui/RadioButton.jsx";
 import Button  from "../components/ui/Button.jsx";
-import FileUpload2  from "../components/ui/FileUpload2.jsx";
+import FileUpload  from "../components/ui/FileUpload.jsx";
 import CheckBox  from "../components/ui/CheckBox.jsx";
 import DatepickerBox  from "../components/ui/DatepickerBox.jsx";
 import GridTable from '../components/ui/GridTable.jsx';
@@ -349,7 +349,7 @@ export default function CommonCode() {
                           <td>공고문</td>
                           <td>
                             <div className="onflex onflexcolumn">
-                              <FileUpload2/>
+                              <FileUpload/>
                             </div>
                           </td>
                         </tr>
@@ -357,7 +357,7 @@ export default function CommonCode() {
                           <td>특성문</td>
                           <td>
                             <div className="onflex onflexcolumn">
-                              <FileUpload2/>
+                              <FileUpload/>
                             </div>
                           </td>
                         </tr>

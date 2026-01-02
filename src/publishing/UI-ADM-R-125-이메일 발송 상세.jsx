@@ -1,5 +1,5 @@
 import Button from '../components/ui/Button';
-import FileUpload2 from '../components/ui/FileUpload2';
+import FileUpload from '../components/ui/FileUpload';
 import MenuInputBox from "../components/ui/MenuInputBox.jsx";
 import GridTable from '../components/ui/GridTable';
 
@@ -64,8 +64,8 @@ export default function CommonCode() {
                   <td>34</td>
                   <td rowSpan={3}>첨부파일</td>
                   <td rowSpan={3}>
-                    <FileUpload2 mode="view" />
-                    <FileUpload2 mode="view" />
+                    <FileUpload mode="view" />
+                    <FileUpload mode="view" />
                   </td>
                 </tr>
                 <tr>

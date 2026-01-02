@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import Button from '../components/ui/Button';
-import FileUpload2 from '../components/ui/FileUpload2';
+import FileUpload from '../components/ui/FileUpload';
 
 export default function CommonCode() {
   const onClickDownload = (e) => {
