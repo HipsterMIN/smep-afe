@@ -2,14 +2,13 @@ import { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
-import calendarIcon from '../../assets/images/common/ico_datepicker_calendar.svg';
+import clockIcon from '../../assets/images/common/ico_datepicker_clock.svg';
 
-// 관리자 화면 - 커스텀 데이트피커 컴포넌트 (날짜만)
-export default function DatepickerBox({
+// 관리자 화면 - 커스텀 데이트피커 컴포넌트 (시간 선택)
+export default function DatepickerTimeBox({
   menuName,
-  dateFormat = 'yyyy-MM-dd', // 'yyyy-MM-dd', 'yyyy-MM'
-  showMonthYearPicker = false,
-  placeholder = 'yyyy-mm-dd',
+  dateFormat = 'HH:mm',
+  placeholder = '00:00',
   value,
   onChange,
 }) {
@@ -25,18 +24,20 @@ export default function DatepickerBox({
   return (
     <div className="onmenubox">
       {menuName ? <span className="onmenunames">{menuName}</span> : null}
-      <div className="ondatepicker-wrapper">
+      <div className="ondatepicker-wrapper time">
         <DatePicker
           selected={selectedDate}
           onChange={handleDateChange}
           dateFormat={dateFormat}
-          showMonthYearPicker={showMonthYearPicker}
+          showTimeSelect
+          showTimeSelectOnly
+          timeFormat="HH:mm"
+          timeIntervals={15}
           placeholderText={placeholder}
           className="ondatepicker"
           locale={ko}
-          dateFormatCalendar="yyyy년 MM월"
         />
-        <img src={calendarIcon} alt="calendar" className="ondatepicker-icon" />
+        <img src={clockIcon} alt="clock" className="ondatepicker-icon" />
       </div>
     </div>
   );

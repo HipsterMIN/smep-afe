@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import MenuInputBox from "../components/ui/MenuInputBox.jsx";
 import CheckBox from "../components/ui/CheckBox.jsx";
 import GridTable from '../components/ui/GridTable';
-import SearchBox from '../components/ui/SearchBox';
+import DatepickerBox from '../components/ui/DatepickerBox.jsx';
+import DatepickerTimeBox from '../components/ui/DatepickerTimeBox.jsx';
 
 import Button from '../components/ui/Button';
 
@@ -52,12 +53,12 @@ export default function CommonCode() {
                 menuName="공고명"
                 menuSize='200px'
               />
-              <MenuInputBox
-                menuType="select"
-                menuName="공개구분"
-                selectOption=""
-                menuSize='150px'
-              />
+              <div className="ondatepickerbox">
+                <DatepickerBox menuName="신청기간" />
+                <span className="onunit">~</span>
+                <DatepickerBox />
+                <DatepickerTimeBox />
+              </div>
               <div style={{ marginLeft: 'auto' }}>
                 <Button btnType="detail" btnNames="상세조건 접기" />
               </div>

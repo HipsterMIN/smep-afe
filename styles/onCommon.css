@@ -393,7 +393,6 @@ caption {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: 20px;
   width: 100%;
   padding: 16px 24px;
@@ -956,3 +955,12 @@ input.searchBox::placeholder {
 /* file upload css */
 .addfile {margin-bottom: 12px;}
 .addfile + input[type='file']{display: none;}
+
+/* datepicker css */
+.ondatepickerbox {position: relative; z-index: 200; display: flex; align-items: center; gap: 8px;}
+.ondatepickerbox .onunit { color: #666; font-size: 14px; font-weight: 500; }
+.ondatepicker-wrapper { position: relative; display: inline-flex; align-items: center; }
+.ondatepicker-wrapper .ondatepicker { width: 126px; height: 32px; padding: 7px 30px 7px 12px; border-radius: 5px; border: 1px solid #D7D7D7; background: #FFF; color: #555; font-family: Pretendard; font-size: 14px; font-weight: 500; letter-spacing: -0.84px; }
+.ondatepicker-wrapper.time .ondatepicker { width: 100px; }
+.ondatepicker-wrapper .ondatepicker:focus { border: 1px solid #000; }
+.ondatepicker-wrapper .ondatepicker-icon { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; pointer-events: none; }
