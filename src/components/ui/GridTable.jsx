@@ -6,12 +6,12 @@ import React from 'react';
 import ButtonCell from '../custom/ButtonCell';
 import CheckBox from './CheckBox';
 
-// 그리드 컬럼 정의\
+// 그리드 컬럼 정의
 const columns = [
   { cell: CheckBox, id: 'checkbox', width: 40 },
-  { id: 'id', width: 218, header: 'ID' },
-  { id: 'name', width: 218, header: '성명' },
-  { id: 'organ', width: 218, header: '기관명' },
+  { id: 'id', flexgrow: 1, header: 'ID' },
+  { id: 'name', flexgrow: 1, header: '성명' },
+  { id: 'organ', flexgrow: 1, header: '기관명' },
   { cell: ButtonCell, id: 'management', width: 76, header: '관리' },
 ];
 

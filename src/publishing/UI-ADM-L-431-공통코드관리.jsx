@@ -16,7 +16,7 @@ export default function CommonCode() {
                 </ul>
             </div>
             <div className="oncontents space">
-                <div className="oncontentBox">
+                <div className="oncontent">
                     <div className="ongrid-form">
                         <h4>그룹코드 구분</h4>
                         <div className="ongrid-btnbox">
@@ -30,7 +30,7 @@ export default function CommonCode() {
                     </div>
                 </div>
 
-                <div className="oncontentBox">
+                <div className="oncontent">
                     <div className="ongrid-form">
                         <h4>하위코드 구분</h4>
                         <div className="ongrid-btnbox">

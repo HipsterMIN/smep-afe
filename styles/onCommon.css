@@ -185,11 +185,13 @@ caption {
   border: 0 !important;
 }
 
-.onpage {min-width: 1800px; overflow-x: auto;}
 .onlayout {
   display: flex;
-  height: 100%;
-  /* height: calc(100vh - 73px); */
+  height: calc(100vh - 73px);
+}
+.onlayout main {
+  width: 100%;
+  display: flex;
 }
 
 /* container css */
@@ -226,7 +228,9 @@ caption {
 }
 
 /* contentbox css */
-.oncontentbox-wrap {background-color: #f2f6ff; flex: 1; width:100%; padding: 25px;}
+.oncontentbox-wrap {background-color: #f2f6ff; flex: 1 1 calc(100% - 276px); padding: 25px; width: calc(100vw - 276px); display: flex; flex-direction: column;}
+.onflex {display: flex; gap: 10px; }
+.onflexcolumn {flex-direction: column;}
 .onflexbtns {
   display: flex;
   gap: 10px;
@@ -284,8 +288,8 @@ caption {
   cursor: pointer;
 }
 
-.oncontentbox {border: 1px solid #CDD1D5; background-color: #fff; height: calc(100% - 100px); border-radius: 0px 20px 20px 20px;}
-.oncontents .oncontentBox.ontable-form { height: 680px; margin-bottom: 20px; }
+.oncontentbox {border: 1px solid #CDD1D5; background-color: #fff; height: 100%; border-radius: 0px 20px 20px 20px;}
+.oncontents .oncontent.ontable-form { margin-bottom: 20px; }
 .oncontentTitle {
   position: relative;
   display: flex;
@@ -332,20 +336,21 @@ caption {
 .oncontents {
   position: relative;
   margin: 0 20px;
+  overflow-y: auto;
+  max-height: calc(100vh - 247px);
 }
 .oncontents.space {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.oncontents.space .oncontentBox {
+.oncontents.space .oncontent {
   position: relative;
   width: 50%;
   flex-grow: 1;
 }
-.oncontents .oncontentBox {
+.oncontents .oncontent {
   width: 100%;
-  height: 700px;
   padding-right: 10px;
   overflow-x: auto;
 }
@@ -367,7 +372,7 @@ caption {
   display: flex;
   align-items: center;
   width: 100%;
-  height: 64px;
+  min-height: 64px;
   padding: 8px 0px;
   margin-bottom: 25px;
   border-radius: 10px;
@@ -382,6 +387,7 @@ caption {
 .onselect-form .onparagraph {
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
@@ -482,8 +488,8 @@ caption {
   background: url("../src/assets/images/common/ico_all_close.svg") center center / cover no-repeat;
 }
 .onmenubox {
-  display: flex;
-  align-items: center;
+  display: inline-flex;
+  align-items: baseline;
   gap: 8px;
 }
 .onmenubox input {
@@ -624,7 +630,7 @@ button.defaultbutton {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  width: 64px;
+  min-width: 64px;
   height: 30px;
   color: #FFF;
   font-family: Pretendard;
@@ -846,7 +852,7 @@ input.searchBox::placeholder {
   font-size: 14px;
   font-weight: 500;
   letter-spacing: -0.84px;
-  padding: 16px 0 15px 15px;
+  padding: 16px 15px 15px 15px;
   vertical-align: middle;
 }
 .ontableBox table tr td span.onsubinfo {
@@ -859,8 +865,10 @@ input.searchBox::placeholder {
   margin-left: 15px;
 }
 .ontableBox table tr td .onmenubox {
-  display: inline-block;
   gap: 0;
+}
+.ontableBox table tr td .onmenubox.fullSize {
+  width: 100%;
 }
 .ontableBox table tr td .onradioBox {
   display: flex;
@@ -904,3 +912,8 @@ input.searchBox::placeholder {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* downloadlink css */
+.ondownloadlinkbox {display: flex; align-items: center; gap: 10px;}
+.ondownloadlinkbox + .ondownloadlinkbox {margin-top: 5px;}
+.ondownloadlink {text-decoration: underline; color: #41a5ff}

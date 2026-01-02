@@ -17,7 +17,7 @@ export default function CommonCode() {
                 </ul>
             </div>
             <div className="oncontents">
-                <div className="oncontentBox">
+                <div className="oncontent">
                     <div className="onselect-form">
                         <div className="onparagraph">
                             <MenuInputBox

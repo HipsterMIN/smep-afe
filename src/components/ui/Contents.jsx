@@ -25,7 +25,7 @@ export default function Contents({ contentType }) {
           </div>
 
           <div className="oncontents space">
-            <div className="oncontentBox">
+            <div className="oncontent">
               <div className="ongrid-form">
                 <h4>그룹코드 구분</h4>
                 <div className="ongrid-btnbox">
@@ -42,7 +42,7 @@ export default function Contents({ contentType }) {
               </div>
             </div>
 
-            <div className="oncontentBox">
+            <div className="oncontent">
               <div className="ongrid-form">
                 <h4>하위코드 구분</h4>
                 <div className="ongrid-btnbox">
@@ -72,7 +72,7 @@ export default function Contents({ contentType }) {
           </div>
 
           <div className="oncontents space">
-            <div className="oncontentBox">
+            <div className="oncontent">
               <div className="ongrid-form">
                 <h4>권한그룹</h4>
                 <div className="ongrid-btnbox">
@@ -89,7 +89,7 @@ export default function Contents({ contentType }) {
               </div>
             </div>
 
-            <div className="oncontentBox">
+            <div className="oncontent">
               <div className="ongrid-form">
                 <h4>소속인원</h4>
                 <div className="ongrid-btnbox">
@@ -119,7 +119,7 @@ export default function Contents({ contentType }) {
             </ul>
           </div>
           <div className="oncontents">
-            <div className="oncontentBox">
+            <div className="oncontent">
               <div className="onselect-form">
                 <div className="onparagraph">
                   <MenuInputBox
@@ -187,7 +187,7 @@ export default function Contents({ contentType }) {
             </ul>
           </div>
           <div className="oncontents">
-            <div className="oncontentBox">
+            <div className="oncontent">
               <div className="onselect-form">
                 <div className="onparagraph">
                   <MenuInputBox
@@ -252,7 +252,7 @@ export default function Contents({ contentType }) {
             </ul>
           </div>
           <div className="oncontents">
-            <div className="oncontentBox">
+            <div className="oncontent">
               <div className="onselect-form open">
                 {' '}
                 {/** open 클래스로 동작, 펼치기/접기 */}
@@ -372,7 +372,7 @@ export default function Contents({ contentType }) {
             </ul>
           </div>
           <div className="oncontents">
-            <div className="oncontentBox ontable-form">
+            <div className="oncontent ontable-form">
               <div className="ontableBox">
                 <table>
                   <colgroup>

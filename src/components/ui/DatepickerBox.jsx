@@ -1,12 +1,5 @@
 // 관리자 화면 - 커스텀 인풋(메뉴) 컴포넌트
-export default function MenuInputBox({
-  menuType,
-  inputId,
-  menuName,
-  menuSize = '100px',
-  selectOption,
-  placeholder,
-}) {
+export default function MenuInputBox({}) {
   return (
     <>
       {menuType === 'input' ? (
