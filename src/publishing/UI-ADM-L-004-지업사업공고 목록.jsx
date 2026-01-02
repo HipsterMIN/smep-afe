@@ -28,26 +28,25 @@ export default function CommonCode() {
                 menuType="select"
                 menuName="연계시스템"
                 selectOption="2025"
+                menuSize='150px'
               />
               <MenuInputBox
                 menuType="select"
                 menuName="공개여부"
                 selectOption=""
+                menuSize='150px'
               />
               <MenuInputBox
                 menuType="select"
                 menuName="진행상태"
                 selectOption=""
+                menuSize='150px'
               />
               <MenuInputBox
                 menuType="select"
                 menuName="공개구분"
                 selectOption=""
-              />
-              <MenuInputBox
-                menuType="input"
-                menuName="공고명"
-                menuSize='300px'
+                menuSize='150px'
               />
               <div style={{ marginLeft: 'auto' }}>
                 <Button btnType="detail" btnNames="상세조건 접기" />
@@ -57,6 +56,11 @@ export default function CommonCode() {
               </div>
             </div>
             <div className="onparagraph middle dashed">
+              <MenuInputBox
+                menuType="input"
+                menuName="공고명"
+                menuSize='300px'
+              />
               <div className="ondatepickerbox">
                 <DatepickerBox menuName="신청기간" />
                 <span className="onunit">~</span>

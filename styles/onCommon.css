@@ -75,6 +75,7 @@
 /* Reset */
 * {
   box-sizing: border-box;
+  font-family: 'Pretendard';
 }
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -90,7 +91,6 @@ figure, figcaption, footer, header, hgroup,
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
 	font-size: inherit;
-  font-family: 'Pretendard';
   font-weight: 400;
 	padding: 0;
 	margin: 0;
@@ -468,7 +468,8 @@ caption {
   align-items: center;
   gap: 4px;
 }
-.ontable-legend .onbtns button {
+.ontable-legend .onbtns button.onallopen-ico,
+.ontable-legend .onbtns button.onallclose-ico {
   position: relative;
   display: flex;
   align-items: center;
@@ -499,6 +500,7 @@ caption {
   gap: 8px;
 }
 .onmenubox input {
+  font-size: 14px;
   display: flex;
   width: auto;
   height: 32px;
@@ -508,10 +510,22 @@ caption {
   border-radius: 5px;
   border: 1px solid #D7D7D7;
   background: #FFF;
+  font-weight: 500;
 }
-.onmenubox input:focus {
-  border: 1px solid #000;
+.onmenubox textarea {
+  font-size: 14px;
+  display: flex;
+  width: auto;
+  padding: 7px 12px;
+  border-radius: 5px;
+  border: 1px solid #d7d7d7;
+  background: #fff;
+  font-weight: 500;
 }
+.onmenubox textarea::placeholder {
+  color: #555;
+}
+
 .onmenubox select {
   display: flex;
   align-items: center;
@@ -527,8 +541,10 @@ caption {
   border-radius: 5px;
   border: 1px solid #D7D7D7;
   background: #FFF;
+  font-weight: 500;
 }
 .onmenunames {
+  flex: 0 0 auto;
   color: #333;
   font-family: Pretendard;
   font-size: 14px;
@@ -728,6 +744,7 @@ button.defaultbutton.del {
 }
 button.defaultbutton.edit {
   background-color: #707070;
+  line-height: 0;
 }
 button.defaultbutton.list {
   color: #555;
@@ -799,9 +816,6 @@ input.searchBox {
   border-radius: 5px;
   border: 1px solid #D7D7D7;
   background: #FFF;
-}
-input.searchBox:focus {
-  border: 1px solid #000;
 }
 input.searchBox::placeholder {
   color: #666;
@@ -899,6 +913,16 @@ input.searchBox::placeholder {
   line-height: normal;
   letter-spacing: -0.84px;
   margin-left: 15px;
+}
+.ontableBox table tr td .oncheckBox + .onmenuspace {
+  margin-top: 20px;
+}
+.ontableBox table tr td .onmenuspace {
+  display: flex;
+  gap: 50px;
+}
+.ontableBox table tr td .onmenuspace .onmenubox {
+  gap: 8px;
 }
 .ontableBox table tr td .onmenubox {
   gap: 0;

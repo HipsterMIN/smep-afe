@@ -13,7 +13,7 @@ function ButtonCell({ row, column, onAction }) {
       });
   }
 
-  return <Button btnType="modify" btnNames="수정" />;
+  return <Button btnType="edit" btnNames="수정" />;
 }
 
 export default ButtonCell;

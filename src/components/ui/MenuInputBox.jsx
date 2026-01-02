@@ -10,7 +10,7 @@ export default function MenuInputBox({
   return (
     <>
       {menuType === 'input' ? (
-        <div className={`onmenubox ${menuSize === '100%' ? 'fullSize' : null}`}>
+        <div className={`onmenubox${menuSize === '100%' ? ' fullSize' : ''}`}>
           {menuName ? <span className="onmenunames">{menuName}</span> : null}
           <input
             type="text"
@@ -19,7 +19,7 @@ export default function MenuInputBox({
           />
         </div>
       ) : menuType === 'select' ? (
-        <div className="onmenubox">
+        <div className={`onmenubox${menuSize === '100%' ? ' fullSize' : ''}`}>
           {menuName ? <span className="onmenunames">{menuName}</span> : null}
           <select name="select" id="" style={{ width: menuSize }}>
             <option value="전체">전체</option>
