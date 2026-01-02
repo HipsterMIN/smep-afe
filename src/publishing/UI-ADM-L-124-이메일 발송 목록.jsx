@@ -1,5 +1,3 @@
-import ContentsTitle  from "../components/ui/ContentsTitle.jsx";
-import Breadcrumb  from "../components/ui/Breadcrumb.jsx";
 import MenuInputBox from "../components/ui/MenuInputBox.jsx";
 import DatepickerBox  from "../components/ui/DatepickerBox.jsx";
 import Button  from "../components/ui/Button.jsx";
@@ -8,9 +6,14 @@ import GridTable from '../components/ui/GridTable';
 export default function CommonCode() {
   return (
      <div className="oncontentbox full">
-      <ContentsTitle title='이메일 발송 목록'>
-        <Breadcrumb path1='정보제공' path2='고객지원 관리' path3='이메일 관리' active={true} />
-      </ContentsTitle>
+      <div className="oncontentTitle">
+        <h2>이메일 발송 목록</h2>
+        <ul className="onbreadcrumb">
+          <li>정보제공</li>
+          <li>고객지원 관리</li>
+          <li className="on">이메일 관리</li>
+        </ul>
+      </div>
 
       <div className="oncontents">
         <div className="oncontent">
