@@ -1,8 +1,8 @@
 import '../styles/onCommon.css'
+import { Outlet } from 'react-router-dom';
 import Header from './components/ui/Header'
 import Layout from './components/ui/Layout'
 import Leftbar from './components/ui/Leftbar'
-import Contentbox from './components/ui/Contentbox'
 
 // 퍼블리싱 관리자 화면
 
@@ -18,15 +18,12 @@ export default function Admin() {
   return (
     <>
       <Header />
-      <Layout>
-        <Leftbar />
-        <Contentbox contentType="type1" />
-        {/* <Contentbox contentType="type2" /> */}
-        {/* <Contentbox contentType="type3" /> */}
-        {/* <Contentbox contentType="type4" /> */}
-        {/* <Contentbox contentType="type5" /> */}
-        {/* <Contentbox contentType="type6" /> */}
-      </Layout>
+        <Layout>
+            <Leftbar/>
+            {/* Contentbox 내부의 .container 클래스가 중앙 정렬을 유도하므로
+          여기서 감싸는 div 없이 바로 Outlet을 꽂습니다. */}
+            <Outlet/>
+        </Layout>
     </>
   );
 }
