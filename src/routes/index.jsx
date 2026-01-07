@@ -6,6 +6,11 @@ import PublishingMain from "../publishing/PublishingMain.jsx";
 import SvarGridExample from '../SvarGridExample.jsx';
 import {autoPublishingRoutes} from "./autoRoutes.jsx";
 
+// Vite의 BASE_URL은 vite.config.js의 base와 일치합니다. (예: '/', '/admin/')
+// React Router의 basename은 마지막 슬래시를 제거한 값으로 전달합니다. (예: '', '/admin')
+const base = import.meta.env.BASE_URL || '/';
+const basename = base.endsWith('/') ? base.slice(0, -1) : base;
+
 const router = createBrowserRouter([
         {
             path: '/',
@@ -61,7 +66,7 @@ const router = createBrowserRouter([
             element: <div>페이지를 찾을 수 없습니다. (404)</div>,
         },
     ], {
-        basename: '/admin', // 이 설정으로 인해 코드 상의 '/'는 실제 브라우저에서 '/admin'이 됩니다.
+        basename,
     }
 );
 

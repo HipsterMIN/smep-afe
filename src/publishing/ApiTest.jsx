@@ -1,5 +1,6 @@
 import axios from 'axios';
 import React, { useState } from 'react';
+import copyIcon from '../assets/images/common/ico_detail.svg';
 
 const ApiTest = () => {
     // 상태 관리
@@ -10,7 +11,10 @@ const ApiTest = () => {
     const [customResponse, setCustomResponse] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || '/admin/main-dev';
+    // 운영/개발 모두에서 안전하게 동작하도록 기본값을 BASE_URL 기반으로 산출
+    // VITE_API_BASE_URL이 지정되지 않은 경우: `${BASE_URL}/main-dev`
+    const baseUrl = import.meta.env.VITE_API_BASE_URL
+        || `${(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}/main-dev`;
 
     // curl 명령줄 생성 로직
     const fullUrl = `${window.location.origin}${baseUrl}${endpoint}`;
@@ -196,7 +200,7 @@ const ApiTest = () => {
                                 filter: 'invert(1)'
                             }}
                         >
-                            <img src="/admin/src/assets/images/common/ico_detail.svg" alt="copy" style={{ width: '16px' }} />
+                            <img src={copyIcon} alt="copy" style={{ width: '16px' }} />
                         </button>
                     </div>
 
