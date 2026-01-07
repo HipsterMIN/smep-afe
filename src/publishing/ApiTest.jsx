@@ -10,7 +10,7 @@ const ApiTest = () => {
     const [customResponse, setCustomResponse] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const baseUrl = import.meta.env.VITE_API_BASE_URL;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || '/admin/main-dev';
 
     // API 호출 로직
     const handleCustomTest = async () => {

@@ -8,12 +8,13 @@ export default defineConfig({
   server: {
     proxy: {
       // .env.localhost의 VITE_API_BASE_URL 설정에 맞춰 경로를 가로챕니다.
-      '/main-dev': {
+      '/admin/main-dev': {
         target: 'http://localhost:8082', // 실제 백엔드 주소
         changeOrigin: true,
         secure: false,
-        // 필요하다면 경로 재작성 (백엔드에 /api/v1이 없다면 사용)
-        // rewrite: (path) => path.replace(/^\/api\/v1/, '')
+        // 브라우저에서는 /admin/main-dev로 쏘지만,
+        // 로컬 백엔드 서버가 /main-dev만 기대한다면 아래와 같이 rewrite 합니다.
+        rewrite: (path) => path.replace(/^\/admin/, '')
       },
     }
   }
