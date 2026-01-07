@@ -12,6 +12,15 @@ const ApiTest = () => {
 
     const baseUrl = import.meta.env.VITE_API_BASE_URL || '/admin/main-dev';
 
+    // curl 명령줄 생성 로직
+    const fullUrl = `${window.location.origin}${baseUrl}${endpoint}`;
+    const curlCommand = `curl -X '${method}' \\\n  '${fullUrl}' \\\n  -H 'accept: application/json'${token ? ` \\\n  -H 'Authorization: Bearer ${token}'` : ''}${method !== 'GET' ? ` \\\n  -d '${requestBody.replace(/\n/g, '')}'` : ''}`;
+
+    const handleCopyCurl = () => {
+        navigator.clipboard.writeText(curlCommand);
+        alert('CURL 명령어가 클립보드에 복사되었습니다.');
+    };
+
     // API 호출 로직
     const handleCustomTest = async () => {
         setIsLoading(true);
@@ -155,6 +164,40 @@ const ApiTest = () => {
                                 />
                             </div>
                         )}
+                    </div>
+
+                    {/* CURL 명령어 미리보기 및 복사 영역 */}
+                    <div className="ontable-legend" style={{ marginTop: '25px' }}>
+                        <span>Curl Command Preview</span>
+                    </div>
+                    <div style={{
+                        position: 'relative',
+                        background: '#2d2d2d',
+                        color: '#fff',
+                        padding: '15px 45px 15px 15px',
+                        borderRadius: '4px',
+                        marginTop: '10px',
+                        fontSize: '13px',
+                        fontFamily: "'Cascadia Code', monospace",
+                        overflowX: 'auto'
+                    }}>
+                            <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                                {curlCommand}
+                            </pre>
+                        <button
+                            onClick={handleCopyCurl}
+                            title="Copy to clipboard"
+                            style={{
+                                position: 'absolute',
+                                top: '10px',
+                                right: '10px',
+                                padding: '5px',
+                                cursor: 'pointer',
+                                filter: 'invert(1)'
+                            }}
+                        >
+                            <img src="/admin/src/assets/images/common/ico_detail.svg" alt="copy" style={{ width: '16px' }} />
+                        </button>
                     </div>
 
                     {/* 4. 응답 결과 출력 영역 */}
