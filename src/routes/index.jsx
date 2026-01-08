@@ -5,6 +5,8 @@ import Contentbox from '../components/ui/Contentbox.jsx';
 import PublishingMain from "../publishing/PublishingMain.jsx";
 import SvarGridExample from '../SvarGridExample.jsx';
 import {autoPublishingRoutes} from "./autoRoutes.jsx";
+import AuthBar from '../components/AuthBar.jsx';
+import Login from '../pages/Login.jsx';
 
 // Vite의 BASE_URL은 vite.config.js의 base와 일치합니다. (예: '/', '/admin/')
 // React Router의 basename은 마지막 슬래시를 제거한 값으로 전달합니다. (예: '', '/admin')
@@ -14,7 +16,12 @@ const basename = base.endsWith('/') ? base.slice(0, -1) : base;
 const router = createBrowserRouter([
         {
             path: '/',
-            element: <Admin/>,
+            element: (
+                <>
+                    <AuthBar/>
+                    <Admin/>
+                </>
+            ),
             children: [
                 {
                     path: 'common-code', // type1: 공통코드 관리
@@ -46,6 +53,7 @@ const router = createBrowserRouter([
                 },
             ],
         },
+        { path: '/login', element: <Login/> },
         {
             path: '/publishing',
             element: <PublishingMain/>,
