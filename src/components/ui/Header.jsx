@@ -49,7 +49,7 @@ export default function Header() {
         <div className="onsessiontime-box">
           <span className="time">00:56</span>
           <button className="onbtn-blue">시간연장</button>
-          <button className="onbtn-gray">정보수정</button>
+          <button className="onbtn-gray" />
         </div>
         <div className="onlog-box">
           <button>

@@ -1,13 +1,20 @@
+import { useState } from 'react';
 import icoVatar from '../../assets/images/common/ico_avatar.svg';
 import icoLogout from '../../assets/images/common/ico_logout.svg';
 import icoLogo from '../../assets/images/common/logo.svg';
 
 // 관리자 - 상단 메뉴
-export default function Header() {
+export default function Header({
+  isOnNavToggle,
+  handleOnNavToggle = () => {},
+}) {
   return (
     <header className="onheader">
       <div className="onheader-lft">
-        <button className="onnavtoggle">
+        <button
+          className={`onnavtoggle ${isOnNavToggle && 'on'}`}
+          onClick={() => handleOnNavToggle()}
+        >
           <span className="sr-only">네비게이션바 토글 버튼</span>
         </button>
         <h1 className="onlogo">
@@ -49,12 +56,11 @@ export default function Header() {
         <div className="onsessiontime-box">
           <span className="time">00:56</span>
           <button className="onbtn-blue">시간연장</button>
-          <button className="onbtn-gray">정보수정</button>
+          <button className="onbtn-gray" />
         </div>
         <div className="onlog-box">
           <button>
             <img src={icoLogout} alt="" />
-            <span>로그아웃</span>
           </button>
         </div>
       </div>

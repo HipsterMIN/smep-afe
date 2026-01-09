@@ -2,10 +2,9 @@ import React from 'react';
 import {Link, NavLink} from 'react-router-dom';
 import {autoPublishingRoutes} from "../../routes/autoRoutes.jsx";
 
-export default function Leftbar() {
-
+export default function Leftbar({isOnNavToggle, setOnNavToggle}) {
   return (
-    <aside className="onleftbar">
+    <aside className={`onleftbar ${isOnNavToggle ? 'close' : ''}`} >
       <div className="onlinksystem">퍼블리싱 메뉴</div>
       <nav>
         <ul className="onleftbar-navlink navdepth1">

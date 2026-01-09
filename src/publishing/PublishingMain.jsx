@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation,useNavigate } from 'react-router-dom';
 
 import { autoPublishingRoutes } from '../routes/autoRoutes.jsx';
@@ -18,6 +18,11 @@ export default function PublishingMain() {
             navigate('/publishing');
         }
     };
+
+    const [isOnNavToggle, setOnNavToggle] = useState(!true);
+        const handleOnNavToggle = () => {
+            setOnNavToggle(!isOnNavToggle);
+    }
 
     // URL 변경 시 탭 추가 로직
     useEffect(() => {
@@ -65,10 +70,10 @@ export default function PublishingMain() {
             }}>
                 퍼블
             </div>
-            <Header />
+            <Header isOnNavToggle={isOnNavToggle} handleOnNavToggle={handleOnNavToggle} />
             <div className="onlayout">
                 {/* 사이드바 */}
-                <Leftbar />
+                <Leftbar isOnNavToggle={isOnNavToggle} setOnNavToggle={setOnNavToggle} />
                 {/* 메인 영역 (탭 + 컨텐츠) */}
                 <main>
                     {/* 탭 바 (Tab Bar) */}
