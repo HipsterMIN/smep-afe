@@ -232,10 +232,170 @@ caption {
   min-height: auto;
 }
 
+/* login css */
+.wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.wrapper .onLoginInner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+}
+.wrapper .onLoginInner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background: url("../src/assets/images/common/login_bg.svg") 0 0 / cover no-repeat;
+}
+.wrapper .onLoginViewBox {
+  width: 700px;
+  height: 598px;
+  border-radius: 20px;
+  background-color: #FFF;
+  box-shadow: drop-shadow(0 14px 60px rgba(10, 17, 69, 0.20));
+  z-index: 100;
+}
+.onContents {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  max-width: 430px;
+  margin: 63px auto 0px;
+}
+.onContents h1.onLoginlogo {
+  margin-bottom: 15px;
+}
+.onContents .onLoginlogo > a > img {
+  width: 338px;
+}
+.onContents h4 {
+  color: #0B50D0;
+  font-family: Pretendard;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -1.68px;
+  margin-bottom: 38px;
+}
+.loginform {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 12px;
+}
+.loginform label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 56px;
+  padding-left: 18px;
+  border-radius: 10px;
+  border: 1.5px solid #E6E6E6;
+}
+.loginform label:not(:last-child) {
+  margin-bottom: 20px;
+}
+.loginform label input {
+  width: 100%;
+  height: 100%;
+  color: #333;
+  font-family: Pretendard;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: -1.08px;
+  background: none;
+}
+.loginform label input::placeholder {
+  color: #999;
+}
+.loginform label input:focus,
+.loginform label input:active {
+  border: none;
+  outline: none;
+}
+
+.loginform label:focus-within {
+  border: 2px solid #0B50D0;
+  transition: all 0.35s;
+}
+
+.loginform label.id::before {
+  content: '';
+  display: inline-flex;
+  align-items: center;
+  width: 18px;
+  height: 17px;
+  background: url("../src/assets/images/common/ico_login_id.svg") 0 0 / cover no-repeat;
+}
+.loginform label.pw::before {
+  content: '';
+  display: inline-flex;
+  align-items: center;
+  width: 21px;
+  height: 22px;
+  background: url("../src/assets/images/common/ico_login_pw.svg") center center / 21px auto no-repeat;
+}
+.autochkform {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  margin-left: 18px;
+  margin-bottom: 20px;
+}
+.btnsform {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+}
+.btnsform button {
+  width: 100%;
+  padding: 16px 0px;
+}
+.btnsform button.loginBtn {
+  color: #FFF;
+  font-family: Pretendard;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -1.2px;
+  margin-bottom: 19px;
+  border-radius: 10px;
+  background: #0B50D0;
+}
+.btnsform button.changeBtn {
+  color: #333;
+  font-family: Pretendard;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -1.2px;
+  border-radius: 15px;
+  border: 1px solid #919BA4;
+  background: #FFF;
+}
+
 /* contentbox css */
 .oncontentbox-wrap {background-color: #f2f6ff; flex: 1 1 calc(100% - 276px); padding: 25px; width: calc(100vw - 276px); display: flex; flex-direction: column;}
-.onflex {display: flex;}
+.onflex {position: relative; display: flex;}
 .onflexcolumn {flex-direction: column;}
+.onfileinfotxt {position: absolute; bottom: 0; right: 0; color: #666; font-family: Pretendard; font-size: 14px; font-weight: 500; line-height: normal; letter-spacing: -0.84px;}
+   
 .flexColumn {
   display: flex;
   flex-direction: column;
@@ -310,6 +470,16 @@ caption {
 
 .oncontentbox {border: 1px solid #CDD1D5; background-color: #fff; height: 100%; border-radius: 0px 20px 20px 20px;}
 .oncontents .oncontent.ontable-form { margin-bottom: 20px; }
+
+.ondivide .ontable-form h4 {
+  width: 100%;
+  color: #333;
+  font-family: Pretendard;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -1.08px;
+  margin-bottom: 8px;
+}
 .oncontentTitle {
   position: relative;
   display: flex;
@@ -366,6 +536,7 @@ caption {
   overflow-y: auto;
   max-height: calc(100vh - 247px);
 }
+
 .oncontents.space {
   display: flex;
   justify-content: space-between;
@@ -375,6 +546,14 @@ caption {
   position: relative;
   width: 50%;
   flex-grow: 1;
+}
+.oncontents.space.ondivide {
+  overflow: hidden;
+}
+.oncontents.space.ondivide .oncontent {
+  height: 700px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .oncontents .oncontent {
   width: 100%;
@@ -393,6 +572,20 @@ caption {
   font-size: 18px;
   font-weight: 600;
   letter-spacing: -1.08px;
+}
+.ondivide .ongrid-form {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.ondivide .ongrid-form h4 {
+  width: 100%;
+  margin-bottom: 8px;
+}
+.ondivide .onselect-form {
+  min-height: auto;
+  padding: 0px;
+  margin-bottom: 0px;
 }
 .onselect-form {
   position: relative;
@@ -419,6 +612,11 @@ caption {
   gap: 20px;
   width: 100%;
   padding: 16px 24px;
+}
+.ondivide .onselect-form .onparagraph {
+  row-gap: 10px;
+  column-gap: 40px;
+  padding: 8px 24px;
 }
 .onselect-form .onparagraph.middle {
   padding-top: 0;
@@ -587,6 +785,11 @@ caption {
 .ongrid-tableform {
   position: relative;
 }
+.ongrid-tableform.onSCrollBox {
+  height: 530px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 .ongrid-tableform.mask::after {
   content: '';
   position: absolute;
@@ -716,7 +919,6 @@ button.defaultbutton {
   font-family: Pretendard;
   font-size: 14px;
   font-weight: 400;
-  line-height: 14px;
   letter-spacing: -0.84px;
   padding: 8px 19px;
   border-radius: 5px;
@@ -768,12 +970,22 @@ button.defaultbutton.add,
 button.defaultbutton.addfile {
   background-color: #2750BB;
 }
+button.defaultbutton.event {
+  line-height: 1;
+  white-space: nowrap;
+  background-color: #2750BB;
+}
 button.defaultbutton.del {
   background-color: #DC3545;
 }
 button.defaultbutton.edit {
   background-color: #707070;
   line-height: 0;
+}
+button.defaultbutton.reset {
+  background-color: #707070;
+  line-height: 0;
+  white-space: nowrap;
 }
 button.defaultbutton.list {
   color: #555;
@@ -958,19 +1170,40 @@ input.searchBox::placeholder {
   display: flex;
   gap: 50px;
 }
-.ontableBox table tr td .onmenuspace .onmenubox {
+.ondivide .ontableBox table tr td .onmenuspace dl {
+  display: flex;
+  gap: 10px;
+}
+.ontableBox table tr td .onmenuspace .onmenubox,
+.ondivide .ontableBox table tr td .onmenubox {
   gap: 8px;
 }
-.ontableBox table tr td .onmenubox {
-  gap: 0;
-}
-.ontableBox table tr td .onmenubox.fullSize {
+.ontableBox table tr td .onmenubox
+.ontableBox table tr td .onmenubox.fullSize,
+.onmenubox.fullSize {
   width: 100%;
 }
 .ontableBox table tr td .onradioBox,
 .ontableBox table tr td .oncheckBox {
   display: flex;
   align-items: center;
+  gap: 20px;
+}
+.ontableBox table tr td div.onflexcolumn {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 10px;
+}
+.ondivide .ontableBox table tr td div.onflexcolumn dl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ontableBox table tr td div.onflexrow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   gap: 20px;
 }
 .ontableBox table tr:not(:last-child) td {
@@ -1004,6 +1237,27 @@ input.searchBox::placeholder {
   text-align: left;
   padding-left: 15px;
   background: none;
+}
+.ontableBox table tr td.onbgtxtcenter {
+  text-align: center;
+  background: none;
+}
+.ontableBox table tr td.onbgtxtleft {
+  text-align: left;
+  padding-left: 15px;
+}
+.ontableBox table tr td.ontxtbold {
+  color: #333;
+  font-size: 15px;
+  font-weight: 600;
+}
+.ontableBox table tr td.ontxtnormal {
+  color: #333;
+  font-size: 15px;
+  font-weight: 400;
+}
+.ontableBox table tr td.ontxtcenter {
+  text-align: center;
 }
 .ontableBox table tr td .oneditcontent {
   width: 100%;
@@ -1131,4 +1385,160 @@ input.searchBox::placeholder {
   justify-content: center;
   gap: 10px;
   width: 100%;
+}
+
+
+/* SMS CSS */
+.onsocialTab ul {
+  display: flex;
+  align-items: center;
+}
+.onsocialTab ul li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 182px;
+  height: 40px;
+  color: #666;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+  line-height: normal;
+  letter-spacing: -0.9px;
+  border-top: 1px solid #E1E1E1;
+  border-left: 1px solid #E1E1E1;
+  border-right: 1px solid #E1E1E1;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  background-color: #F9F9F9;
+  cursor: pointer;
+}
+.onsocialTab ul li.active {
+  color: #000;
+  border-top: 1px solid #000;
+  border-left: 1px solid #000;
+  border-right: 1px solid #000;
+  border-bottom: 1px solid #fff;
+  background-color: #fff;
+}
+.onsocialTab ul li.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  width: 100%;
+  height: 2px;
+  background: #fff;
+}
+.onsocialInner {
+  padding: 24px 0px;
+  border-top: 1px solid #000;
+  overflow-y: auto;
+}
+.onsocialInner h4 {
+  color: #333;
+  font-family: Pretendard;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -1.08px;
+  margin-bottom: 20px;
+}
+.onsocialInner .onsocialspace {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  gap: 20px;
+}
+.onsocialInner .onsocialspace .onleft,
+.onsocialInner .onsocialspace .onright {
+  position: relative;
+  padding: 24px 20px;
+  flex-grow: 1;
+  border-radius: 10px;
+  border: 1px solid #E1E1E1;
+}
+.onsocialInner .onsocialspace h5 {
+  color: #333;
+  font-family: Pretendard;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -1.08px;
+  margin-bottom: 20px;
+}
+.onsocialInner .onsocialspace .onright h5 {
+  position: absolute;
+  left: 0;
+  margin-bottom: 0;
+}
+.onsocialInner .onsocialspace .columnbox {
+  position: relative;
+  margin-bottom: 20px;
+}
+.onsocialInner .onsocialspace .columnbox em {
+  position: absolute;
+  left: 0;
+  color: #555;
+  font-family: Pretendard;
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.84px;
+}
+.onsocialInner .onsocialspace .columnbox.end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  gap: 4px;
+}
+.onsocialInner .onsocialspace .columnbox.grow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #E1E1E1;
+}
+.onsocialInner .onsocialspace .onright .columnbox.grow {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.onsocialInner .onsocialspace .columnbox.line {
+  padding-bottom: 20px;
+  border-bottom: 1px solid #E1E1E1;
+}
+.onsocialInner .onsocialspace .columnbox.row {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+.onsocialInner .onsocialspace .columnbox.space {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.onsocialInner .onsocialspace .columnbox.space span {
+  color: #555;
+  font-family: Pretendard;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.84px;
+}
+.onsocialInner .onsocialspace .columnbox.space span > b {
+  color: #2750BB;
+}
+.onsocialInner .onsocialspace .onright .columnbox p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.onsocialInner .onsocialspace .onright .columnbox p span {
+  color: #666;
+  font-family: Pretendard;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 100%;
+  letter-spacing: -0.9px;
 }
