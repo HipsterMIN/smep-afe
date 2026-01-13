@@ -13,9 +13,9 @@ const ApiTest = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     // 운영/개발 모두에서 안전하게 동작하도록 기본값을 BASE_URL 기반으로 산출
-    // VITE_API_BASE_URL이 지정되지 않은 경우: `${BASE_URL}/main-dev`
+    // VITE_API_BASE_URL이 지정되지 않은 경우: `${BASE_URL}/api`
     const baseUrl = import.meta.env.VITE_API_BASE_URL
-        || `${(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}/main-dev`;
+        || `${(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}/api`;
 
     // curl 명령줄 생성 로직
     const fullUrl = `${window.location.origin}${baseUrl}${endpoint}`;
