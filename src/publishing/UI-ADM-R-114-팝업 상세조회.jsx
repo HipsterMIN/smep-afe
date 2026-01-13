@@ -20,24 +20,22 @@ export default function CommonCode() {
               <div className="oncontents space ondivide" style={{ alignItems: 'flex-start' }}>
                 <div className="oncontent">
                   <div className="ongrid-form">
-                    <h4>팝업 목록</h4>
-                    <div className="onselect-form open" style={{minHeight: 'auto'}}>
+                  <h4>팝업 목록</h4>
+                    <div className="onselect-form ">
                       {' '}
                       <div className="onparagraph">
                         <MenuInputBox menuType="select" menuName="팝업 종류" menuSize="100px" />
                         <MenuInputBox menuType="input" menuName="제목" menuSize="300px" />
-
-                        <div style={{ marginLeft: 'auto' }}>
-                          <Button btnType="menuSearch" btnNames="검색" />
-                        </div>
-                      </div>
-                      <div className="onparagraph middle">
                         <div className="ondatepickerbox">
                           <DatepickerBox menuName="게시기간" />
                           <span className="onunit">~</span>
                           <DatepickerBox />
                         </div>
                         <MenuInputBox menuType="select" menuName="사용여부" menuSize="100px" />
+                        
+                        <div className="onbtn"  style={{ marginLeft: 'auto' }}>
+                          <Button btnType="menuSearch" btnNames="검색" />
+                        </div>
                       </div>
                     </div>
                   </div>

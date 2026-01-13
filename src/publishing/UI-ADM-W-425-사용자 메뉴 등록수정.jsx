@@ -10,12 +10,12 @@ export default function CommonCode() {
   return (
     <div className="oncontentbox">
       <div className="oncontentTitle">
-        <h2>관리자 메뉴 관리</h2>
+        <h2>사용자 메뉴 관리</h2>
         <ul className="onbreadcrumb">
           <li>시스템 관리</li>
           <li>시스템 설정</li>
-          <li>관리자 메뉴관리</li>
-          <li className="on">관리자 메뉴목록</li>
+          <li>사용자 메뉴관리</li>
+          <li className="on">사용자 메뉴목록</li>
         </ul>
       </div>
 
@@ -109,6 +109,14 @@ export default function CommonCode() {
                         onChange={setSelectedValue}
                       />
                       <RadioButton
+                        groupId="1"
+                        radioGroup="group1"
+                        radioValue="게시판"
+                        radioName="게시판"
+                        selectedValue={selectedValue}
+                        onChange={setSelectedValue}
+                      />
+                      <RadioButton
                         groupId="2"
                         radioGroup="group1"
                         radioValue="화면"
@@ -128,7 +136,53 @@ export default function CommonCode() {
                   <td><MenuInputBox menuType="input" menuSize="300px" /></td>
                 </tr>
                 <tr>
-                  <td>유형</td>
+                  <td>GNB 노출 여부</td>
+                  <td>
+                    <div className="onradioBox">
+                      <RadioButton
+                        groupId="1"
+                        radioGroup="group1"
+                        radioValue="노출"
+                        radioName="노출"
+                        selectedValue={selectedValue}
+                        onChange={setSelectedValue}
+                      />
+                      <RadioButton
+                        groupId="2"
+                        radioGroup="group1"
+                        radioValue="노출안함"
+                        radioName="노출안함"
+                        selectedValue={selectedValue}
+                        onChange={setSelectedValue}
+                      />
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>LNB 노출 여부</td>
+                  <td>
+                    <div className="onradioBox">
+                      <RadioButton
+                        groupId="1"
+                        radioGroup="group1"
+                        radioValue="노출"
+                        radioName="노출"
+                        selectedValue={selectedValue}
+                        onChange={setSelectedValue}
+                      />
+                      <RadioButton
+                        groupId="2"
+                        radioGroup="group1"
+                        radioValue="노출안함"
+                        radioName="노출안함"
+                        selectedValue={selectedValue}
+                        onChange={setSelectedValue}
+                      />
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>사이트맵 노출 여부</td>
                   <td>
                     <div className="onradioBox">
                       <RadioButton
@@ -142,8 +196,31 @@ export default function CommonCode() {
                       <RadioButton
                         groupId="2"
                         radioGroup="group1"
-                        radioValue="사용 안함"
-                        radioName="사용 안함"
+                        radioValue="사용안함"
+                        radioName="사용안함"
+                        selectedValue={selectedValue}
+                        onChange={setSelectedValue}
+                      />
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>사용 여부</td>
+                  <td>
+                    <div className="onradioBox">
+                      <RadioButton
+                        groupId="1"
+                        radioGroup="group1"
+                        radioValue="사용"
+                        radioName="사용"
+                        selectedValue={selectedValue}
+                        onChange={setSelectedValue}
+                      />
+                      <RadioButton
+                        groupId="2"
+                        radioGroup="group1"
+                        radioValue="사용안함"
+                        radioName="사용안함"
                         selectedValue={selectedValue}
                         onChange={setSelectedValue}
                       />
