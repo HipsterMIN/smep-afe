@@ -5,7 +5,7 @@ import {autoPublishingRoutes} from "../../routes/autoRoutes.jsx";
 export default function Leftbar({isOnNavToggle, setOnNavToggle}) {
   return (
     <aside className={`onleftbar ${isOnNavToggle ? 'close' : ''}`} >
-      <div className="onlinksystem">퍼블리싱 메뉴</div>
+      <div className="onlinksystem">퍼블리싱 메뉴 push 테스트</div>
       <nav>
         <ul className="onleftbar-navlink navdepth1">
           <li className="navdepth1-list">
