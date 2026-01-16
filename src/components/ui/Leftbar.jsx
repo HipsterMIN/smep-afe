@@ -2,6 +2,9 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 export default function Leftbar() {
+
+  // TODO : 향후 동적메뉴로 변경 필요
+
   // 메뉴 데이터 구성
   const menuItems = [
     { name: '공통코드 관리', path: '/common-code' },
@@ -13,15 +16,32 @@ export default function Leftbar() {
     { name: 'SVAR 그리드 예제', path: '/grid-example' },
   ];
 
+  //회원관리용 임시 메뉴데이터 향후 담당자가 동적메뉴 구현 예정
+  const membersMenuItems = [
+    { name: '회원 목록', path: '/member-list' },
+  ];
+
   return (
     <aside className="onleftbar">
       <div className="onlinksystem">시스템 관리</div>
       <nav>
         <ul className="onleftbar-navlink navdepth1">
-          <li className="navdepth1-list">
+          <li className="navdepth1-list on">
             <button>
               <span>회원/권한 관리</span>
             </button>
+            <ul className="navdepth2">
+              {membersMenuItems.map((item, index) => (
+                  <li key={index} className="navdepth2-list">
+                    <NavLink
+                        to={item.path}
+                        className={({isActive}) => (isActive ? 'on' : '')}
+                    >
+                    {item.name}
+                    </NavLink>
+                  </li>
+              ))}
+            </ul>
           </li>
           <li className="navdepth1-list on">
             <button>
