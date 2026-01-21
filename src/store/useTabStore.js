@@ -1,3 +1,4 @@
+// useTabStore.js
 import { create } from 'zustand';
 
 const useTabStore = create((set) => ({
@@ -22,21 +23,14 @@ const useTabStore = create((set) => ({
         };
     }),
 
-    // 탭 닫기
-    removeTab: (path) => set((state) => {
-        const newTabs = state.openTabs.filter((t) => t.path !== path);
-        let newActivePath = state.activeTabPath;
-
-        // 닫으려는 탭이 현재 활성화된 탭이라면 다른 탭으로 포커스 이동
-        if (state.activeTabPath === path) {
-            newActivePath = newTabs.length > 0 ? newTabs[newTabs.length - 1].path : null;
-        }
-
-        return {
-            openTabs: newTabs,
-            activeTabPath: newActivePath
-        };
-    }),
+    // 탭 닫기 (activeTab 변경은 외부에서 처리)
+    removeTab: (path) => set((state) => ({
+        openTabs: state.openTabs.filter((t) => t.path !== path),
+        // activeTabPath는 외부에서 setActiveTab으로 관리
+        activeTabPath: state.openTabs.filter((t) => t.path !== path).length === 0
+            ? null
+            : state.activeTabPath
+    })),
 
     // 활성 탭 변경
     setActiveTab: (path) => set({ activeTabPath: path }),

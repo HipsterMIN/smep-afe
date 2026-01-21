@@ -10,6 +10,7 @@ import LoginView from '../pages/LoginView.jsx';
 import PublishingMain from "../publishing/PublishingMain.jsx";
 import { autoPublishingRoutes } from "./autoRoutes.jsx";
 import DynamicRoute from './DynamicRoute.jsx';
+import MainPage from "../pages/MainPage.jsx";
 
 // Vite의 BASE_URL은 vite.config.js의 base와 일치합니다. (예: '/', '/admin/')
 // React Router의 basename은 마지막 슬래시를 제거한 값으로 전달합니다. (예: '', '/admin')
@@ -28,10 +29,13 @@ const router = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: <Navigate to="/common-code" replace />,
+                element: <MainPage/>,
             },
             {
-                path: ':menuCode',  // 동적 라우팅
+                // 동적 라우팅: :menuCode 파라미터로 메뉴 식별
+                // DynamicRoute에서 componentMapForDynamicRoute를 통해 컴포넌트 로드
+                // 동시에 useTabStore를 사용하여 탭 자동 생성
+                path: ':menuCode',
                 element: <DynamicRoute />,
             },
         ],
@@ -39,6 +43,7 @@ const router = createBrowserRouter([
     { path: '/login', element: <Login /> },
     { path: '/LoginView', element: <LoginView /> },
     {
+        // 퍼블리싱 페이지 라우팅 (개발용)
         path: '/publishing',
         element: <PublishingMain />,
         children: [
