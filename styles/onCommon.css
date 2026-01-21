@@ -938,6 +938,13 @@ button.defaultbutton {
   border-radius: 5px;
   background-color: #fff;
 }
+button.defaultbutton.small {
+    font-size: 13px;
+    padding: 1px;
+    height: 24px;
+    padding: 5px 15px;
+    min-width: 52px;
+} 
 button.defaultbutton.search {
   background-color: #707070;
 }
@@ -1282,8 +1289,17 @@ input.searchBox::placeholder {
   height: 393px;
   background-color: rgba(170, 170, 170, 0.5);
 }
-.ontableBox .ontable-column {
-
+.ontableBox.categoryEdit {
+    height: 230px;
+    margin-bottom: 0;
+    overflow-y: auto;
+}
+.ontableBox.categoryEdit table tr td {
+  background: none;
+  border-right: 1px solid #e1e1e1;
+  border-left: 1px solid #e1e1e1;
+  padding: 6px 12px;
+  text-align: left;
 }
 /* grid table, custom css */
 .name.wx-wzokGf21 {

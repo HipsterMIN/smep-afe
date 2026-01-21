@@ -6,6 +6,9 @@ export default function MenuInputBox({
   menuSize = '100px',
   selectOption,
   placeholder,
+  value,
+  onChange,
+  className,
 }) {
   return (
     <>
@@ -16,6 +19,9 @@ export default function MenuInputBox({
             type="text"
             placeholder={placeholder}
             style={{ width: menuSize }}
+            value={value}
+            onChange={onChange}
+            className={className}
           />
         </div>
       ) : menuType === 'select' ? (

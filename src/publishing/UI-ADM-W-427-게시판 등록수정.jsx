@@ -11,6 +11,46 @@ import SearchBox from '../components/ui/SearchBox.jsx';
 
 export default function CommonCode() {
   const [selectedValue, setSelectedValue] = useState(null); // radio button 분기변수
+  const [categoryInput, setCategoryInput] = useState(''); // 카테고리 추가 입력값
+  const [categories, setCategories] = useState([]); // 카테고리 목록
+  const [editingIndex, setEditingIndex] = useState(null); // 수정 중인 카테고리 인덱스
+
+  // 카테고리 추가
+  const handleAddCategory = () => {
+    if (categoryInput.trim() === '') {
+      alert('카테고리 내용을 입력해주세요.');
+      return;
+    }
+    setCategories([...categories, { name: categoryInput, isEditing: false }]);
+    setCategoryInput('');
+  };
+
+  // 카테고리 수정 모드 진입
+  const handleEditCategory = (index) => {
+    setEditingIndex(index);
+    setCategories(categories.map((cat, i) =>
+      i === index ? { ...cat, isEditing: true } : cat
+    ));
+  };
+
+  // 카테고리 수정 저장
+  const handleSaveCategory = (index, newName) => {
+    if (newName.trim() === '') {
+      alert('카테고리 내용을 입력해주세요.');
+      return;
+    }
+    setCategories(categories.map((cat, i) =>
+      i === index ? { ...cat, name: newName, isEditing: false } : cat
+    ));
+    setEditingIndex(null);
+  };
+
+  // 카테고리 삭제
+  const handleDeleteCategory = (index) => {
+    if (window.confirm('삭제하시겠습니까?')) {
+      setCategories(categories.filter((_, i) => i !== index));
+    }
+  };
 
   return (
     <div className="oncontentbox full">
@@ -180,10 +220,74 @@ export default function CommonCode() {
                           <td rowSpan={5}>
                             <div className="onflexcolumn">
                               <div className="onflexrow">
-                                <MenuInputBox menuType="input" menuSize='300px' />
-                                <Button btnType="add" btnNames="추가"/>
+                                <MenuInputBox
+                                  menuType="input"
+                                  menuSize='300px'
+                                  value={categoryInput}
+                                  onChange={(e) => setCategoryInput(e.target.value)}
+                                />
+                                <Button
+                                  btnType="add"
+                                  btnNames="추가"
+                                  onClick={handleAddCategory}
+                                />
                               </div>
-                              <div className="oneditcontent"></div>
+                              <div className="ontableBox categoryEdit" >
+                                <table>
+                                  <colgroup>
+                                    <col />
+                                    <col style={{ width: '76px' }} />
+                                    <col style={{ width: '76px' }} />
+                                  </colgroup>
+                                  <tbody>
+                                    {categories.map((category, index) => (
+                                      <tr key={index}>
+                                        <td>
+                                          {category.isEditing ? (
+                                            <MenuInputBox
+                                              menuType="input"
+                                              menuSize="100%"
+                                              value={category.name}
+                                              onChange={(e) => {
+                                                const newCategories = [...categories];
+                                                newCategories[index].name = e.target.value;
+                                                setCategories(newCategories);
+                                              }}
+                                            />
+                                          ) : (
+                                            <span className="statusTxt">{category.name}</span>
+                                          )}
+                                        </td>
+                                        <td>
+                                          {category.isEditing ? (
+                                            <Button
+                                              btnType="add"
+                                              btnNames="저장"
+                                              size="small"
+                                              onClick={() => handleSaveCategory(index, category.name)}
+                                            />
+                                          ) : (
+                                            <Button
+                                              btnType="edit"
+                                              size="small"
+                                              btnNames="수정"
+                                              onClick={() => handleEditCategory(index)}
+                                            />
+                                          )}
+                                        </td>
+                                        <td>
+                                          <Button
+                                            btnType="del"
+                                            size="small"
+                                            btnNames="삭제"
+                                            onClick={() => handleDeleteCategory(index)}
+                                          />
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
                             </div>
                           </td>
                         </tr>
