@@ -5,9 +5,10 @@
 // - 선택된 탭 닫기 시 다음 탭으로 자동 이동
 // ============================================
 import { useNavigate } from 'react-router-dom';
+
+import useTabStore from '../../store/useTabStore';
 import Button from './Button';
 import Contents from './Contents';
-import useTabStore from '../../store/useTabStore';
 
 // eslint-disable-next-line react/prop-types
 export default function Contentbox({ children }) {
