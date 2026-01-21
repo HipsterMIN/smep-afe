@@ -14,7 +14,7 @@ export default function CommonCode() {
         </div>
         <Button btnType="add" btnNames="추가" />
       </div>
-      <div className="oncontent ontable-form">
+      <div className="oncontent ontable-form" style={{ paddingRight : '0' }}>
         <div className="ontableBox onbgtable">
           <table>
             <colgroup>

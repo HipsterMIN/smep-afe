@@ -587,6 +587,14 @@ caption {
   padding: 0px;
   margin-bottom: 0px;
 }
+.ondividegroup {
+  display: flex;
+  gap:10px;
+}
+.ondividegroup .ondividegroup-item {
+  flex-basis: 50%;
+  width: 50%;
+}
 .onselect-form {
   position: relative;
   display: flex;
@@ -665,6 +673,12 @@ caption {
   width: 0;
   height: 32px;
   border-left: 1px dashed #2a4f6e;
+}
+.onselect-form .onsidebtns {
+  margin-left: auto;
+  display: flex;
+  align-items: cneter;
+  gap: 10px;
 }
 .ontable-legend {
   display: flex;
@@ -924,6 +938,13 @@ button.defaultbutton {
   border-radius: 5px;
   background-color: #fff;
 }
+button.defaultbutton.small {
+    font-size: 13px;
+    padding: 1px;
+    height: 24px;
+    padding: 5px 15px;
+    min-width: 52px;
+} 
 button.defaultbutton.search {
   background-color: #707070;
 }
@@ -1209,7 +1230,8 @@ input.searchBox::placeholder {
 .ontableBox table tr:not(:last-child) td {
   border-bottom: 1px solid #E1E1E1;
 }
-.ontableBox table tr td:nth-child(odd) {
+.ontableBox table tr td:nth-child(odd),
+.ontableBox table tr th {
   color: #333;
   font-family: Pretendard;
   font-size: 15px;
@@ -1220,6 +1242,9 @@ input.searchBox::placeholder {
   vertical-align: middle;
   border-right: 1px solid #E1E1E1;
   background-color: #F4F4F4;
+}
+.ontableBox table tr th  {
+  border-bottom: 1px solid #e1e1e1;
 }
 .ontableBox.onbgtable table tr td:nth-child(odd) {
   background-color: #fff;
@@ -1263,6 +1288,18 @@ input.searchBox::placeholder {
   width: 100%;
   height: 393px;
   background-color: rgba(170, 170, 170, 0.5);
+}
+.ontableBox.categoryEdit {
+    height: 230px;
+    margin-bottom: 0;
+    overflow-y: auto;
+}
+.ontableBox.categoryEdit table tr td {
+  background: none;
+  border-right: 1px solid #e1e1e1;
+  border-left: 1px solid #e1e1e1;
+  padding: 6px 12px;
+  text-align: left;
 }
 /* grid table, custom css */
 .name.wx-wzokGf21 {
@@ -1541,4 +1578,90 @@ input.searchBox::placeholder {
   font-weight: 500;
   line-height: 100%;
   letter-spacing: -0.9px;
+}
+
+/* statistics CSS */
+.onstatistics {
+  position: relative;
+}
+.onstatistics .onflexrow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 20px;
+  width: 100%;
+}
+.onstatistics .onflexrow:not(:last-child) {
+  margin-bottom: 25px;
+}
+.onstatistics .onflexrow dl {
+  flex-grow: 1;
+  flex-basis: 300px;
+}
+.onstatistics .onflexrow dl dt {
+  color: #333;
+  font-family: Pretendard;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -1.08px;
+  margin-bottom: 10px;
+}
+.onstatistics .onflexrow dl dd {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  border-radius: 10px;
+  border: 1px solid #E9E9E9;
+}
+.onstatistics .onflexspace {
+  display: flex;
+  align-items: flex-start;
+  width: calc(100vw - 247px);
+  gap: 20px;
+}
+.onstatistics .ontreebox {
+  position: relative;
+  width: 280px;
+  height: 658px;
+  border-radius: 10px;
+  border: 1px solid #E9E9E9;
+}
+
+/* chart css */
+.ondonutchart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.ondonutchart.row {
+  flex-direction: row;
+}
+.ondonutchart .legend,
+.onstackedchart .legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 12px;
+}
+.ondonutchart.row .legend {
+  flex-direction: column;
+}
+.ondonutchart .legend-item,
+.onstackedchart .legend-item {
+  display: flex;
+  align-items: center;
+}
+.ondonutchart .dot,
+.onstackedchart .dot {
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 50%;
+}
+.onstackedchart .dot {
+  border-radius: 0;
+}
+.ondonutchart .text-label {
+  font-size: 13px;
+  color: #444;
 }
