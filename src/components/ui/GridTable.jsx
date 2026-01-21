@@ -5,9 +5,10 @@ import React from 'react';
 
 import ButtonCell from '../custom/ButtonCell';
 import CheckBox from './CheckBox';
+import PropTypes from "prop-types";
 
 // 그리드 컬럼 정의
-const columns = [
+export const defaultColumns = [
   { cell: CheckBox, id: 'checkbox', width: 40 },
   { id: 'id', flexgrow: 1, header: 'ID' },
   { id: 'name', flexgrow: 1, header: '성명' },
@@ -16,7 +17,7 @@ const columns = [
 ];
 
 // 예제 데이터
-const data = [
+export const defaultData = [
   {
     cell: CheckBox,
     id: 'admin12301',
@@ -125,10 +126,20 @@ const data = [
 ];
 
 // 관리자 화면 - 그리드 테이블 컴포넌트
-export default function GridTable() {
+export default function GridTable({
+                                    data = defaultData,
+                                    columns = defaultColumns,
+                                    gridProps = {},
+                                  }) {
   return (
     <Willow>
-      <Grid data={data} columns={columns} />
+      <Grid data={data} columns={columns} {...gridProps} />
     </Willow>
   );
 }
+
+GridTable.propTypes = {
+  data: PropTypes.array,
+  columns: PropTypes.array,
+  gridProps: PropTypes.object,
+};
