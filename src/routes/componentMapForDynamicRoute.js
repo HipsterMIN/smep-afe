@@ -19,4 +19,5 @@ export const componentMapForDynamicRoute = {
     'member-list': lazy(() => import('../pages/member/MemberList')),
 
     // 필요한 다른 메뉴 코드와 컴포넌트를 여기에 추가하세요.
+    'menu-mng': lazy(() => import('../pages/menu/Menu')),
 };
