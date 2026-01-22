@@ -24,10 +24,15 @@ export const routeConfig = {
         component: lazy(() => import('../pages/MenuMgmt')),
         name: '관리자 메뉴관리'
     },
-    // 게시판 관리 페이지
-    'board-mgmt': {
-        component: lazy(() => import('../pages/BoardMgmt')),
-        name: '게시판 관리'
+    // 게시판 목록 페이지
+    'bbs-list': {
+        component: lazy(() => import('../pages/board/BbsList')),
+        name: '게시판 목록'
+    },
+    // 게시판 등록 페이지
+    'bbs-form': {
+        component: lazy(() => import('../pages/board/BbsForm')),
+        name: '게시판 등록'
     },
     // 사업정보 관리 페이지
     'biz-info': {

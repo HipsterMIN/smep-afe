@@ -1,5 +1,7 @@
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { fileURLToPath, URL } from 'node:url';
+
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -28,6 +30,11 @@ export default defineConfig(({ mode }) => ({
         secure: false,
         rewrite: (path) => path.replace(/^\/admin-dev/, ''),
       },
-    }
-  }
-}))
+    },
+  },
+  resolve: {
+    alias: {
+      '@components': fileURLToPath(new URL('./src/components', import.meta.url)),
+    },
+  },
+}));

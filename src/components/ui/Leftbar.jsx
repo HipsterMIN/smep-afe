@@ -10,7 +10,7 @@ export default function Leftbar() {
     { name: '공통코드 관리', path: '/common-code' },
     { name: '권한 관리', path: '/auth-mgmt' },
     { name: '관리자 메뉴관리', path: '/menu-mgmt' },
-    { name: '게시판 관리', path: '/board-mgmt' },
+    { name: '게시판 관리', path: '/bbs-list' },
     { name: '사업정보 관리', path: '/biz-info' },
     { name: '사업정보 등록/수정', path: '/biz-reg' },
     { name: 'SVAR 그리드 예제', path: '/grid-example' },
