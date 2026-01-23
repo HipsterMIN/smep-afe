@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
-const StackedBarChart = ({ data, height = 400, colors = ["#1C92FF", "#FF8A00"] }) => {
+const StackedBarChart = ({ data, height = 400, colors = ["#1C92FF", "#FF8A00"], chartTitle }) => {
   const containerRef = useRef(null);
   const svgRef = useRef(null);
   const [width, setWidth] = useState(0);
@@ -84,6 +84,7 @@ const StackedBarChart = ({ data, height = 400, colors = ["#1C92FF", "#FF8A00"] }
 
   return (
     <div ref={containerRef} className="onstackedchart" style={{ width: '100%', minWidth: '300px' }}>
+      <h4 style={{ marginLeft : '40px' }}>{chartTitle}</h4>
       <svg ref={svgRef}></svg>
       
       <div className="legend">

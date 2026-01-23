@@ -41,7 +41,7 @@ export default function CommonCode() {
   return (
     <div className="oncontentbox full">
       <div className="oncontentTitle">
-        <h2>사업정보 관리</h2>
+        <h2>접속 통계</h2>
         <ul className="onbreadcrumb">
           <li>지원사업 관리</li>
           <li>사업공고 관리</li>
@@ -116,7 +116,11 @@ export default function CommonCode() {
               </div>
             </div>
             <div className="ondividegroup-item">
-              <StackedBarChart data={chartData} legend={["방문자수", "페이지뷰"]}/>
+              <StackedBarChart
+                data={chartData}
+                legend={["방문자수", "페이지뷰"]}
+                chartTitle="방문 페이지별"
+              />
             </div>
           </div>
           

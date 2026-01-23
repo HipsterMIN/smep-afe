@@ -47,7 +47,18 @@ export default function CommonCode() {
             <div className="onflexrow onchartgroup">
               <dl>
                 <dt>연령</dt>
-                <dd><DonutChart data={data1} customColors={["#1C92FF", "#4FC3F7", "#81D4FA", "#B3E5FC", "#E1F5FE"]}/></dd>
+                <dd>
+                  <DonutChart
+                    data={data1}
+                    // customColors={[
+                    //   "#1C92FF",
+                    //   "#4FC3F7",
+                    //   "#81D4FA",
+                    //   "#B3E5FC",
+                    //   "#E1F5FE"
+                    // ]}
+                  />
+                </dd>
               </dl>
               <dl>
                 <dt>직업</dt>
