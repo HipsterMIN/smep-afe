@@ -21,7 +21,6 @@ const BarChart = ({ data, height = 300, color = "#1C92FF" }) => {
   useEffect(() => {
     if (!data || data.length === 0 || width === 0) return;
 
-    // 1. 여백 설정 (X축 라벨이 기울어지므로 하단 여백을 넉넉히 잡음)
     const margin = { top: 20, right: 20, bottom: 50, left: 40 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
@@ -46,7 +45,7 @@ const BarChart = ({ data, height = 300, color = "#1C92FF" }) => {
       .nice()
       .range([innerHeight, 0]);
 
-    // 3. 축 그리기
+    // 축 그리기
     // Y축
     g.append('g')
       .call(d3.axisLeft(yScale).ticks(5))
@@ -67,7 +66,7 @@ const BarChart = ({ data, height = 300, color = "#1C92FF" }) => {
       .style('font-size', '10px')
       .style('color', '#666');
 
-    // 4. 막대 그리기
+    // 막대 그리기
     g.selectAll('.bar')
       .data(data)
       .enter()
@@ -86,7 +85,6 @@ const BarChart = ({ data, height = 300, color = "#1C92FF" }) => {
 
   return (
     <div ref={containerRef} style={{ width: '100%', overflow: 'hidden' }}>
-      <h4 style={{ fontSize: '14px', marginBottom: '10px', color: '#333' }}>일별 방문자(최근 30일)</h4>
       <svg ref={svgRef}></svg>
     </div>
   );

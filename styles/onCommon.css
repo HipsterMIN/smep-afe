@@ -1230,7 +1230,7 @@ input.searchBox::placeholder {
 .ontableBox table tr:not(:last-child) td {
   border-bottom: 1px solid #E1E1E1;
 }
-.ontableBox table tr td:nth-child(odd),
+.ontableBox table:not(.ontable-data) tr td:nth-child(odd),
 .ontableBox table tr th {
   color: #333;
   font-family: Pretendard;
@@ -1321,7 +1321,7 @@ input.searchBox::placeholder {
 .addfile + input[type='file']{display: none;}
 
 /* datepicker css */
-.ondatepickerbox {position: relative; z-index: 200; display: flex; align-items: center; gap: 8px;}
+.ondatepickerbox {position: relative;  display: flex; align-items: center; gap: 8px;}
 .ondatepickerbox .onunit { color: #666; font-size: 14px; font-weight: 500; }
 .ondatepicker-wrapper { position: relative; display: inline-flex; align-items: center; }
 .ondatepicker-wrapper .ondatepicker { width: 126px; height: 32px; padding: 7px 30px 7px 12px; border-radius: 5px; border: 1px solid #D7D7D7; background: #FFF; color: #555; font-family: Pretendard; font-size: 14px; font-weight: 500; letter-spacing: -0.84px; }
@@ -1609,8 +1609,9 @@ input.searchBox::placeholder {
 .onstatistics .onflexrow dl dd {
   position: relative;
   width: 100%;
-  height: 300px;
+  /* height: 300px; */
   border-radius: 10px;
+  padding: 20px;
   border: 1px solid #E9E9E9;
 }
 .onstatistics .onflexspace {
@@ -1664,4 +1665,58 @@ input.searchBox::placeholder {
 .ondonutchart .text-label {
   font-size: 13px;
   color: #444;
+}
+.chartbox {
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #E9E9E9;
+}
+.infoNumber-box {
+  margin: 20px 0;
+} 
+.infoNumber-box .infoNumber-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+} 
+.infoNumber-box .infoNumber-item {
+  flex: 1;
+  padding: 20px 24px;
+  background: #F4F5F6;
+  border-radius: 10px;
+  border: 1px solid #E9E9E9;
+} 
+.infoNumber-box .infoNumber-tit {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+} 
+.infoNumber-box .count-box {
+  margin-top: 26px;
+  text-align: right;
+  font-size: 18px;
+  font-weight: 600;
+  color: #999;
+  letter-spacing: -1.08px;
+} 
+.infoNumber-box .count-box strong {
+  margin-right: 4px;
+  font-size: 30px;
+  font-weight: 600;
+  color: #333;
+  letter-spacing: -1.8px;
+} 
+.ongridbox {
+  display: flex;
+  gap: 24px;
+}
+.onsection ~ .onsection {
+  margin-top: 24px;
+}
+/* util-class */
+.mt-24 {
+  margin-top: 24px;
+}
+.mb-24 {
+  margin-bottom: 24px;
 }

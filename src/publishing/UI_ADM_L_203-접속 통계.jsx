@@ -43,9 +43,9 @@ export default function CommonCode() {
       <div className="oncontentTitle">
         <h2>접속 통계</h2>
         <ul className="onbreadcrumb">
-          <li>지원사업 관리</li>
-          <li>사업공고 관리</li>
-          <li className="on">사업정보 관리</li>
+          <li>통계분석</li>
+          <li>통계</li>
+          <li className="on">접속 통계</li>
         </ul>
       </div>
       <div className="oncontents">
@@ -124,8 +124,9 @@ export default function CommonCode() {
             </div>
           </div>
           
+          <h3 className="onsubtitle mb-24">일별 방문자(최근 30일)</h3>
           <div>
-              <BarChart data={dailyData} legend={["방문자수", "페이지뷰"]}/>
+              <BarChart data={dailyData} />
           </div>
         </div>
       </div>

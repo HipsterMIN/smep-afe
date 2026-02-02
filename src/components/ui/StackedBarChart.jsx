@@ -84,7 +84,9 @@ const StackedBarChart = ({ data, height = 400, colors = ["#1C92FF", "#FF8A00"], 
 
   return (
     <div ref={containerRef} className="onstackedchart" style={{ width: '100%', minWidth: '300px' }}>
-      <h4 style={{ marginLeft : '40px' }}>{chartTitle}</h4>
+      {chartTitle && (
+        <h4 style={{ marginLeft : '40px' }}>{chartTitle}</h4>
+      )}
       <svg ref={svgRef}></svg>
       
       <div className="legend">
