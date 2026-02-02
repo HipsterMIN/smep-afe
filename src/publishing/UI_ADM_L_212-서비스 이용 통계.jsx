@@ -19,7 +19,7 @@ export default function CommonCode() {
             {/** open 클래스로 동작, 펼치기/접기 */}
             <div className="onparagraph">
               <MenuInputBox menuType="select" menuName="연도" selectOption="" menuSize="150px" />
-              <div className="onbtn"  style={{ marginLeft: 'auto' }}>
+              <div className=""  style={{ marginLeft: 'auto' }}>
                 <Button btnType="menuSearch" btnNames="검색" />
               </div>
             </div>

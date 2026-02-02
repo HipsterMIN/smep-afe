@@ -21,7 +21,7 @@ export default function CommonCode() {
             <div className="onparagraph">
               <MenuInputBox menuType="select" menuName="연도" selectOption="" menuSize="150px" />
               <MenuInputBox menuType="select" menuName="회원구분" selectOption="" menuSize="150px" />
-              <div className="onbtn"  style={{ marginLeft: 'auto' }}>
+              <div className=""  style={{ marginLeft: 'auto' }}>
                 <Button btnType="menuSearch" btnNames="검색" />
               </div>
             </div>

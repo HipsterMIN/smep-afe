@@ -42,7 +42,7 @@ export default function CommonCode() {
                 <DatepickerBox />
               </div>
   
-              <div className="onbtn"  style={{ marginLeft: 'auto' }}>
+              <div className=""  style={{ marginLeft: 'auto' }}>
                 <Button btnType="menuSearch" btnNames="검색" />
               </div>
             </div>
