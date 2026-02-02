@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+
 import http from '../lib/http.js'
 
 export default function AuthBar() {
@@ -8,7 +9,7 @@ export default function AuthBar() {
   const checkAuth = async () => {
     setMsg('')
     try {
-      const res = await http.get('/example')
+      const res = await http.get('/api/v1/example')
       setMsg('인증 성공: ' + (res.status || 200))
     } catch (e) {
       setMsg('인증 실패: ' + (e?.response?.status || e.message))
