@@ -1,6 +1,7 @@
 import Button  from "../components/ui/Button.jsx";
 import MenuInputBox from "../components/ui/MenuInputBox.jsx";
 import GridTable from '../components/ui/GridTable';
+import Organization from '../components/ui/Organization'; // RC-TREE 조직도
 
 export default function CommonCode() {
 
@@ -30,7 +31,7 @@ export default function CommonCode() {
           <div className="onstatistics">
             <div className="onflexspace">
               <div className="ontreebox">
-                RC-TREE
+                <Organization />
               </div>
               <div className="ongrid-tableform " style={{ width: '100px', flexGrow : '1' }}>
                 <GridTable />
