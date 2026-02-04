@@ -54,10 +54,15 @@ export const routeConfig = {
         component: lazy(() => import('../pages/member/MemberList')),
         name: '회원 목록'
     },
-    // 메뉴 관리 페이지
-    'menu-mng': {
-        component: lazy(() => import('../pages/menu/Menu')),
-        name: '메뉴 관리'
+    // 사용자메뉴 관리 페이지
+    'menu-user-mng': {
+        component: lazy(() => import('../pages/menu/MenuUser.jsx')),
+        name: '사용자메뉴 관리'
+    },
+    // 관리자메뉴 관리 페이지
+    'menu-admin-mng': {
+        component: lazy(() => import('../pages/menu/MenuAdmin.jsx')),
+        name: '관리자메뉴 관리'
     },
 
     // ==========================================
