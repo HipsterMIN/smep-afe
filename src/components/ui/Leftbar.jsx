@@ -1,20 +1,36 @@
 // Leftbar.jsx
 import { useUserMenu } from '@context/UserMenuContext';
+import { useMenuStore } from '@store/useMenuStore'; // ✅ 추가
+import { buildFullPath } from '@utils/menuUtils'; // ✅ 추가
 import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 
 export default function Leftbar() {
   const location = useLocation();
   const { getSideNavigationData, getDepth1Parent, currentMenu } = useUserMenu();
+  const { menuTree, flatMenuMap } = useMenuStore(); // ✅ 추가
 
   // 토글 상태 관리 (menuId를 key로)
   const [openMenus, setOpenMenus] = useState({});
 
-  // 현재 depth1 부모 메뉴
-  const depth1Parent = getDepth1Parent();
+  // ✅ 수정: depth1Parent fallback
+  let depth1Parent = getDepth1Parent();
+  if (!depth1Parent && menuTree?.children?.[0]) {
+    depth1Parent = menuTree.children[0];
+  }
 
-  // 현재 depth1의 모든 depth2, depth3 메뉴
-  const sideMenus = getSideNavigationData();
+  // ✅ 수정: sideMenus fallback (link 생성 포함)
+  let sideMenus = getSideNavigationData();
+  if ((!sideMenus || sideMenus.length === 0) && depth1Parent?.children) {
+    sideMenus = depth1Parent.children.map((depth2) => ({
+      ...depth2,
+      link: buildFullPath(depth2, flatMenuMap),
+      children: depth2.children?.map((depth3) => ({
+        ...depth3,
+        link: buildFullPath(depth3, flatMenuMap),
+      })),
+    }));
+  }
 
   // 현재 활성 메뉴에 해당하는 depth2를 자동으로 열기
   useEffect(() => {
@@ -39,8 +55,8 @@ export default function Leftbar() {
     setOpenMenus((prev) => ({ ...prev, [menuId]: !prev[menuId] }));
   };
 
-  // depth1이 없으면 렌더링 안 함
-  if (!depth1Parent) {
+  // ✅ 수정: 조건 추가
+  if (!depth1Parent || !sideMenus || sideMenus.length === 0) {
     return null;
   }
 
