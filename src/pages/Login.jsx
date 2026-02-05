@@ -16,7 +16,7 @@ export default function Login() {
     setLoading(true)
     try {
       const res = await http.post('/api/v1/account/login', { username, password })
-      if (res?.data?.data?.next) {
+      if (res?.data?.next) {
         navigate('/')
       } else {
         setError('로그인 응답 형식이 예상과 다릅니다.')
@@ -33,7 +33,7 @@ export default function Login() {
     setLoading(true)
     try {
       const res = await http.post('/api/v1/account/temporary-login', { username: username || 'admin' })
-      if (res?.data?.data?.next) {
+      if (res?.data?.next) {
         navigate('/')
       } else {
         setError('임시로그인 응답 형식이 예상과 다릅니다.')
