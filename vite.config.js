@@ -51,6 +51,8 @@ export default defineConfig(({ mode }) => ({
       '@routes': path.resolve(__dirname, './src/routes'),
       '@store': path.resolve(__dirname, './src/store'),
 
+      '@utils': path.resolve(__dirname, './src/utils'),
+
       // 루트 레벨 styles 폴더
       '@styles': path.resolve(__dirname, './styles'),
 

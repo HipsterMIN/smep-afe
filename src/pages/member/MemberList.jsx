@@ -1,4 +1,3 @@
-
 import Button from '../../components/ui/Button';
 import DatepickerBox from '../../components/ui/DatepickerBox.jsx';
 import GridTable from '../../components/ui/GridTable.jsx';
@@ -16,16 +15,31 @@ export default function MemberList() {
         </ul>
       </div>
 
-      <div className="oncontents space ondivide" style={{ alignItems: 'flex-start' }}>
+      <div
+        className="oncontents space ondivide"
+        style={{ alignItems: 'flex-start' }}
+      >
         <div className="oncontent">
           <div className="ongrid-form">
             <h4>회원 목록</h4>
-            <div className="onselect-form open" style={{minHeight: 'auto'}}>
+            <div className="onselect-form open" style={{ minHeight: 'auto' }}>
               {' '}
               <div className="onparagraph">
-                <MenuInputBox menuType="select" menuName="회원 구분" menuSize="100px" />
-                <MenuInputBox menuType="input" menuName="회원 명" menuSize="150px" />
-                <MenuInputBox menuType="select" menuName="상태" menuSize="100px" />
+                <MenuInputBox
+                  menuType="select"
+                  menuName="회원 구분"
+                  menuSize="100px"
+                />
+                <MenuInputBox
+                  menuType="input"
+                  menuName="회원 명"
+                  menuSize="150px"
+                />
+                <MenuInputBox
+                  menuType="select"
+                  menuName="상태"
+                  menuSize="100px"
+                />
 
                 <div style={{ marginLeft: 'auto' }}>
                   <Button btnType="menuSearch" btnNames="검색" />
@@ -56,7 +70,7 @@ export default function MemberList() {
             <GridTable />
           </div>
         </div>
-    
+
         <div className="oncontent ontable-form">
           <h4>회원정보 상세조회(개인)</h4>
           <div className="ontableBox">

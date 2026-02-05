@@ -1,13 +1,10 @@
-import React from 'react';
-import {RouterProvider} from 'react-router-dom';
-
-import {AuthProvider} from './context/AuthContext';
-import router from './routes/index.jsx';
+import { AuthProvider } from '@context/AuthContext';
+import AppRouter from '@routes/index.jsx';
 
 function App() {
   return (
     <AuthProvider>
-      <RouterProvider router={router} />
+      <AppRouter />
     </AuthProvider>
   );
 }
