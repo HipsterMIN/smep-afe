@@ -10,7 +10,7 @@ export default function AuthBar() {
     setMsg('')
     try {
       const res = await http.get('/api/v1/example')
-      setMsg('인증 성공: ' + (res.status || 200))
+      setMsg('인증 성공 (success 여부): ' + (res.success || true))
     } catch (e) {
       setMsg('인증 실패: ' + (e?.response?.status || e.message))
     }
