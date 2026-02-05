@@ -52,7 +52,7 @@ export default function MenuBase({
         setLoading(true);
         try {
             const res = await http.get('/api/v1/menuMng', { params });
-            setRows(res?.data?.data ?? res?.data ?? []);
+            setRows(res?.data ?? []);
         } catch (err) {
             alert('메뉴 데이터를 불러오는 중 오류가 발생했습니다.');
         } finally {
@@ -120,7 +120,7 @@ export default function MenuBase({
 
         if (form.menuId) {
             const res = await http.put(`/api/v1/menuMng/${form.menuId}`, form);
-            if (res?.data?.success) {
+            if (res?.success) {
                 alert('수정되었습니다.');
                 fetchMenus();
             } else {
@@ -128,7 +128,7 @@ export default function MenuBase({
             }
         } else {
             const res = await http.post(`/api/v1/menuMng`, form);
-            if (res?.data?.success) {
+            if (res?.success) {
                 alert('등록되었습니다.');
                 fetchMenus();
             } else {
@@ -145,7 +145,7 @@ export default function MenuBase({
         if (!window.confirm(`${form.menuNm}(${form.menuId}) 을(를) 삭제하시겠습니까?`)) return;
 
         const res = await http.delete(`/api/v1/menuMng/${form.menuId}`);
-        if (res?.data?.success) {
+        if (res?.success) {
             alert('삭제되었습니다.');
             fetchMenus();
         } else {
