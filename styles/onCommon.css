@@ -1630,7 +1630,8 @@ input.searchBox::placeholder {
 }
 
 /* chart css */
-.ondonutchart {
+.ondonutchart,
+.ondatechart  {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1649,21 +1650,24 @@ input.searchBox::placeholder {
   flex-direction: column;
 }
 .ondonutchart .legend-item,
-.onstackedchart .legend-item {
+.onstackedchart .legend-item,
+.ondatechart .legend-item {
   display: flex;
   align-items: center;
 }
 .ondonutchart .dot,
-.onstackedchart .dot {
+.onstackedchart .dot,
+.ondatechart .dot {
   width: 10px;
   height: 10px;
   margin-right: 6px;
-  border-radius: 50%;
+  border-radius: 2px;
 }
 .onstackedchart .dot {
   border-radius: 0;
 }
-.ondonutchart .text-label {
+.ondonutchart .text-label,
+.ondatechart .text-label {
   font-size: 13px;
   color: #444;
 }

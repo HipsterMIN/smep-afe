@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Button from "../components/ui/Button.jsx";
 import DatepickerBox from "../components/ui/DatepickerBox.jsx";
 import DonutChart from "../components/ui/DonutChart.jsx";
-import BarChart from "../components/ui/BarChart.jsx";
+import DateBarChart from "../components/ui/DateBarChart.jsx";
 
 
 export default function CommonCode() {
@@ -91,7 +91,7 @@ export default function CommonCode() {
 
             <div className="ondividegroup-item">
                 <div className="ontableBox">
-                <table className="">
+                <table className="ontable-data">
                   <colgroup>
                     <col style={{ width: '150px' }} />
                     <col style={{ width: 'auto' }} />
@@ -110,7 +110,7 @@ export default function CommonCode() {
                     <tr>
                       <td className="onbgtxtcenter">1월</td>
                       <td className="onbgtxtcenter">xxxxx</td>
-                      <td className="onbgtxtcenter">xxxxx</td>
+                      <td className="onbgtxtcenter noneBg">xxxxx</td>
                       <td className="onbgtxtcenter">2026.02.02</td>
                     </tr>
                     <tr>
@@ -134,9 +134,9 @@ export default function CommonCode() {
 
         <div className="onsection">
           {/* 일별 증명서별 신청건수 */}
-          <h3 className="onsubtitle mb-24">일별 방문자(최근 30일)</h3>
+          <h3 className="onsubtitle mb-24">일별 증명서별 신청 건수</h3>
           <div>
-            <BarChart data={dailyData} />
+            <DateBarChart data={dailyData} legend="일별 증명서별 신청 건수"/>
           </div>
         </div>
 

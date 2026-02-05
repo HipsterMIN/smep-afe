@@ -103,17 +103,10 @@ const DonutChart = ({ data = [], width = 250, height = 250, legendType, customCo
     <div className={`ondonutchart ${legendType || ''}`}>
       <svg ref={svgRef}></svg>
       {/* 라벨 영역: 실제 데이터(isBackground가 아닌 것)만 출력 */}
-      <div className="legend" style={{ maxWidth: width, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px', marginTop: '10px' }}>
+      <div className="legend" style={{ maxWidth: width }}>
         {data.map((item, index) => (
-          <div key={index} className="legend-item" style={{ display: 'flex', alignItems: 'center', fontSize: '12px' }}>
-            <span className="dot" style={{ 
-              display: 'inline-block', 
-              width: '10px', 
-              height: '10px', 
-              borderRadius: '50%', 
-              backgroundColor: colorScale(index),
-              marginRight: '5px' 
-            }}></span>
+          <div key={index} className="legend-item">
+            <span className="dot" style={{ backgroundColor: colorScale(index) }}></span>
             <span className="text-label">{item.label}</span>
           </div>
         ))}

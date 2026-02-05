@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Button  from "../components/ui/Button.jsx";
 import MenuInputBox from "../components/ui/MenuInputBox.jsx";
 import StackedBarChart from "../components/ui/StackedBarChart.jsx";
-import BarChart from "../components/ui/BarChart.jsx";
+import DateBarChart from "../components/ui/DateBarChart.jsx";
 
 export default function CommonCode() {
   const chartData = [
@@ -126,7 +126,7 @@ export default function CommonCode() {
           
           <h3 className="onsubtitle mb-24">일별 방문자(최근 30일)</h3>
           <div>
-              <BarChart data={dailyData} />
+              <DateBarChart data={dailyData} legend="일별 방문자(최근 30일)" />
           </div>
         </div>
       </div>
