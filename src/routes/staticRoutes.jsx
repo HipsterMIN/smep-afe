@@ -1,5 +1,6 @@
 // routes/staticRoutes.jsx
 import AuthBar from '@components/AuthBar.jsx';
+import { UserMenuProvider } from '@context/UserMenuContext.jsx';
 import AdminLayout from '@layouts/AdminLayout.jsx';
 import Login from '@pages/Login.jsx';
 import LoginView from '@pages/LoginView.jsx';
@@ -28,10 +29,10 @@ export const staticRoutes = [
   */
   {
     element: (
-      <>
+      <UserMenuProvider>
         <AuthBar /> {/* 인증 바 */}
         <AdminLayout /> {/* 메인 레이아웃 (사이드바, outlet 포함) */}
-      </>
+      </UserMenuProvider>
     ),
     children: [
       {
