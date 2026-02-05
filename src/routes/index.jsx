@@ -1,76 +1,95 @@
-// ============================================
-// React Router 설정 파일
-// - 애플리케이션의 전체 라우팅 구조 정의
-// - 동적 라우팅과 정적 라우팅 혼합 사용
-// ============================================
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { generateDynamicRoutes } from '@routes/dynamicRoutes.jsx';
+import { staticRoutes } from '@routes/staticRoutes.jsx';
+import { useMenuStore } from '@store/useMenuStore';
+import { useEffect, useState } from 'react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-import Admin from '../Admin.jsx';
-import AuthBar from '../components/AuthBar.jsx';
-import Login from '../pages/Login.jsx';
-import LoginView from '../pages/LoginView.jsx';
-import MainPage from "../pages/MainPage.jsx";
-import PublishingMain from "../publishing/PublishingMain.jsx";
-import { autoPublishingRoutes } from "./autoRoutes.jsx";
-import DynamicRoute from './DynamicRoute.jsx';
+/**
+ * Router 생성 함수
+ */
+const createAppRouter = (menuTree, flatMenuMap) => {
+  console.log('createAppRouter 호출:', { menuTree, flatMenuMap });
 
-// Vite의 BASE_URL 설정 처리
-// vite.config.js의 base 설정과 일치해야 함 (예: '/', '/admin/')
-const base = import.meta.env.BASE_URL || '/';
-const basename = base.endsWith('/') ? base.slice(0, -1) : base;
+  // 동적 라우트 생성
+  const dynamicRoutes = generateDynamicRoutes(menuTree, flatMenuMap);
 
-const router = createBrowserRouter([
-    {
-        // 관리자 메인 레이아웃
-        path: '/',
-        element: (
-            <>
-                <AuthBar />  {/* 인증 바 */}
-                <Admin />    {/* 메인 레이아웃 (사이드바 포함) */}
-            </>
-        ),
-        children: [
-            {
-                // 루트 경로: 모든 탭이 닫혔을 때 표시되는 화면
-                // index: true 대신 명시적으로 경로 지정
-                path: '',  // 또는 path: '/' 도 가능
-                element: <MainPage/>,
-            },
-            {
-                // 동적 라우팅: :menuCode 파라미터를 통해 메뉴 식별
-                // 예: /common-code, /auth-mgmt, /menu-mgmt 등
-                path: ':menuCode',
-                element: <DynamicRoute />,
-            },
-        ],
-    },
-    // 로그인 페이지
-    { path: '/login', element: <Login /> },
-    { path: '/LoginView', element: <LoginView /> },
-    {
-        // 퍼블리싱 개발용 페이지 (별도 레이아웃)
-        path: '/publishing',
-        element: <PublishingMain />,
-        children: [
-            {
-                index: true,
-                element: (
-                    <div style={{ textAlign: 'center', paddingTop: '100px', color: '#999' }}>
-                        <h3>왼쪽 메뉴에서 확인할 페이지를 선택해주세요.</h3>
-                    </div>
-                ),
-            },
-            // autoPublishingRoutes에서 자동 생성된 라우트들
-            ...autoPublishingRoutes,
-        ],
-    },
-    {
-        // 404 에러 페이지
-        path: '*',
-        element: <div>페이지를 찾을 수 없습니다. (404)</div>,
-    },
-], {
-    basename,
-});
+  // 모든 라우트 병합
+  const allRoutes = [
+    ...dynamicRoutes, // 동적 라우트
+    ...staticRoutes, // 정적 라우트
+  ];
 
-export default router;
+  // 개발용 라우트 정보 출력
+  //console.log('동적 라우트:', dynamicRoutes);
+  console.log(
+    '🚀 Generated dynmic routes:',
+    JSON.stringify(dynamicRoutes, null, 2)
+  );
+  console.log(
+    '🚀 Generated static routes:',
+    JSON.stringify(staticRoutes, null, 2)
+  );
+  console.log(
+    `총 ${allRoutes.length}개 라우트 생성 (동적: ${dynamicRoutes.length}, 정적: ${staticRoutes.length})`
+  );
+
+  // BASE_URL 설정
+  const base = import.meta.env.BASE_URL || '/'; // 기본값 '/'
+  // ✅ React Router의 basename은 트레일링 슬래시가 없어야 함 (단, '/' 자체인 경우는 제외)
+  // 트레일링 슬래시가 있으면 /main-dev (슬래시 없음)와 매칭되지 않는 문제가 발생함
+  const basename =
+    base.endsWith('/') && base !== '/' ? base.slice(0, -1) : base;
+
+  // 브라우저 라우터 생성
+  return createBrowserRouter(allRoutes, { basename });
+};
+
+/**
+ * AppRouter - 메뉴 로드 및 router 생성을 담당하는 컴포넌트
+ */
+function AppRouter() {
+  const { menuTree, flatMenuMap, fetchMenuData, isLoading } = useMenuStore();
+  const [routerInstance, setRouterInstance] = useState(null);
+
+  /**
+   * menuTree, fetchMenuData 의존성으로 메뉴 데이터 fetch
+   */
+  useEffect(() => {
+    // 메뉴 트리가 없을 때만 데이터 fetch
+    if (!menuTree) {
+      // 메뉴 데이터 가져오기
+      fetchMenuData();
+    }
+  }, [menuTree, fetchMenuData]);
+
+  /**
+   * menuTree, flatMenuMap 의존성으로 라우터 생성
+   */
+  useEffect(() => {
+    // 메뉴 트리와 flatMenuMap이 준비되면 라우터 생성
+    if (menuTree && flatMenuMap) {
+      const router = createAppRouter(menuTree, flatMenuMap);
+      setRouterInstance(router);
+    }
+  }, [menuTree, flatMenuMap]);
+
+  // 로딩 중이거나 라우터 인스턴스가 없으면 로딩 화면 표시 TODO 임의 스타일링이므로 디자인 개선
+  if (isLoading || !routerInstance) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+        }}
+      >
+        <div>라우터 초기화 중...</div>
+      </div>
+    );
+  }
+
+  return <RouterProvider router={routerInstance} />;
+}
+
+export default AppRouter;

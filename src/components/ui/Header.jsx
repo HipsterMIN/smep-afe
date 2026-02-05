@@ -1,9 +1,40 @@
+import { useMenuStore } from '@store/useMenuStore';
+import { buildFullPath } from '@utils/menuUtils';
+import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
+
 import icoVatar from '../../assets/images/common/ico_avatar.svg';
 import icoLogout from '../../assets/images/common/ico_logout.svg';
 import icoLogo from '../../assets/images/common/logo.svg';
 
+// BASE URL 상수
+const BASE_URL = import.meta.env.VITE_BASE || '/';
+
 // 관리자 - 상단 메뉴
 export default function Header() {
+  const { menuTree, flatMenuMap } = useMenuStore();
+
+  // depth1 메뉴만 동적으로 구성
+  const depth1Menus = useMemo(() => {
+    if (!menuTree || !menuTree.children) return [];
+
+    const basePath = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+
+    return menuTree.children
+      .filter(
+        (menu) =>
+          menu.depth === 1 &&
+          menu.useYn === 'Y' &&
+          menu.upendMenuExpsrYn === 'Y'
+      )
+      .sort((a, b) => a.sortSeq - b.sortSeq)
+      .map((menu) => ({
+        menuId: menu.menuId,
+        menuNm: menu.menuNm,
+        fullPath: basePath + buildFullPath(menu, flatMenuMap),
+      }));
+  }, [menuTree, flatMenuMap]);
+
   return (
     <header className="onheader">
       <div className="onheader-lft">
@@ -11,33 +42,17 @@ export default function Header() {
           <span className="sr-only">네비게이션바 토글 버튼</span>
         </button>
         <h1 className="onlogo">
-          <a href="#" herf="#">
+          <Link to="/">
             <img src={icoLogo} alt="중소기업통합플랫폼" />
-          </a>
+          </Link>
         </h1>
       </div>
       <div className="onheader-ctr">
-        <a href="#" className="onnavlink">
-          지원사업 관리
-        </a>
-        <a href="#" className="onnavlink">
-          증명서발급 관리
-        </a>
-        <a href="#" className="onnavlink">
-          정보제공
-        </a>
-        <a href="#" className="onnavlink">
-          통계/분석
-        </a>
-        <a href="#" className="onnavlink">
-          시스템 관리
-        </a>
-        <a href="#" className="onnavlink">
-          AI서비스 관리
-        </a>
-        <a href="#" className="onnavlink">
-          데이터레이크 관리
-        </a>
+        {depth1Menus.map((menu) => (
+          <Link key={menu.menuId} to={menu.fullPath} className="onnavlink">
+            {menu.menuNm}
+          </Link>
+        ))}
       </div>
       <div className="onheader-rht">
         <div className="onavatar">

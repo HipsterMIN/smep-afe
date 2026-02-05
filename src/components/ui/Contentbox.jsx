@@ -17,11 +17,11 @@ export default function Contentbox({ children }) {
 
   // Zustand store에서 탭 관련 상태와 함수들 가져오기
   const {
-    openTabs,        // 열린 탭 목록 배열
-    activeTabPath,   // 현재 활성화된 탭의 path
-    removeTab,       // 탭 제거 함수
-    setActiveTab,    // 활성 탭 변경 함수
-    clearTabs        // 전체 탭 닫기 함수
+    openTabs, // 열린 탭 목록 배열
+    activeTabPath, // 현재 활성화된 탭의 path
+    removeTab, // 탭 제거 함수
+    setActiveTab, // 활성 탭 변경 함수
+    clearTabs, // 전체 탭 닫기 함수
   } = useTabStore();
 
   // ==========================================
@@ -67,8 +67,8 @@ export default function Contentbox({ children }) {
    * @param {string} tabPath - 클릭한 탭의 path (예: 'common-code')
    */
   const handleTabClick = (tabPath) => {
-    setActiveTab(tabPath);        // Zustand store의 활성 탭 변경
-    navigate(`/${tabPath}`);      // 해당 경로로 이동
+    setActiveTab(tabPath); // Zustand store의 활성 탭 변경
+    navigate(tabPath); // 해당 경로로 이동
   };
 
   // ==========================================
@@ -102,10 +102,10 @@ export default function Contentbox({ children }) {
       // ========================================
 
       // 현재 탭의 인덱스 찾기
-      const currentIndex = openTabs.findIndex(t => t.path === tabPath);
+      const currentIndex = openTabs.findIndex((t) => t.path === tabPath);
 
       // 닫은 후 남을 탭들 계산
-      const remainingTabs = openTabs.filter(t => t.path !== tabPath);
+      const remainingTabs = openTabs.filter((t) => t.path !== tabPath);
 
       if (remainingTabs.length > 0) {
         // 남은 탭이 있는 경우: 다음 탭으로 이동
@@ -122,17 +122,17 @@ export default function Contentbox({ children }) {
         }
 
         // 순서 중요: 탭 제거 -> 활성 탭 변경 -> 페이지 이동
-        removeTab(tabPath);              // 1. 탭 목록에서 제거
-        setActiveTab(nextTab.path);      // 2. 다음 탭을 활성화
-        navigate(`/${nextTab.path}`);    // 3. 다음 탭의 페이지로 이동
+        removeTab(tabPath); // 1. 탭 목록에서 제거
+        setActiveTab(nextTab.path); // 2. 다음 탭을 활성화
+        navigate(nextTab.path); // 3. 다음 탭의 페이지로 이동
       } else {
         // ========================================
         // 마지막 남은 탭을 닫는 경우: 홈으로 이동
         // ========================================
         // 모든 탭이 닫히면 EmptyState 표시
         // URL은 명확히 마지막 슬래시 포함하여 표시
-        removeTab(tabPath);      // 탭 제거
-        navigateToHome();        // 홈으로 이동 (마지막 슬래시 보장)
+        removeTab(tabPath); // 탭 제거
+        navigateToHome(); // 홈으로 이동 (마지막 슬래시 보장)
       }
     } else {
       // ========================================
@@ -143,52 +143,58 @@ export default function Contentbox({ children }) {
     }
   };
 
+  console.log('📦 Contentbox:', {
+    openTabs,
+    length: openTabs.length,
+    activeTabPath,
+  });
+
   return (
-      <div className="oncontentbox-wrap">
-        {/* ====================================== */}
-        {/* 탭 바 영역 */}
-        {/* ====================================== */}
-        <div className="oncontentTab">
-          <ul>
-            {/* 열린 탭 목록을 순회하며 렌더링 */}
-            {openTabs.map(tab => (
-                <li
-                    // 현재 활성 탭이면 'active' 클래스 추가
-                    className={activeTabPath === tab.path ? 'active' : ''}
-                    key={tab.path}
-                    // 탭 클릭 시 해당 탭으로 전환
-                    onClick={() => handleTabClick(tab.path)}
-                >
-                  {/* 탭 이름 표시 */}
-                  <a href="#">{tab.name}</a>
+    <div className="oncontentbox-wrap">
+      {/* ====================================== */}
+      {/* 탭 바 영역 */}
+      {/* ====================================== */}
+      <div className="oncontentTab">
+        <ul>
+          {/* 열린 탭 목록을 순회하며 렌더링 */}
+          {openTabs.map((tab) => (
+            <li
+              // 현재 활성 탭이면 'active' 클래스 추가
+              className={activeTabPath === tab.path ? 'active' : ''}
+              key={tab.path}
+              // 탭 클릭 시 해당 탭으로 전환
+              onClick={() => handleTabClick(tab.path)}
+            >
+              {/* 탭 이름 표시 */}
+              <a href="#">{tab.name}</a>
 
-                  {/* 탭 닫기 버튼 (X 아이콘) */}
-                  <i
-                      className="close"
-                      onClick={(e) => handleTabClose(e, tab.path)}
-                  />
-                </li>
-            ))}
-          </ul>
-
-          {/* 전체 닫기 버튼 - 탭이 있을 때만 표시 */}
-          {openTabs.length > 0 && (
-              <Button
-                  btnType="closeAll"
-                  btnNames="전체닫기"
-                  onClick={handleClearAll}
+              {/* 탭 닫기 버튼 (X 아이콘) */}
+              <i
+                className="close"
+                onClick={(e) => handleTabClose(e, tab.path)}
               />
-          )}
-        </div>
+            </li>
+          ))}
+        </ul>
 
-        {/* ====================================== */}
-        {/* 실제 컨텐츠 영역 */}
-        {/* ====================================== */}
-        {/*
+        {/* 전체 닫기 버튼 - 탭이 있을 때만 표시 */}
+        {openTabs.length > 0 && (
+          <Button
+            btnType="closeAll"
+            btnNames="전체닫기"
+            onClick={handleClearAll}
+          />
+        )}
+      </div>
+
+      {/* ====================================== */}
+      {/* 실제 컨텐츠 영역 */}
+      {/* ====================================== */}
+      {/*
         children: DynamicRoute에서 전달된 실제 페이지 컴포넌트
         예: CommonCode, AuthMgmt, MenuMgmt 등
       */}
-        <Contents>{children}</Contents>
-      </div>
+      <Contents>{children}</Contents>
+    </div>
   );
 }
