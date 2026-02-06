@@ -143,12 +143,6 @@ export default function Contentbox({ children }) {
     }
   };
 
-  console.log('📦 Contentbox:', {
-    openTabs,
-    length: openTabs.length,
-    activeTabPath,
-  });
-
   return (
     <div className="oncontentbox-wrap">
       {/* ====================================== */}
