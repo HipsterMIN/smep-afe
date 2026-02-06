@@ -8,8 +8,6 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
  * Router 생성 함수
  */
 const createAppRouter = (menuTree, flatMenuMap) => {
-  console.log('createAppRouter 호출:', { menuTree, flatMenuMap });
-
   // 동적 라우트 생성
   const dynamicRoutes = generateDynamicRoutes(menuTree, flatMenuMap);
 
@@ -20,15 +18,16 @@ const createAppRouter = (menuTree, flatMenuMap) => {
   ];
 
   // 개발용 라우트 정보 출력
-  //console.log('동적 라우트:', dynamicRoutes);
-  console.log(
-    '🚀 Generated dynmic routes:',
-    JSON.stringify(dynamicRoutes, null, 2)
-  );
-  console.log(
-    '🚀 Generated static routes:',
-    JSON.stringify(staticRoutes, null, 2)
-  );
+  console.log('정적 라우트:', staticRoutes);
+  console.log('동적 라우트:', dynamicRoutes);
+  // console.log(
+  //   '🚀 Generated dynmic routes:',
+  //   JSON.stringify(dynamicRoutes, null, 2)
+  // );
+  // console.log(
+  //   '🚀 Generated static routes:',
+  //   JSON.stringify(staticRoutes, null, 2)
+  // );
   console.log(
     `총 ${allRoutes.length}개 라우트 생성 (동적: ${dynamicRoutes.length}, 정적: ${staticRoutes.length})`
   );
