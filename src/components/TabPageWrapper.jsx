@@ -23,18 +23,13 @@ export default function TabPageWrapper({ children }) {
   const pathname = matchWithHandle?.pathname;
 
   useEffect(() => {
-    console.log('📍 TabPageWrapper:', { menuId, menuNm, pathname });
-
     if (menuId && menuNm && pathname) {
-      console.log('✅ addTab 호출');
       addTab({
         path: pathname,
         name: menuNm,
         menuId: menuId,
       });
       setActiveTab(pathname);
-    } else {
-      console.log('❌ 정보 부족');
     }
   }, [menuId, menuNm, pathname, addTab, setActiveTab]);
 
