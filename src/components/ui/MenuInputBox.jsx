@@ -5,6 +5,7 @@ export default function MenuInputBox({
   menuName,
   menuSize = '100px',
   selectOption,
+  options,
   placeholder,
   value,
   onChange,
@@ -37,8 +38,18 @@ export default function MenuInputBox({
                         value={value ?? (selectOption ?? '전체')}
                         onChange={handleChange}
                     >
-                        <option value="전체">전체</option>
-                        {selectOption ? <option value={selectOption}>{selectOption}</option> : null}
+                        {options && options.length > 0 ? (
+                            options.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))
+                        ) : (
+                            <>
+                                <option value="전체">전체</option>
+                                {selectOption ? <option value={selectOption}>{selectOption}</option> : null}
+                            </>
+                        )}
                     </select>
                 </div>
             ) : null}
