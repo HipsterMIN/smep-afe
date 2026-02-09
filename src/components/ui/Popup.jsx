@@ -1,26 +1,16 @@
-import { useState } from 'react';
-
 // 관리자 화면 - 팝업 컴포넌트
-export default function Popup({ title, autoHeight, children }) {
-  const [isOpen, setOpen] = useState(true);
-
+export default function Popup({ title, autoHeight, children, onClose }) {
   return (
-    <>
-      {
-        isOpen &&
-        <div className="popup">
+      <div className="popup">
         <div className="inner">
           <div className="titleBox">
-            <h2>{ title }</h2>
-            <a className="close" onClick={ () => setOpen(false)} />
+            <h2>{title}</h2>
+            <a className="close" onClick={onClose} />
           </div>
           <div className={`oncontents ${autoHeight && 'autoHeight'}`}>
-            { children }
+            {children}
           </div>
         </div>
       </div>
-      }
-    </>
-    
-  )
+  );
 }
