@@ -13,6 +13,8 @@ const GridExample = lazy(() => import('@pages/SvarGridExample.jsx'));
 const MemberList = lazy(() => import('@pages/member/MemberList'));
 const MenuUserMng = lazy(() => import('@pages/menu/MenuUser.jsx'));
 const MenuAdminMng = lazy(() => import('@pages/menu/MenuAdmin.jsx'));
+const SupportBusiness = lazy(() => import('@pages/support-business/SupportBusiness.jsx'));
+const PublicAnnouncement = lazy(() => import('@pages/public-announcement/PublicAnnouncement.jsx'));
 
 /**
  * =============================================================================
@@ -295,15 +297,15 @@ export const componentMap = {
   // ==========================================
   // ---------- 사업공고 관리 ----------
   // 사업정보 관리
-  // 'M_PIIO_00011': {
-  //   component: TODO_M_PIIO_00011,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  'M_PIIO_00011': {
+    component: SupportBusiness,
+    layout: AdminLayoutWithAuth,
+  },
   // 지원사업 공고관리
-  // 'M_PIIO_00012': {
-  //   component: TODO_M_PIIO_00012,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  'M_PIIO_00012': {
+    component: PublicAnnouncement,
+    layout: AdminLayoutWithAuth,
+  },
   // 정책금융관리
   // 'M_PIIO_00013': {
   //   component: TODO_M_PIIO_00013,
