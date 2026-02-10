@@ -303,6 +303,8 @@ export default function RichEditor({
   embedMaxHeight = 720,
   // YouTube 임베드 도메인 설정(개인정보 강화 버전 사용)
   youtubeNoCookie = true,
+  value = '',
+  onChange,
 } = {}) {
   // FontSize Extension: map textStyle.mark attribute -> inline style font-size
   const FontSize = useMemo(
@@ -1052,6 +1054,11 @@ export default function RichEditor({
         setRowHeightValue(/px$/i.test(rh) ? rh : `${rh}px`);
       }
     },
+    onUpdate: ({ editor }) => {
+      if (onChange) {
+        onChange(editor.getHTML());
+      }
+    },
     editorProps: {
       handlePaste: (view, event) => {
         if (isHtmlView) return false;
@@ -1437,6 +1444,13 @@ export default function RichEditor({
       editor.off('update', updateFromSelection);
     };
   }, [editor]);
+
+  // value prop이 변경되었을 때 에디터 동기화
+  useEffect(() => {
+    if (editor && value && editor.getHTML() !== value) {
+      editor.commands.setContent(value, false);
+    }
+  }, [value, editor]);
 
   const contentStyle = useMemo(
     () => ({
