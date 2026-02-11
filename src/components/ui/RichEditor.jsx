@@ -1021,7 +1021,7 @@ export default function RichEditor({
       TableHeader,
       TableCell,
     ],
-    content: '<p>TipTap 예제입니다. 아래 툴바를 이용해 표를 삽입해 보세요.</p>',
+    content: '<p></p>',
     onCreate: ({ editor }) => {
       // 기본 정렬 적용
       try {

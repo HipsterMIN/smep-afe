@@ -15,6 +15,7 @@ const MenuUserMng = lazy(() => import('@pages/menu/MenuUser.jsx'));
 const MenuAdminMng = lazy(() => import('@pages/menu/MenuAdmin.jsx'));
 const SupportBusiness = lazy(() => import('@pages/support-business/SupportBusiness.jsx'));
 const PublicAnnouncement = lazy(() => import('@pages/public-announcement/PublicAnnouncement.jsx'));
+const PublicAnnouncementDetail = lazy(() => import('@pages/public-announcement/PublicAnnouncementDetail.jsx'));
 
 /**
  * =============================================================================
@@ -305,6 +306,16 @@ export const componentMap = {
   'M_PIIO_00012': {
     component: PublicAnnouncement,
     layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create',
+        component: PublicAnnouncementDetail,
+      },
+      {
+        path: ':bizPbancNo',
+        component: PublicAnnouncementDetail,
+      }
+    ]
   },
   // 정책금융관리
   // 'M_PIIO_00013': {
