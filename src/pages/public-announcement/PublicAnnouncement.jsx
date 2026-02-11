@@ -1,14 +1,15 @@
-import React, {useEffect, useRef, useState} from 'react';
-import MenuInputBox from "@components/ui/MenuInputBox.jsx";
+import Button from '@components/ui/Button';
 import CheckBox from "@components/ui/CheckBox.jsx";
-import GridTable from '@components/ui/GridTable';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import DatepickerTimeBox from '@components/ui/DatepickerTimeBox.jsx';
-
-import Button from '@components/ui/Button';
+import GridTable from '@components/ui/GridTable';
+import MenuInputBox from "@components/ui/MenuInputBox.jsx";
 import http from '@lib/http.js';
+import React, {useEffect, useRef, useState} from 'react';
+import {useNavigate} from "react-router-dom";
 
 export default function PublicAnnouncement() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [rows, setRows] = useState([]);
@@ -108,8 +109,8 @@ export default function PublicAnnouncement() {
   };
 
   const handleEdit = (item) => {
-    console.log(item);
-    alert("수정버튼");
+    console.log(item.bizPbancNo);
+    navigate(`${item.bizPbancNo}`);
   };
 
   useEffect(() => {
@@ -274,7 +275,7 @@ export default function PublicAnnouncement() {
             <span>
               총 <b>{totalCount.toLocaleString()}</b>개
             </span>
-              <Button btnType="add" btnNames="등록"/>
+              <Button btnType="add" btnNames="등록" onClick={() => navigate('create')}/>
             </div>
 
             <div className="ongrid-tableform">
