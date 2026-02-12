@@ -1,9 +1,107 @@
-import Button from '../../components/ui/Button';
-import DatepickerBox from '../../components/ui/DatepickerBox.jsx';
-import GridTable from '../../components/ui/GridTable.jsx';
-import MenuInputBox from '../../components/ui/MenuInputBox.jsx';
+import ButtonCell from '@components/custom/ButtonCell.jsx';
+import Button from '@components/ui/Button';
+import DatepickerBox from '@components/ui/DatepickerBox.jsx';
+import GridTable from '@components/ui/GridTable.jsx';
+import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import http from '@lib/http.js';
+import { formatDate } from '@utils/stringUtils.js';
+import { useEffect, useRef, useState } from 'react';
 
 export default function MemberList() {
+  const [gridMemberList, setGridMemberList] = useState([]);
+  const [mbrSttscdList, setMbrSttscdList] = useState([]);
+  const [mbrTypecdList, setMbrTypecdList] = useState([]);
+
+  //검색 파라미터 ref
+  const searchParamsRef = useRef({
+    hasNext: false,
+    nextCursor: null,
+  });
+
+  //검색 파라미터 state
+  const [searchParams, setSearchParams] = useState({
+    mbrTypeCd: '', // 회원유형코드
+    mbrSttsCd: '', // 회원상태코드
+    mbrNm: '', // 회원명
+    joinStartDt: null,
+    endJoinDt: null,
+    startRegDt: null,
+    endRegDt: null,
+  });
+
+  //from route handle
+
+  //공통코드 조회
+  useEffect(() => {
+    const fetchCommonCodes = async () => {
+      try {
+        const [response] = await Promise.all([
+          http.get('/api/v1/commoncode/bulk', {
+            params: { groups: ['MBR_STTS_CD', 'MBR_TYPE_CD'].join(',') },
+          }),
+        ]);
+
+        // MBR_TYPE_CD를 MenuInputBox options 형식으로 변환
+        // comCd → value, comCdNm → label
+        const mbrTypeOptions = (response.data.MBR_TYPE_CD || []).map(
+          (item) => ({
+            value: item.comCd,
+            label: item.comCdNm,
+          })
+        );
+
+        // MBR_STTS_CD를 MenuInputBox options 형식으로 변환
+        const mbrSttsOptions = (response.data.MBR_STTS_CD || []).map(
+          (item) => ({
+            value: item.comCd,
+            label: item.comCdNm,
+          })
+        );
+
+        setMbrTypecdList(mbrTypeOptions);
+        setMbrSttscdList(mbrSttsOptions);
+      } catch (error) {
+        console.error('공통코드 조회 실패:', error);
+      }
+    };
+    fetchCommonCodes();
+  }, []);
+
+  //조회
+  const handleSearch = async (nextCursor = null) => {
+    const response = await http.post('/api/v1/member', {
+      cursorPageRequest: {
+        size: 20,
+        cursor: nextCursor,
+      },
+      ...searchParams,
+    });
+    const data = response?.data || [];
+    setGridMemberList(data.data);
+    searchParamsRef.current = {
+      hasNext: data.hasNext,
+      nextCursor: data.nextCursor,
+    };
+  };
+
+  //그리드 컬럼 정의
+  const defaultColumns = [
+    { id: 'index', header: '순번', width: 42 },
+    { id: 'mbrTypeCdNm', header: '유형', flexgrow: 1 },
+    { id: 'lgnId', header: 'ID', flexgrow: 1 },
+    { id: 'mbrNm', header: '성명', flexgrow: 0.5 },
+    { id: 'telno', header: '전화번호', width: 110 },
+    { id: 'emlAddr', header: '이메일', flexgrow: 1 },
+    { id: 'mbrSttsCdNm', header: '상태', flexgrow: 0.5 },
+    {
+      id: 'regDt',
+      flexgrow: 2,
+      header: '등록일시',
+      template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm:ss'),
+    },
+    { cell: ButtonCell, id: 'management', header: '관리', width: 76 },
+  ];
+
   return (
     <div className="oncontentbox">
       <div className="oncontentTitle">
@@ -27,34 +125,87 @@ export default function MemberList() {
               <div className="onparagraph">
                 <MenuInputBox
                   menuType="select"
-                  menuName="회원 구분"
-                  menuSize="100px"
+                  menuName="회원유형"
+                  inputId="mbrTypeCd"
+                  options={mbrTypecdList} // [{ value: 'IND', label: '개인회원' }, ...]
+                  value={searchParams.mbrTypeCd}
+                  onChange={(e) => {
+                    setSearchParams({
+                      ...searchParams,
+                      mbrTypeCd: e.target.value,
+                    });
+                  }}
                 />
                 <MenuInputBox
                   menuType="input"
                   menuName="회원 명"
+                  inputId="mbrNm"
                   menuSize="150px"
+                  value={searchParams.mbrNm}
+                  onChange={(e) => {
+                    setSearchParams({
+                      ...searchParams,
+                      mbrNm: e.target.value,
+                    });
+                  }}
                 />
                 <MenuInputBox
                   menuType="select"
                   menuName="상태"
-                  menuSize="100px"
+                  inputId="mbrSttsCd"
+                  options={mbrSttscdList} // [{ value: 'A111', label: '정상' }, ...]
+                  value={searchParams.mbrSttsCd}
+                  onChange={(e) => {
+                    setSearchParams({
+                      ...searchParams,
+                      mbrSttsCd: e.target.value,
+                    });
+                  }}
                 />
-
                 <div style={{ marginLeft: 'auto' }}>
-                  <Button btnType="menuSearch" btnNames="검색" />
+                  <Button
+                    btnType="menuSearch"
+                    btnNames="검색"
+                    onClick={() => handleSearch()}
+                  />
                 </div>
               </div>
               <div className="onparagraph middle">
                 <div className="ondatepickerbox">
-                  <DatepickerBox menuName="가입기간" />
+                  <DatepickerBox
+                    menuName="가입기간"
+                    value={searchParams.joinStartDt}
+                    outputFormat="datetime" // 이것만 추가
+                    onChange={(date) => {
+                      setSearchParams({ ...searchParams, joinStartDt: date });
+                    }}
+                  />
                   <span className="onunit">~</span>
-                  <DatepickerBox />
+                  <DatepickerBox
+                    value={searchParams.endJoinDt}
+                    outputFormat="datetime" // 이것만 추가
+                    onChange={(date) => {
+                      setSearchParams({ ...searchParams, joinEndDt: date });
+                    }}
+                  />
                 </div>
                 <div className="ondatepickerbox">
-                  <DatepickerBox menuName="등록기간" />
+                  <DatepickerBox
+                    menuName="등록기간"
+                    value={searchParams.startRegDt}
+                    outputFormat="datetime" // 이것만 추가
+                    onChange={(date) => {
+                      setSearchParams({ ...searchParams, startRegDt: date });
+                    }}
+                  />
                   <span className="onunit">~</span>
-                  <DatepickerBox />
+                  <DatepickerBox
+                    value={searchParams.endRegDt}
+                    outputFormat="datetime" // 이것만 추가
+                    onChange={(date) => {
+                      setSearchParams({ ...searchParams, endRegDt: date });
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -67,7 +218,7 @@ export default function MemberList() {
           </div>
 
           <div className="ongrid-tableform onSCrollBox">
-            <GridTable />
+            <GridTable data={gridMemberList} columns={defaultColumns} />
           </div>
         </div>
 
