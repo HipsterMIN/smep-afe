@@ -303,6 +303,8 @@ export default function RichEditor({
   embedMaxHeight = 720,
   // YouTube 임베드 도메인 설정(개인정보 강화 버전 사용)
   youtubeNoCookie = true,
+  value = '',
+  onChange,
 } = {}) {
   // FontSize Extension: map textStyle.mark attribute -> inline style font-size
   const FontSize = useMemo(
@@ -1019,7 +1021,7 @@ export default function RichEditor({
       TableHeader,
       TableCell,
     ],
-    content: '<p>TipTap 예제입니다. 아래 툴바를 이용해 표를 삽입해 보세요.</p>',
+    content: '<p></p>',
     onCreate: ({ editor }) => {
       // 기본 정렬 적용
       try {
@@ -1050,6 +1052,11 @@ export default function RichEditor({
         // 현재 커서가 표 안이 아닐 수 있으므로, 적용은 사용자가 표 셀에 포커스했을 때 진행하는 편이 안전함
         // 여기서는 초기 셀렉트 값만 세팅
         setRowHeightValue(/px$/i.test(rh) ? rh : `${rh}px`);
+      }
+    },
+    onUpdate: ({ editor }) => {
+      if (onChange) {
+        onChange(editor.getHTML());
       }
     },
     editorProps: {
@@ -1437,6 +1444,13 @@ export default function RichEditor({
       editor.off('update', updateFromSelection);
     };
   }, [editor]);
+
+  // value prop이 변경되었을 때 에디터 동기화
+  useEffect(() => {
+    if (editor && value && editor.getHTML() !== value) {
+      editor.commands.setContent(value, false);
+    }
+  }, [value, editor]);
 
   const contentStyle = useMemo(
     () => ({

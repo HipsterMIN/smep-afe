@@ -10,6 +10,7 @@ export default function MenuInputBox({
   placeholder, // input type일 때 placeholder
   value, // controlled component로 사용 시 현재 값
   onChange, // 값 변경 시 호출될 핸들러
+  disabled = false, // input/select 비활성화 여부 (기본 false)
 }) {
   // 입력값 변경 시 부모 컴포넌트로 이벤트 전달
   const handleChange = (e) => {
@@ -30,6 +31,7 @@ export default function MenuInputBox({
             style={{ width: menuSize }}
             value={value ?? ''} // null/undefined 방지를 위해 기본값 ''
             onChange={handleChange}
+            disabled={disabled}
           />
         </div>
       ) : /* select 타입: 드롭다운 선택 필드 */
@@ -43,6 +45,7 @@ export default function MenuInputBox({
             style={{ width: menuSize }}
             value={value ?? ''} // value 기본값을 빈 문자열로 통일
             onChange={handleChange}
+            disabled={disabled}
           >
             {/* options 배열이 존재하고 비어있지 않을 때 */}
             {options && options.length > 0 ? (
