@@ -4,6 +4,7 @@ import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
+import { fetchCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useRef, useState } from 'react';
 
@@ -33,30 +34,22 @@ export default function MemberList() {
 
   //공통코드 조회
   useEffect(() => {
-    const fetchCommonCodes = async () => {
+    const fetchCommonCode = async () => {
       try {
-        const [response] = await Promise.all([
-          http.get('/api/v1/commoncode/bulk', {
-            params: { groups: ['MBR_STTS_CD', 'MBR_TYPE_CD'].join(',') },
-          }),
-        ]);
+        const response = await fetchCommonCodes(['MBR_TYPE_CD', 'MBR_STTS_CD']);
 
         // MBR_TYPE_CD를 MenuInputBox options 형식으로 변환
         // comCd → value, comCdNm → label
-        const mbrTypeOptions = (response.data.MBR_TYPE_CD || []).map(
-          (item) => ({
-            value: item.comCd,
-            label: item.comCdNm,
-          })
-        );
+        const mbrTypeOptions = (response.MBR_TYPE_CD || []).map((item) => ({
+          value: item.comCd,
+          label: item.comCdNm,
+        }));
 
         // MBR_STTS_CD를 MenuInputBox options 형식으로 변환
-        const mbrSttsOptions = (response.data.MBR_STTS_CD || []).map(
-          (item) => ({
-            value: item.comCd,
-            label: item.comCdNm,
-          })
-        );
+        const mbrSttsOptions = (response.MBR_STTS_CD || []).map((item) => ({
+          value: item.comCd,
+          label: item.comCdNm,
+        }));
 
         setMbrTypecdList(mbrTypeOptions);
         setMbrSttscdList(mbrSttsOptions);
@@ -64,7 +57,7 @@ export default function MemberList() {
         console.error('공통코드 조회 실패:', error);
       }
     };
-    fetchCommonCodes();
+    fetchCommonCode();
   }, []);
 
   //조회
