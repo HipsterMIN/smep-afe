@@ -60,6 +60,12 @@ export default function Leftbar() {
     return null;
   }
 
+  const surveyMenuItems = [
+    { name: '설문 목록', path: '/survey-list' },
+    { name: '설문지 관리', path: '/survey-manage' },
+    { name: '설문 결과 보기', path: '/survey-result' },
+  ];
+
   return (
     <aside className="onleftbar">
       {/* depth1 제목 */}
@@ -68,9 +74,9 @@ export default function Leftbar() {
       <nav>
         <ul className="onleftbar-navlink navdepth1">
           {sideMenus.map((depth2Menu) => {
-            const isOpen = openMenus[depth2Menu.menuId];
+            const isOpen = openMenus[depth2Menu.menuId]
             const hasChildren =
-              depth2Menu.children && depth2Menu.children.length > 0;
+              depth2Menu.children && depth2Menu.children.length > 0
 
             return (
               <li
@@ -107,7 +113,7 @@ export default function Leftbar() {
                   </ul>
                 )}
               </li>
-            );
+            )
           })}
         </ul>
       </nav>

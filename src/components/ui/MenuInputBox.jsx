@@ -14,8 +14,8 @@ export default function MenuInputBox({
 }) {
   // 입력값 변경 시 부모 컴포넌트로 이벤트 전달
   const handleChange = (e) => {
-    if (onChange) onChange(e);
-  };
+    if (onChange) onChange(e)
+  }
 
   return (
     <>
@@ -76,5 +76,5 @@ export default function MenuInputBox({
         </div>
       ) : null}
     </>
-  );
+  )
 }

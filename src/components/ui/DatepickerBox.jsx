@@ -78,6 +78,10 @@ export default function DatepickerBox({
     parseDateValue(value) || null
   );
 
+  useEffect(() => {
+    setSelectedDate(value || null);
+  }, [value]);
+
   const handleDateChange = (date) => {
     setSelectedDate(date);
     if (onChange) {

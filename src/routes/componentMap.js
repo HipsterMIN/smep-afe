@@ -16,6 +16,9 @@ const MenuAdminMng = lazy(() => import('@pages/menu/MenuAdmin.jsx'));
 const SupportBusiness = lazy(() => import('@pages/support-business/SupportBusiness.jsx'));
 const PublicAnnouncement = lazy(() => import('@pages/public-announcement/PublicAnnouncement.jsx'));
 const PublicAnnouncementDetail = lazy(() => import('@pages/public-announcement/PublicAnnouncementDetail.jsx'));
+const SurveyList = lazy(() => import('@pages/survey/SurveyList'));
+const SurveyManage = lazy(() => import('@pages/survey/SurveyManage'));
+const SurveyResult = lazy(() => import('@pages/survey/SurveyResult'));
 
 /**
  * =============================================================================
@@ -110,6 +113,22 @@ export const componentMap = {
   //   component: TODO_M_PIIO_00062,
   //   layout: AdminLayoutWithAuth,
   // },
+
+  // 설문 목록
+  'survey-list': {
+    component: SurveyList,
+    layout: AdminLayoutWithAuth,
+  },
+  // 설문지 관리
+  'survey-manage': {
+    component: SurveyManage,
+    layout: AdminLayoutWithAuth,
+  },
+  // 설문 결과 보기
+  'survey-result': {
+    component: SurveyResult,
+    layout: AdminLayoutWithAuth,
+  },
   // ---------- 회원/권한 관리 ----------
   // 회원관리
   M_PIIO_00052: {

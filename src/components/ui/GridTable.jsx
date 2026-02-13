@@ -127,15 +127,15 @@ export const defaultData = [
 
 // 관리자 화면 - 그리드 테이블 컴포넌트
 export default function GridTable({
-                                    data = defaultData,
-                                    columns = defaultColumns,
-                                    gridProps = {},
-                                  }) {
+  data = defaultData,
+  columns = defaultColumns,
+  gridProps = {},
+}) {
   return (
     <Willow>
       <Grid data={data} columns={columns} {...gridProps} />
     </Willow>
-  );
+  )
 }
 
 GridTable.propTypes = {

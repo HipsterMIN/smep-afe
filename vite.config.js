@@ -20,18 +20,42 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/admin-dev/, ''),
+        onProxyRes: (proxyRes) => {
+          const setCookie = proxyRes.headers['set-cookie'];
+          if (setCookie) {
+            proxyRes.headers['set-cookie'] = setCookie.map(cookie =>
+              cookie.replace(/Path=\/[^;]*/i, 'Path=/')
+            );
+          }
+        }
       },
       '/admin-dev/example': {
         target: 'http://localhost:8082',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/admin-dev/, ''),
+        onProxyRes: (proxyRes) => {
+          const setCookie = proxyRes.headers['set-cookie'];
+          if (setCookie) {
+            proxyRes.headers['set-cookie'] = setCookie.map(cookie =>
+              cookie.replace(/Path=\/[^;]*/i, 'Path=/')
+            );
+          }
+        }
       },
       '/admin-dev/actuator/': {
         target: 'http://localhost:8082',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/admin-dev/, ''),
+        onProxyRes: (proxyRes) => {
+          const setCookie = proxyRes.headers['set-cookie'];
+          if (setCookie) {
+            proxyRes.headers['set-cookie'] = setCookie.map(cookie =>
+              cookie.replace(/Path=\/[^;]*/i, 'Path=/')
+            );
+          }
+        }
       },
     },
   },
