@@ -1,14 +1,39 @@
 import Button from "@components/ui/Button.jsx";
 import GridTable from "@components/ui/GridTable.jsx";
 import MenuInputBox from "@components/ui/MenuInputBox.jsx";
+import {fetchAndConvertCommonCodes} from '@utils/commonUtils.js';
+import {formatDate} from '@utils/stringUtils.js';
 import http from "@lib/http.js";
 import {useEffect, useRef, useState} from "react";
+import ButtonCell from "@components/custom/ButtonCell.jsx";
+import {useNavigate} from 'react-router-dom';
 
 export default function BbsList() {
+  const navigate = useNavigate();
   // 게시판 목록 데이터 State
   const [bbsData, setBbsData] = useState([]);
   // 로딩 상태
   const [loading, setLoading] = useState(false);
+  const [bbsTypeCdList, setBbsTypeCdList] = useState([]);
+
+  // 컴포넌트 마운트 시 초기 데이터 로드
+  useEffect(() => {
+    // 공통코드 조회 및 변환
+    const loadCommonCodes = async () => {
+      try {
+        const commonCodes = await fetchAndConvertCommonCodes(['BBS_TYPE_CD']);
+        // 공통코드 데이터를 상태에 저장하거나 필요한 곳에 전달
+        console.log("공통코드 조회 및 변환 결과:", commonCodes);
+        setBbsTypeCdList(commonCodes['BBS_TYPE_CD'] || []);
+      } catch (error) {
+        console.error("공통코드 조회 및 변환 실패:", error);
+      }
+    };
+
+    loadCommonCodes();
+
+    // fetchBbsList();
+  }, []);
 
   //검색 파라미터 ref
   const searchParamsRef = useRef({
@@ -33,8 +58,9 @@ export default function BbsList() {
     { id: "bbsTypeCd", flexgrow: 1, header: "게시판 유형" },
     { id: "bbsExplnCn", flexgrow: 2, header: "게시판 소개글" },
     { id: "useYn", width: 80, header: "사용여부" },
-    { id: "regDate", flexgrow: 1, header: "등록일" },
-    { cell: "ButtonCell", id: "management", width: 76, header: "관리" },
+    { id: "regDate", flexgrow: 1, header: "등록일" ,
+      template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm:ss'),},
+    { cell: ButtonCell, id: 'management', header: '관리', width: 76 },
   ];
 
   // 게시판 목록 조회 API 호출
@@ -77,16 +103,10 @@ export default function BbsList() {
     }
   };
 
-  // 컴포넌트 마운트 시 초기 데이터 로드
-/*  useEffect(() => {
-    fetchBbsList();
-  }, []);*/
-
-  // 등록 버튼 클릭 핸들러
+  // 등록 버튼 클릭 핸들러 - 상대 경로로 이동
   const handleAdd = () => {
     console.log("등록 버튼 클릭");
-    // 등록 페이지로 이동 또는 모달 열기
-    // navigate('/bbs/register');
+    navigate('create'); // 상대 경로 사용
   };
 
   // 검색 조건 입력 핸들러
@@ -130,7 +150,7 @@ export default function BbsList() {
                 <MenuInputBox
                     menuType="select"
                     menuName="게시판 유형"
-                    options={[{ value: 'Y', label: '사용' }, { value: 'N', label: '미사용' }]}
+                    options={bbsTypeCdList}
                     showAllOption={true}
                     menuSize="100px"
                     value={searchParams.bbsTypeCd}
@@ -160,7 +180,7 @@ export default function BbsList() {
             </div>
 
             <div className="ontable-legend flexEnd">
-              <Button btnType="add" btnNames="등록" onClick={handleAdd} />
+              <Button btnType="add" btnNames="등록" onClick={() => handleAdd()} />
             </div>
 
             <div className="ongrid-tableform mask">
