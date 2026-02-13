@@ -1,24 +1,40 @@
-// Lazy import (필요할 때 로드)
 import { AdminLayoutWithAuth } from '@layouts';
-import AdminLayout from '@layouts/AdminLayout.jsx';
 import { lazy } from 'react';
+
+// Lazy import (필요할 때 로드)
 const CommonCode = lazy(() => import('@pages/CommonCode'));
-const AuthMgmt = lazy(() => import('@pages/AuthMgmt'));
-const MenuMgmt = lazy(() => import('@pages/MenuMgmt'));
 const BbsList = lazy(() => import('@pages/board/BbsList'));
 const BbsForm = lazy(() => import('@pages/board/BbsForm'));
-const BizInfo = lazy(() => import('@pages/BizInfo'));
-const BizReg = lazy(() => import('@pages/BizReg'));
-const GridExample = lazy(() => import('@pages/SvarGridExample.jsx'));
 const MemberList = lazy(() => import('@pages/member/MemberList'));
 const MenuUserMng = lazy(() => import('@pages/menu/MenuUser.jsx'));
 const MenuAdminMng = lazy(() => import('@pages/menu/MenuAdmin.jsx'));
-const SupportBusiness = lazy(() => import('@pages/support-business/SupportBusiness.jsx'));
-const PublicAnnouncement = lazy(() => import('@pages/public-announcement/PublicAnnouncement.jsx'));
-const PublicAnnouncementDetail = lazy(() => import('@pages/public-announcement/PublicAnnouncementDetail.jsx'));
+const SupportBusiness = lazy(
+  () => import('@pages/support-business/SupportBusiness.jsx')
+);
+const PublicAnnouncement = lazy(
+  () => import('@pages/public-announcement/PublicAnnouncement.jsx')
+);
+const PublicAnnouncementDetail = lazy(
+  () => import('@pages/public-announcement/PublicAnnouncementDetail.jsx')
+);
 const SurveyList = lazy(() => import('@pages/survey/SurveyList'));
 const SurveyManage = lazy(() => import('@pages/survey/SurveyManage'));
 const SurveyResult = lazy(() => import('@pages/survey/SurveyResult'));
+const IntegrationLoginSiteList = lazy(
+  () => import('@pages/member/IntegrationLoginSiteList.jsx')
+);
+const IntegrationLoginSiteDetail = lazy(
+  () => import('@pages/member/IntegrationLoginSiteDetail.jsx')
+);
+const IntegrationLoginSiteUpdate = lazy(
+  () => import('@pages/member/IntegrationLoginSiteUpdate.jsx')
+);
+const IntegrationLoginSiteCreate = lazy(
+  () => import('@pages/member/IntegrationLoginSiteCreate.jsx')
+);
+const IntegrationLoginSiteSort = lazy(
+  () => import('@pages/member/IntegrationLoginSiteSort.jsx')
+);
 
 /**
  * =============================================================================
@@ -100,7 +116,7 @@ export const componentMap = {
     // 자식 라우트 정의
     children: [
       {
-        path: 'create',  //
+        path: 'create', //
         component: BbsForm, // 게시판 등록
         // layout 상속 (부모와 동일)
       },
@@ -158,11 +174,16 @@ export const componentMap = {
   //   component: TODO_M_PIIO_00055,
   //   layout: AdminLayoutWithAuth,
   // },
-  // 통합로그인 사이트 관리
-  // 'M_PIIO_00056': {
-  //   component: TODO_M_PIIO_00056,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00056: {
+    component: IntegrationLoginSiteList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      { path: ':id', component: IntegrationLoginSiteDetail },
+      { path: ':id/update', component: IntegrationLoginSiteUpdate },
+      { path: 'create', component: IntegrationLoginSiteCreate },
+      { path: 'sort', component: IntegrationLoginSiteSort },
+    ],
+  },
   // ==========================================
   // 정보제공
   // ==========================================
@@ -325,12 +346,12 @@ export const componentMap = {
   // ==========================================
   // ---------- 사업공고 관리 ----------
   // 사업정보 관리
-  'M_PIIO_00011': {
+  M_PIIO_00011: {
     component: SupportBusiness,
     layout: AdminLayoutWithAuth,
   },
   // 지원사업 공고관리
-  'M_PIIO_00012': {
+  M_PIIO_00012: {
     component: PublicAnnouncement,
     layout: AdminLayoutWithAuth,
     children: [
@@ -341,8 +362,8 @@ export const componentMap = {
       {
         path: ':bizPbancNo',
         component: PublicAnnouncementDetail,
-      }
-    ]
+      },
+    ],
   },
   // 정책금융관리
   // 'M_PIIO_00013': {
