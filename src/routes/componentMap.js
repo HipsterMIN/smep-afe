@@ -94,10 +94,18 @@ export const componentMap = {
     layout: AdminLayoutWithAuth,
   },
   // 게시판 관리
-  // 'M_PIIO_00059': {
-  //   component: TODO_M_PIIO_00059,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00059: {
+    component: BbsList,
+    layout: AdminLayoutWithAuth,
+    // 자식 라우트 정의
+    children: [
+      {
+        path: 'create',  //
+        component: BbsForm, // 게시판 등록
+        // layout 상속 (부모와 동일)
+      },
+    ],
+  },
   // 공통코드관리
   M_PIIO_00060: {
     component: CommonCode,
