@@ -69,7 +69,7 @@ export default function MemberList() {
 
   //조회
   const handleSearch = async (nextCursor = null) => {
-    const response = await http.post('/api/v1/member', {
+    const response = await http.post('/api/v1/member/search', {
       cursorPageRequest: {
         size: 20,
         cursor: nextCursor,
