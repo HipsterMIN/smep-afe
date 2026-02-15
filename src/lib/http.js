@@ -17,7 +17,10 @@ http.interceptors.request.use(
     }
     return config
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    // SonarQube: Expected the Promise rejection reason to be an Error.
+    return Promise.reject(error instanceof Error ? error : new Error(error))
+  }
 )
 
 // 응답 인터셉터 추가
@@ -31,7 +34,8 @@ http.interceptors.response.use(
       localStorage.removeItem('access_token')
       // 필요시 로그인 페이지로 이동 로직 추가 가능
     }
-    return Promise.reject(error)
+    // SonarQube: Expected the Promise rejection reason to be an Error.
+    return Promise.reject(error instanceof Error ? error : new Error(error))
   }
 )
 

@@ -41,9 +41,6 @@ export function AuthProvider({ children }) {
   // 타이머 일시 정지 여부
   const [isPaused, setIsPaused] = useState(false);
   
-  // 타이머 Interval ID 저장용 Ref
-  const timerRef = useRef(null);
-  
   // 활동 중단 감지용 Timeout ID 저장용 Ref
   const idleTimeoutRef = useRef(null);
 
@@ -62,7 +59,7 @@ export function AuthProvider({ children }) {
       setToken(null);
       setRefreshToken(null);
       setUser(null);
-      stopTimer(); // 타이머 정지
+      // 타이머 정지는 useEffect에서 token 변경 감지로 처리됨
       removeActivityListeners(); // 이벤트 리스너 제거
       alert('세션이 만료되어 로그아웃되었습니다.'); // 만료 알림
     }
@@ -168,52 +165,6 @@ export function AuthProvider({ children }) {
     }
   }, [handleUserActivity]);
 
-  /**
-   * 타이머 시작 함수
-   */
-  const startTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-    
-    setRemainingTime(SESSION_TIMEOUT_SECONDS);
-    setIsPaused(false);
-    
-    if (TIMER_MODE === 'IDLE') {
-      addActivityListeners();
-    }
-    
-    timerRef.current = setInterval(() => {
-      // isPaused 상태를 참조하기 위해 함수형 업데이트 내부에서 확인하거나,
-      // useEffect 의존성을 활용해야 함. 
-      // 여기서는 setInterval 내부에서 최신 state를 참조하기 어려우므로,
-      // setRemainingTime의 콜백에서 처리하는 트릭을 사용하거나,
-      // useInterval 커스텀 훅을 사용하는 것이 좋음.
-      // 하지만 간단하게 구현하기 위해 ref를 활용하거나, 
-      // setRemainingTime 내부에서 조건부 로직을 수행.
-      
-      setRemainingTime((prevTime) => {
-        // [중요] 일시 정지 상태인지 확인하는 로직이 필요함.
-        // 하지만 setInterval 클로저 내에서는 isPaused 최신 값을 알 수 없음.
-        // 따라서 isPaused를 Ref로 관리하거나, 아래와 같이 외부 변수를 참조해야 함.
-        // 여기서는 간단히 구현하기 위해 isPaused 상태 변경 시 setInterval을 재설정하는 방식 대신,
-        // 매 초마다 실행되지만 값만 안 줄이는 방식으로 구현하려면 isPausedRef가 필요함.
-        return prevTime; 
-      });
-    }, 1000);
-  }, [addActivityListeners]); // 의존성 문제로 아래 useEffect에서 재구현
-
-  /**
-   * 타이머 정지 함수
-   */
-  const stopTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    removeActivityListeners();
-  }, [removeActivityListeners]);
-
   // ==========================================
   // 타이머 로직 (useEffect로 재구성)
   // ==========================================
@@ -257,9 +208,9 @@ export function AuthProvider({ children }) {
     setLoading(false);
     
     return () => {
-      stopTimer();
+      removeActivityListeners();
     };
-  }, [addActivityListeners, stopTimer]);
+  }, [addActivityListeners, removeActivityListeners]);
 
 
   /**

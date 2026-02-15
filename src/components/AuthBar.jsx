@@ -24,7 +24,8 @@ export default function AuthBar() {
     try {
       await logout()
       setMsg('로그아웃 완료')
-    } catch (e) {
+    } catch (error) {
+      console.error('로그아웃 중 오류 발생:', error)
       setMsg('로그아웃 실패')
     }
   }
