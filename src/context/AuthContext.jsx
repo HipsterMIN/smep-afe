@@ -1,67 +1,90 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import http from '../lib/http';
 
 /**
  * AuthContext
  *
  * 사용자 인증 상태 및 토큰 관리용 context입니다.
- * 실제 구현에서는 로그인/세션 기반으로 토큰을 발급받아 저장합니다.
- *
- * 프로덕션 권장 사항:
- * - 토큰은 HTTP-only 쿠키에 저장 (localStorage 대신)
- * - 토큰 갱신(refresh token) 로직 추가
- * - 로그아웃 시 토큰 안전하게 제거
+ * JWT 기반으로 수정되어 Pod 오토 스케일링 환경에서도 로그인 상태가 유지됩니다.
  */
 
 const AuthContext = createContext();
 
-/**
- * AuthProvider
- *
- * 앱 최상단에서 감싸 사용하세요:
- * <AuthProvider>
- *   <App />
- * </AuthProvider>
- */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState(localStorage.getItem('access_token'));
+  const [loading, setLoading] = useState(true);
+
+  // 초기 로드 시 토큰 확인 및 사용자 정보 가져오기 (필요시)
+  useEffect(() => {
+    const savedToken = localStorage.getItem('access_token');
+    if (savedToken) {
+      setToken(savedToken);
+      // 토큰이 있으면 사용자 정보를 가져오는 API를 호출할 수도 있음
+      // 예: http.get('/api/v1/account/me').then(res => setUser(res.data))
+    }
+    setLoading(false);
+  }, []);
 
   /**
-   * 로그인 시뮬레이션
-   * 실제 구현: API 요청 후 토큰 받기
+   * 로그인
    */
   const login = useCallback(async (username, password) => {
-    setLoading(true);
     try {
-      // 실제 구현: const res = await fetch('/api/auth/login', { method: 'POST', body: JSON.stringify({...}) })
-      // const { token, user } = await res.json();
+      const res = await http.post('/api/v1/account/login', { username, password });
+      
+      // API 응답 구조에 따라 수정 필요 (예: res.accessToken)
+      const accessToken = res.accessToken || res.data?.accessToken || res.data?.access_token || res.data?.token || res.token;
+      const userData = res.data?.user || res.user;
 
-      // 데모용 시뮬레이션
-      const mockToken = `mock-token-${Date.now()}`;
-      const mockUser = {
-        id: 1,
-        name: username,
-        email: `${username}@example.com`,
-      };
-
-      setToken(mockToken);
-      setUser(mockUser);
-      return { success: true, user: mockUser };
+      if (accessToken) {
+        localStorage.setItem('access_token', accessToken);
+        setToken(accessToken);
+        setUser(userData || { username });
+        return { success: true };
+      } else {
+        return { success: false, error: '토큰을 받지 못했습니다.' };
+      }
     } catch (error) {
       console.error('Login failed:', error);
+      return { success: false, error: error.response?.data?.message || error.message };
+    }
+  }, []);
+
+  /**
+   * 임시 로그인 (아이디만)
+   */
+  const temporaryLogin = useCallback(async (username) => {
+    try {
+      const res = await http.post('/api/v1/account/temporary-login', { username });
+      const accessToken = res.accessToken || res.data?.accessToken || res.data?.access_token || res.data?.token || res.token;
+      
+      if (accessToken) {
+        localStorage.setItem('access_token', accessToken);
+        setToken(accessToken);
+        setUser({ username });
+        return { success: true };
+      } else {
+        return { success: false, error: '토큰을 받지 못했습니다.' };
+      }
+    } catch (error) {
       return { success: false, error: error.message };
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   /**
    * 로그아웃
    */
-  const logout = useCallback(() => {
-    setToken(null);
-    setUser(null);
+  const logout = useCallback(async () => {
+    try {
+      await http.post('/api/v1/account/logout');
+    } catch (e) {
+      console.error('Logout API failed', e);
+    } finally {
+      localStorage.removeItem('access_token');
+      setToken(null);
+      setUser(null);
+    }
   }, []);
 
   /**
@@ -85,6 +108,7 @@ export function AuthProvider({ children }) {
     token,
     loading,
     login,
+    temporaryLogin,
     logout,
     getToken,
     getAuthHeaders,
