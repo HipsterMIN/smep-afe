@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState, useRef } from 'react';
 import http from '../lib/http';
 
 /**
@@ -6,25 +6,261 @@ import http from '../lib/http';
  *
  * 사용자 인증 상태 및 토큰 관리용 context입니다.
  * JWT 기반으로 수정되어 Pod 오토 스케일링 환경에서도 로그인 상태가 유지됩니다.
+ * 
+ * [추가 기능]
+ * - 세션 타이머 관리 (30분)
+ * - 리프레시 토큰을 이용한 시간 연장 기능
+ * - 유휴 시간(Idle Time) 감지 모드 지원
+ *   - 활동 중: 타이머 일시 정지
+ *   - 활동 중단(10초): 타이머 재개
  */
 
 const AuthContext = createContext();
 
+// ==========================================
+// 설정 상수
+// ==========================================
+// 세션 만료 시간 (30분 = 1800초)
+const SESSION_TIMEOUT_SECONDS = 1800;
+
+// 활동 중단 판단 시간 (10초)
+const IDLE_THRESHOLD_MS = 10000;
+
+// 타이머 모드 설정 ('ABSOLUTE' | 'IDLE')
+const TIMER_MODE = 'IDLE'; 
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('access_token'));
+  const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refresh_token'));
   const [loading, setLoading] = useState(true);
+  
+  // 세션 남은 시간 (초 단위)
+  const [remainingTime, setRemainingTime] = useState(SESSION_TIMEOUT_SECONDS);
+  
+  // 타이머 일시 정지 여부
+  const [isPaused, setIsPaused] = useState(false);
+  
+  // 타이머 Interval ID 저장용 Ref
+  const timerRef = useRef(null);
+  
+  // 활동 중단 감지용 Timeout ID 저장용 Ref
+  const idleTimeoutRef = useRef(null);
 
-  // 초기 로드 시 토큰 확인 및 사용자 정보 가져오기 (필요시)
+  /**
+   * 로그아웃 (내부용)
+   */
+  const handleLogout = useCallback(async () => {
+    try {
+      // 로그아웃 API 호출 (선택 사항)
+      // await http.post('/api/v1/account/logout');
+    } catch (e) {
+      console.error('Logout API failed', e);
+    } finally {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      setToken(null);
+      setRefreshToken(null);
+      setUser(null);
+      stopTimer(); // 타이머 정지
+      removeActivityListeners(); // 이벤트 리스너 제거
+      alert('세션이 만료되어 로그아웃되었습니다.'); // 만료 알림
+    }
+  }, []); 
+
+  /**
+   * 시간 연장 (토큰 재발급)
+   */
+  const extendSession = useCallback(async (silent = false) => {
+    try {
+      const currentRefreshToken = refreshToken || localStorage.getItem('refresh_token');
+      
+      if (!currentRefreshToken) {
+        throw new Error('리프레시 토큰이 없습니다.');
+      }
+
+      const res = await http.post('/api/v1/account/token/reissue', {
+        refreshToken: currentRefreshToken
+      });
+
+      const newAccessToken = res.accessToken || res.data?.accessToken;
+      const newRefreshToken = res.refreshToken || res.data?.refreshToken;
+
+      if (newAccessToken) {
+        localStorage.setItem('access_token', newAccessToken);
+        setToken(newAccessToken);
+        
+        if (newRefreshToken) {
+          localStorage.setItem('refresh_token', newRefreshToken);
+          setRefreshToken(newRefreshToken);
+        }
+
+        // 타이머 재시작 (30분으로 초기화)
+        setRemainingTime(SESSION_TIMEOUT_SECONDS);
+        setIsPaused(false); // 일시 정지 해제
+        
+        if (!silent) {
+          alert('로그인 시간이 연장되었습니다.');
+        }
+        return true;
+      } else {
+        throw new Error('토큰 갱신 응답이 올바르지 않습니다.');
+      }
+    } catch (error) {
+      console.error('Session extension failed:', error);
+      if (!silent) {
+        alert('세션 연장에 실패했습니다. 다시 로그인해주세요.');
+        handleLogout();
+      }
+      return false;
+    }
+  }, [refreshToken, handleLogout]);
+
+  /**
+   * 사용자 활동 감지 핸들러
+   * - 활동 감지 시: 타이머 일시 정지 (isPaused = true)
+   * - 10초간 활동 없으면: 타이머 재개 (isPaused = false)
+   */
+  const handleUserActivity = useCallback(() => {
+    // 1. 활동 감지 즉시 타이머 일시 정지
+    setIsPaused(true);
+
+    // 2. 기존의 "활동 중단 감지 타이머"가 있다면 취소 (Debounce)
+    if (idleTimeoutRef.current) {
+      clearTimeout(idleTimeoutRef.current);
+    }
+
+    // 3. 새로운 "활동 중단 감지 타이머" 설정 (10초 후 실행)
+    idleTimeoutRef.current = setTimeout(() => {
+      // 10초 동안 추가 활동이 없으면 타이머 재개
+      setIsPaused(false);
+    }, IDLE_THRESHOLD_MS);
+  }, []);
+
+  /**
+   * 이벤트 리스너 등록
+   */
+  const addActivityListeners = useCallback(() => {
+    if (TIMER_MODE !== 'IDLE') return;
+
+    window.addEventListener('mousemove', handleUserActivity);
+    window.addEventListener('keydown', handleUserActivity);
+    window.addEventListener('click', handleUserActivity);
+    window.addEventListener('scroll', handleUserActivity);
+    window.addEventListener('touchstart', handleUserActivity);
+  }, [handleUserActivity]);
+
+  /**
+   * 이벤트 리스너 제거
+   */
+  const removeActivityListeners = useCallback(() => {
+    if (TIMER_MODE !== 'IDLE') return;
+
+    window.removeEventListener('mousemove', handleUserActivity);
+    window.removeEventListener('keydown', handleUserActivity);
+    window.removeEventListener('click', handleUserActivity);
+    window.removeEventListener('scroll', handleUserActivity);
+    window.removeEventListener('touchstart', handleUserActivity);
+    
+    // 타임아웃 정리
+    if (idleTimeoutRef.current) {
+      clearTimeout(idleTimeoutRef.current);
+    }
+  }, [handleUserActivity]);
+
+  /**
+   * 타이머 시작 함수
+   */
+  const startTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    
+    setRemainingTime(SESSION_TIMEOUT_SECONDS);
+    setIsPaused(false);
+    
+    if (TIMER_MODE === 'IDLE') {
+      addActivityListeners();
+    }
+    
+    timerRef.current = setInterval(() => {
+      // isPaused 상태를 참조하기 위해 함수형 업데이트 내부에서 확인하거나,
+      // useEffect 의존성을 활용해야 함. 
+      // 여기서는 setInterval 내부에서 최신 state를 참조하기 어려우므로,
+      // setRemainingTime의 콜백에서 처리하는 트릭을 사용하거나,
+      // useInterval 커스텀 훅을 사용하는 것이 좋음.
+      // 하지만 간단하게 구현하기 위해 ref를 활용하거나, 
+      // setRemainingTime 내부에서 조건부 로직을 수행.
+      
+      setRemainingTime((prevTime) => {
+        // [중요] 일시 정지 상태인지 확인하는 로직이 필요함.
+        // 하지만 setInterval 클로저 내에서는 isPaused 최신 값을 알 수 없음.
+        // 따라서 isPaused를 Ref로 관리하거나, 아래와 같이 외부 변수를 참조해야 함.
+        // 여기서는 간단히 구현하기 위해 isPaused 상태 변경 시 setInterval을 재설정하는 방식 대신,
+        // 매 초마다 실행되지만 값만 안 줄이는 방식으로 구현하려면 isPausedRef가 필요함.
+        return prevTime; 
+      });
+    }, 1000);
+  }, [addActivityListeners]); // 의존성 문제로 아래 useEffect에서 재구현
+
+  /**
+   * 타이머 정지 함수
+   */
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    removeActivityListeners();
+  }, [removeActivityListeners]);
+
+  // ==========================================
+  // 타이머 로직 (useEffect로 재구성)
+  // ==========================================
+  useEffect(() => {
+    // 토큰이 없으면 타이머 동작 안 함
+    if (!token) return;
+
+    // 1초마다 실행되는 타이머
+    const intervalId = setInterval(() => {
+      // 일시 정지 상태이면 시간 감소 안 함
+      if (isPaused) return;
+
+      setRemainingTime((prevTime) => {
+        if (prevTime <= 1) {
+          clearInterval(intervalId);
+          handleLogout();
+          return 0;
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
+
+    // cleanup
+    return () => clearInterval(intervalId);
+  }, [token, isPaused, handleLogout]); // isPaused가 변경될 때마다 타이머 재설정 (올바른 동작)
+
+  // 초기 로드 및 리스너 등록
   useEffect(() => {
     const savedToken = localStorage.getItem('access_token');
+    const savedRefreshToken = localStorage.getItem('refresh_token');
+    
     if (savedToken) {
       setToken(savedToken);
-      // 토큰이 있으면 사용자 정보를 가져오는 API를 호출할 수도 있음
-      // 예: http.get('/api/v1/account/me').then(res => setUser(res.data))
+      if (savedRefreshToken) {
+        setRefreshToken(savedRefreshToken);
+      }
+      if (TIMER_MODE === 'IDLE') {
+        addActivityListeners();
+      }
     }
     setLoading(false);
-  }, []);
+    
+    return () => {
+      stopTimer();
+    };
+  }, [addActivityListeners, stopTimer]);
+
 
   /**
    * 로그인
@@ -33,14 +269,27 @@ export function AuthProvider({ children }) {
     try {
       const res = await http.post('/api/v1/account/login', { username, password });
       
-      // API 응답 구조에 따라 수정 필요 (예: res.accessToken)
-      const accessToken = res.accessToken || res.data?.accessToken || res.data?.access_token || res.data?.token || res.token;
-      const userData = res.data?.user || res.user;
+      const accessToken = res.accessToken || res.data?.accessToken;
+      const newRefreshToken = res.refreshToken || res.data?.refreshToken;
+      const userData = res.data?.user || res.user || { username };
 
       if (accessToken) {
         localStorage.setItem('access_token', accessToken);
         setToken(accessToken);
-        setUser(userData || { username });
+        
+        if (newRefreshToken) {
+          localStorage.setItem('refresh_token', newRefreshToken);
+          setRefreshToken(newRefreshToken);
+        }
+        
+        setUser(userData);
+        // 타이머 초기화
+        setRemainingTime(SESSION_TIMEOUT_SECONDS);
+        setIsPaused(false);
+        if (TIMER_MODE === 'IDLE') {
+          addActivityListeners();
+        }
+        
         return { success: true };
       } else {
         return { success: false, error: '토큰을 받지 못했습니다.' };
@@ -49,7 +298,7 @@ export function AuthProvider({ children }) {
       console.error('Login failed:', error);
       return { success: false, error: error.response?.data?.message || error.message };
     }
-  }, []);
+  }, [addActivityListeners]);
 
   /**
    * 임시 로그인 (아이디만)
@@ -57,12 +306,26 @@ export function AuthProvider({ children }) {
   const temporaryLogin = useCallback(async (username) => {
     try {
       const res = await http.post('/api/v1/account/temporary-login', { username });
-      const accessToken = res.accessToken || res.data?.accessToken || res.data?.access_token || res.data?.token || res.token;
+      const accessToken = res.accessToken || res.data?.accessToken;
+      const newRefreshToken = res.refreshToken || res.data?.refreshToken;
       
       if (accessToken) {
         localStorage.setItem('access_token', accessToken);
         setToken(accessToken);
+        
+        if (newRefreshToken) {
+          localStorage.setItem('refresh_token', newRefreshToken);
+          setRefreshToken(newRefreshToken);
+        }
+        
         setUser({ username });
+        // 타이머 초기화
+        setRemainingTime(SESSION_TIMEOUT_SECONDS);
+        setIsPaused(false);
+        if (TIMER_MODE === 'IDLE') {
+          addActivityListeners();
+        }
+        
         return { success: true };
       } else {
         return { success: false, error: '토큰을 받지 못했습니다.' };
@@ -70,26 +333,18 @@ export function AuthProvider({ children }) {
     } catch (error) {
       return { success: false, error: error.message };
     }
-  }, []);
+  }, [addActivityListeners]);
 
   /**
-   * 로그아웃
+   * 로그아웃 (외부 호출용)
    */
   const logout = useCallback(async () => {
-    try {
-      await http.post('/api/v1/account/logout');
-    } catch (e) {
-      console.error('Logout API failed', e);
-    } finally {
-      localStorage.removeItem('access_token');
-      setToken(null);
-      setUser(null);
-    }
-  }, []);
+    await http.post('/api/v1/account/logout').catch(() => {});
+    handleLogout();
+  }, [handleLogout]);
 
   /**
    * 현재 토큰 반환
-   * FileUpload 및 axios interceptor에서 사용
    */
   const getToken = useCallback(() => {
     return token;
@@ -113,6 +368,12 @@ export function AuthProvider({ children }) {
     getToken,
     getAuthHeaders,
     isAuthenticated: !!token,
+    
+    // 세션 관련 추가 값
+    remainingTime, // 남은 시간 (초)
+    extendSession, // 시간 연장 함수
+    timerMode: TIMER_MODE, // 현재 타이머 모드
+    isPaused, // 타이머 일시 정지 여부 (UI 표시용)
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -120,9 +381,6 @@ export function AuthProvider({ children }) {
 
 /**
  * useAuth Hook
- *
- * 컴포넌트에서 인증 상태와 함수에 접근하세요:
- * const { user, token, getAuthHeaders, login, logout, isAuthenticated } = useAuth();
  */
 export function useAuth() {
   const context = useContext(AuthContext);
