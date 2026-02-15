@@ -15,7 +15,8 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "format": "prettier --write \"src/**/*.{js,jsx,css,json}\"",
-    "lint:fix": "eslint src --fix"
+    "lint:fix": "eslint src --fix",
+    "sonar": "sonar-scanner -Dsonar.host.url=https://sonarqube.smes-tipa.go.kr -Dsonar.token=sqa_bd64d1c5e2475f4caac20aebde3f261c14cebeda -Dsonar.projectKey=smep-afe -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.sources=src -Dsonar.exclusions=**/*.test.jsx,**/*.spec.jsx,**/node_modules/**,**/dist/**"
   },
   "dependencies": {
     "@svar-ui/react-grid": "^2.3.2",

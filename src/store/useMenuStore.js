@@ -22,19 +22,25 @@ const menuStoreImpl = (set, get) => ({
 
   /**
    * 메뉴 트리를 평탄화하여 menuId 맵 생성
-   * before : { menuId: 'M1', children: [ { menuId: 'M2', children: [] } ] }
-   * after  : { 'M1': { ... }, 'M2': { ... } }
-   * @param {Object} menuData - 메뉴 트리 데이터 { menuId: 'M1', children: [ { menuId: 'M2', children: [] } ] }
+   * @param {Object|Array} menuData - 메뉴 데이터
    */
   _buildFlatMap: (menuData) => {
     const flatMap = {};
     const buildFlatMap = (node) => {
-      flatMap[node.menuId] = node;
-      if (node.children && node.children.length > 0) {
+      if (!node || typeof node !== 'object') return;
+      if (node.menuId) {
+        flatMap[node.menuId] = node;
+      }
+      if (node.children && Array.isArray(node.children)) {
         node.children.forEach(buildFlatMap);
       }
     };
-    buildFlatMap(menuData);
+
+    if (Array.isArray(menuData)) {
+      menuData.forEach(buildFlatMap);
+    } else {
+      buildFlatMap(menuData);
+    }
     return flatMap;
   },
 
@@ -47,7 +53,9 @@ const menuStoreImpl = (set, get) => ({
 
     try {
       const response = await http.get('/api/v1/menu');
-      const menuData = response.data || response;
+      // interceptor에 의해 response는 이미 response.data임. 
+      // 하지만 감싸진 형태({ data: ... })일 수도 있으므로 체크
+      const menuData = response?.data || response;
 
       if (!menuData) {
         throw new Error('응답 데이터가 비어있습니다.');
@@ -65,28 +73,31 @@ const menuStoreImpl = (set, get) => ({
 
       return menuData;
     } catch (error) {
-      // 개발 환경이거나 API 호출 실패 시 목데이터 사용
       const isDev = import.meta.env.MODE === 'development';
+      const errorMsg = error.response?.data?.message || error.message;
 
       if (isDev) {
         console.warn(
           '메뉴 데이터 API 호출 실패, 개발 환경이므로 목데이터를 사용합니다:',
-          error.message
+          errorMsg
         );
       } else {
-        console.error('메뉴 데이터 로드 실패:', error.message);
+        console.error('메뉴 데이터 로드 실패:', errorMsg);
       }
 
-      const flatMap = get()._buildFlatMap(mockMenuData);
-
-      set({
-        menuTree: mockMenuData,
-        flatMenuMap: flatMap,
-        isLoading: false,
-        error: isDev ? null : error.message, // 개발환경에서는 에러 상태로 처리하지 않음
-      });
-
-      return mockMenuData;
+      try {
+        const flatMap = get()._buildFlatMap(mockMenuData);
+        set({
+          menuTree: mockMenuData,
+          flatMenuMap: flatMap,
+          isLoading: false,
+          error: isDev ? null : errorMsg,
+        });
+        return mockMenuData;
+      } catch (innerError) {
+        console.error('목데이터 빌드 실패:', innerError);
+        set({ isLoading: false, error: '데이터 초기화 치명적 오류' });
+      }
     }
   },
 
