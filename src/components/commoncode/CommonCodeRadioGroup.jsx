@@ -1,6 +1,7 @@
 import RadioButton from '@components/ui/RadioButton.jsx';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
-import React, { useEffect,useState } from 'react';
+import PropTypes from 'prop-types';
+import React, { useEffect, useState } from 'react';
 
 /**
  * 공통코드를 조회하여 RadioButton 그룹을 렌더링하는 컴포넌트
@@ -9,18 +10,17 @@ import React, { useEffect,useState } from 'react';
  * @param {string} radioGroup - RadioButton 그룹명 (같은 그룹끼리 단일 선택)
  * @param {string} selectedValue - 선택된 값
  * @param {function} onChange - 값 변경 시 호출되는 콜백 함수
- * @param {string} direction - 정렬 방향 ('horizontal' | 'vertical'), 기본값: 'horizontal'
  * @param {boolean} disabled - 비활성화 여부, 기본값: false
  * @param {string} className - 추가 CSS 클래스
  */
 export default function CommonCodeRadioGroup({
-                                               codeGroup,
-                                               radioGroup,
-                                               selectedValue,
-                                               onChange,
-                                               disabled = false,
-                                               className = '',
-                                             }) {
+  codeGroup,
+  radioGroup,
+  selectedValue,
+  onChange,
+  disabled = false,
+  className = '',
+}) {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -48,44 +48,51 @@ export default function CommonCodeRadioGroup({
 
   if (loading) {
     return (
-        <div className={`onradioBox ${className}`}>
-          <span style={{ color: '#999' }}>로딩 중...</span>
-        </div>
+      <div className={`onradioBox ${className}`}>
+        <span style={{ color: '#999' }}>로딩 중...</span>
+      </div>
     );
   }
 
   if (error) {
     return (
-        <div className={`onradioBox ${className}`}>
-          <span style={{ color: '#ff0000' }}>{error}</span>
-        </div>
+      <div className={`onradioBox ${className}`}>
+        <span style={{ color: '#ff0000' }}>{error}</span>
+      </div>
     );
   }
 
   if (options.length === 0) {
     return (
-        <div className={`onradioBox ${className}`}>
-          <span style={{ color: '#999' }}>공통코드가 없습니다.</span>
-        </div>
+      <div className={`onradioBox ${className}`}>
+        <span style={{ color: '#999' }}>공통코드가 없습니다.</span>
+      </div>
     );
   }
 
   return (
-      <div
-          className={`onradioBox ${className}`}
-      >
-        {options.map((option, index) => (
-            <RadioButton
-                key={option.value}
-                groupId={`${radioGroup}_${index}`}
-                radioGroup={radioGroup}
-                radioValue={option.value}
-                radioName={option.label}
-                selectedValue={selectedValue}
-                onChange={onChange}
-                disabled={disabled}
-            />
-        ))}
-      </div>
+    <div className={`onradioBox ${className}`}>
+      {options.map((option, index) => (
+        <RadioButton
+          key={option.value}
+          groupId={`${radioGroup}_${index}`}
+          radioGroup={radioGroup}
+          radioValue={option.value}
+          radioName={option.label}
+          selectedValue={selectedValue}
+          onChange={onChange}
+          disabled={disabled}
+        />
+      ))}
+    </div>
   );
 }
+
+CommonCodeRadioGroup.propTypes = {
+  codeGroup: PropTypes.string.isRequired,
+  radioGroup: PropTypes.string.isRequired,
+  selectedValue: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+  className: PropTypes.string,
+};
