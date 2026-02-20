@@ -103,16 +103,8 @@ export default function BbsForm() {
     return value || 'M000000000000001';
   };
 
-  // 폼 입력 핸들러
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  // 라디오 버튼 변경 핸들러
-  const handleRadioChange = (field, value) => {
+  // 폼 입력 핸들러 (통합)
+  const handleChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -277,7 +269,7 @@ export default function BbsForm() {
                         menuType="input"
                         menuSize='500px'
                         value={formData.bbsNm}
-                        onChange={(e) => handleInputChange('bbsNm', e.target.value)}
+                        onChange={(e) => handleChange('bbsNm', e.target.value)}
                     />
                   </td>
                   <td>게시판 ID</td>
@@ -291,7 +283,7 @@ export default function BbsForm() {
                         menuType="input"
                         menuSize='100%'
                         value={formData.bbsExplnCn}
-                        onChange={(e) => handleInputChange('bbsExplnCn', e.target.value)}
+                        onChange={(e) => handleChange('bbsExplnCn', e.target.value)}
                     />
                   </td>
                 </tr>
@@ -305,7 +297,7 @@ export default function BbsForm() {
                           codeGroup="BBS_TYPE_CD"
                           radioGroup="bbsTypeCd"
                           selectedValue={formData.bbsTypeCd}
-                          onChange={(value) => handleRadioChange('bbsTypeCd', value)}
+                          onChange={(value) => handleChange('bbsTypeCd', value)}
                       />
                     </div>
                   </td>
@@ -321,7 +313,7 @@ export default function BbsForm() {
                           radioValue="Y"
                           radioName="사용"
                           selectedValue={formData.useYn}
-                          onChange={(value) => handleRadioChange('useYn', value)}
+                          onChange={(value) => handleChange('useYn', value)}
                       />
                       <RadioButton
                           groupId="useYn_n"
@@ -329,7 +321,7 @@ export default function BbsForm() {
                           radioValue="N"
                           radioName="미사용"
                           selectedValue={formData.useYn}
-                          onChange={(value) => handleRadioChange('useYn', value)}
+                          onChange={(value) => handleChange('useYn', value)}
                       />
                     </div>
                   </td>
@@ -342,7 +334,7 @@ export default function BbsForm() {
                           radioValue="Y"
                           radioName="사용"
                           selectedValue={formData.ctgryUseYn}
-                          onChange={(value) => handleRadioChange('ctgryUseYn', value)}
+                          onChange={(value) => handleChange('ctgryUseYn', value)}
                       />
                       <RadioButton
                           groupId="ctgryUseYn_n"
@@ -350,7 +342,7 @@ export default function BbsForm() {
                           radioValue="N"
                           radioName="미사용"
                           selectedValue={formData.ctgryUseYn}
-                          onChange={(value) => handleRadioChange('ctgryUseYn', value)}
+                          onChange={(value) => handleChange('ctgryUseYn', value)}
                       />
                     </div>
                   </td>
@@ -366,7 +358,7 @@ export default function BbsForm() {
                           radioValue="Y"
                           radioName="사용"
                           selectedValue={formData.atchFileUseYn}
-                          onChange={(value) => handleRadioChange('atchFileUseYn', value)}
+                          onChange={(value) => handleChange('atchFileUseYn', value)}
                       />
                       <RadioButton
                           groupId="atchFileUseYn_n"
@@ -374,7 +366,7 @@ export default function BbsForm() {
                           radioValue="N"
                           radioName="미사용"
                           selectedValue={formData.atchFileUseYn}
-                          onChange={(value) => handleRadioChange('atchFileUseYn', value)}
+                          onChange={(value) => handleChange('atchFileUseYn', value)}
                       />
                     </div>
                   </td>
@@ -484,7 +476,7 @@ export default function BbsForm() {
                           radioValue="Y"
                           radioName="사용"
                           selectedValue={formData.regPsbltyYn}
-                          onChange={(value) => handleRadioChange('regPsbltyYn', value)}
+                          onChange={(value) => handleChange('regPsbltyYn', value)}
                       />
                       <RadioButton
                           groupId="regPsbltyYn_n"
@@ -492,7 +484,7 @@ export default function BbsForm() {
                           radioValue="N"
                           radioName="미사용"
                           selectedValue={formData.regPsbltyYn}
-                          onChange={(value) => handleRadioChange('regPsbltyYn', value)}
+                          onChange={(value) => handleChange('regPsbltyYn', value)}
                       />
                     </div>
                   </td>
@@ -508,7 +500,7 @@ export default function BbsForm() {
                           radioValue="Y"
                           radioName="사용"
                           selectedValue={formData.answerPsbltyYn}
-                          onChange={(value) => handleRadioChange('answerPsbltyYn', value)}
+                          onChange={(value) => handleChange('answerPsbltyYn', value)}
                       />
                       <RadioButton
                           groupId="answerPsbltyYn_n"
@@ -516,7 +508,7 @@ export default function BbsForm() {
                           radioValue="N"
                           radioName="미사용"
                           selectedValue={formData.answerPsbltyYn}
-                          onChange={(value) => handleRadioChange('answerPsbltyYn', value)}
+                          onChange={(value) => handleChange('answerPsbltyYn', value)}
                       />
                     </div>
                   </td>
@@ -530,14 +522,14 @@ export default function BbsForm() {
                           menuType="input"
                           menuSize='80px'
                           value={formData.atchFilePsblCnt}
-                          onChange={(e) => handleInputChange('atchFilePsblCnt', e.target.value)}
+                          onChange={(e) => handleChange('atchFilePsblCnt', e.target.value)}
                       />
                       <span>개 ※ 사이즈제한</span>
                       <MenuInputBox
                           menuType="input"
                           menuSize='80px'
                           value={formData.atchFileSizeLimit}
-                          onChange={(e) => handleInputChange('atchFileSizeLimit', e.target.value)}
+                          onChange={(e) => handleChange('atchFileSizeLimit', e.target.value)}
                       />
                       <span>MB (0일 경우 제한 없음)</span>
                     </div>
@@ -552,7 +544,7 @@ export default function BbsForm() {
                           menuType="input"
                           menuSize='150px'
                           value={formData.scrnId}
-                          onChange={(e) => handleInputChange('scrnId', e.target.value)}
+                          onChange={(e) => handleChange('scrnId', e.target.value)}
                       />
                       <Button
                           btnType="edit"

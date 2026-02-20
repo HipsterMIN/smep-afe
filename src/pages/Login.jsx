@@ -1,47 +1,39 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-import http from '../lib/http.js'
+import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
+  const { login, temporaryLogin } = useAuth()
 
   const onSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    setLoading(true)
-    try {
-      const res = await http.post('/api/v1/account/login', { username, password })
-      if (res?.data?.next) {
-        navigate('/')
-      } else {
-        setError('로그인 응답 형식이 예상과 다릅니다.')
-      }
-    } catch (err) {
-      setError('로그인 실패: ' + (err?.response?.data?.error || err.message))
-    } finally {
-      setLoading(false)
+    setIsSubmitting(true)
+    
+    const res = await login(username, password)
+    if (res.success) {
+      navigate('/')
+    } else {
+      setError(res.error || '로그인에 실패했습니다.')
+      setIsSubmitting(false)
     }
   }
 
   const onTemporaryLogin = async () => {
     setError('')
-    setLoading(true)
-    try {
-      const res = await http.post('/api/v1/account/temporary-login', { username: username || 'admin' })
-      if (res?.data?.next) {
-        navigate('/')
-      } else {
-        setError('임시로그인 응답 형식이 예상과 다릅니다.')
-      }
-    } catch (err) {
-      setError('임시로그인 실패: ' + (err?.response?.data?.error || err.message))
-    } finally {
-      setLoading(false)
+    setIsSubmitting(true)
+    
+    const res = await temporaryLogin(username || 'admin')
+    if (res.success) {
+      navigate('/')
+    } else {
+      setError(res.error || '임시로그인에 실패했습니다.')
+      setIsSubmitting(false)
     }
   }
 
@@ -68,11 +60,11 @@ export default function Login() {
             style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 4 }}
           />
         </div>
-        <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px 14px' }}>
-          {loading ? '로그인 중...' : '로그인'}
+        <button type="submit" disabled={isSubmitting} style={{ width: '100%', padding: '10px 14px' }}>
+          {isSubmitting ? '로그인 중...' : '로그인'}
         </button>
       </form>
-      <button onClick={onTemporaryLogin} disabled={loading} style={{ width: '100%', padding: '10px 14px', marginTop: 8 }}>
+      <button onClick={onTemporaryLogin} disabled={isSubmitting} style={{ width: '100%', padding: '10px 14px', marginTop: 8 }}>
         임시로그인(아이디만)
       </button>
       {error && <p style={{ color: 'red', marginTop: 12 }}>{error}</p>}

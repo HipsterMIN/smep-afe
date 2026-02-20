@@ -31,8 +31,6 @@ export default function BbsList() {
     };
 
     loadCommonCodes();
-
-    // fetchBbsList();
   }, []);
 
   //검색 파라미터 ref

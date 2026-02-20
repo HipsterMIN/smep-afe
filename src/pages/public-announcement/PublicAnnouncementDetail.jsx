@@ -10,9 +10,10 @@ import SearchBox from '@components/ui/SearchBox.jsx';
 import TextareaBox from "@components/ui/TextareaBox.jsx";
 import http from "@lib/http.js";
 import React, {useEffect, useState} from 'react';
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 
 export default function PublicAnnouncementDetail() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const { bizPbancNo } = useParams();
   const isEdit = !!bizPbancNo;
@@ -60,7 +61,17 @@ export default function PublicAnnouncementDetail() {
     //신청정보end
   });
 
+  // 파일 상태 관리
+  const [noticeFiles, setNoticeFiles] = useState([]); // 공고문 (1개 고정)
+  const [attachFiles, setAttachFiles] = useState([]); // 첨부파일 (최대 5개)
+
   const extractVal = (v) => (v && v.target !== undefined ? v.target.value : v);
+  const mapExistingFile = (file) => ({
+    id: file.atchFileSn,
+    fileName: file.orgnlFileNm,
+    fileSize: file.fileSz ?? 0,
+    status: 'existing'
+  });
 
   const handleInputChange = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: extractVal(value) }));
@@ -70,8 +81,35 @@ export default function PublicAnnouncementDetail() {
     setLoading(true);
     try {
       const res = await http.get(`/api/v1/public-announcement/${bizPbancNo}`);
-      console.log('상세 데이터 조회:', res.data);
-      setForm(res.data);
+        console.log('상세 데이터 조회:', res.data);
+        setForm(res.data);
+
+      const existingNoticeFiles = (res.data?.pbancMtxtAtchFiles ?? []).map(mapExistingFile);
+      const existingAttachFiles = (res.data?.pbancAtchFiles ?? []).map(mapExistingFile);
+
+      setNoticeFiles(existingNoticeFiles.slice(0, 1));
+      setAttachFiles(existingAttachFiles);
+      // console.log('상세 데이터 조회:', res);
+      // setForm(res);
+      //
+      // // 기존 파일 정보 설정
+      // if (res?.pbancMtxtAtchFileId) {
+      //   setNoticeFiles([{
+      //     id: res.pbancMtxtAtchFileId,
+      //     fileName: `공고문_${bizPbancNo}`,
+      //     fileSize: 0,
+      //     status: 'existing'
+      //   }]);
+      // }
+      //
+      // if (res?.pbancAtchFileId) {
+      //   setAttachFiles([{
+      //     id: res.pbancAtchFileId,
+      //     fileName: `첨부파일_${bizPbancNo}`,
+      //     fileSize: 0,
+      //     status: 'existing'
+      //   }]);
+      // }
     } catch (error) {
       console.error('상세 조회 실패:', error);
     } finally {
@@ -85,23 +123,83 @@ export default function PublicAnnouncementDetail() {
             alert('공고명을 입력하세요.');
             return;
         }
-        console.log(form);
+
         if (!window.confirm('저장하시겠습니까?')) return;
 
-        if (bizPbancNo) {
-            const res = await http.put(`/api/v1/public-announcement/${bizPbancNo}`, form);
-            if (res?.success) {
-                alert('수정되었습니다.');
+        try {
+            // FormData 생성
+            const formData = new FormData();
+
+            // 기본 정보 추가
+            // Object.keys(form).forEach(key => {
+            //     if (form[key] !== null && form[key] !== undefined && form[key] !== '') {
+            //         formData.append(key, form[key]);
+            //     }
+            // });
+            formData.append(
+                "data",
+                new Blob([JSON.stringify(form)], {
+                    type: "application/json"
+                })
+            );
+
+            // 공고문 파일
+            const visibleNoticeFiles = noticeFiles.filter(f => f.status !== 'deleted');
+            visibleNoticeFiles.forEach((file, index) => {
+                if (file.status === 'new' && file.file) {
+                    formData.append('pbancMtxtAtchFile', file.file);
+                }
+            });
+
+            // 첨부파일
+            const visibleAttachFiles = attachFiles.filter(f => f.status !== 'deleted');
+            visibleAttachFiles.forEach((file, index) => {
+                if (file.status === 'new' && file.file) {
+                    formData.append(`pbancAtchFile`, file.file);
+                }
+            });
+
+            // 파일 상태 정보 전송
+            const fileStatusInfo = {
+                noticeFileCount: visibleNoticeFiles.length,
+                attachFileCount: visibleAttachFiles.length,
+                deletedNoticeFile: noticeFiles.filter(f => f.status === 'deleted').map(f => f.id),
+                deletedAttachFileIds: attachFiles.filter(f => f.status === 'deleted').map(f => f.id)
+            };
+            formData.append('fileStatusInfo', JSON.stringify(fileStatusInfo));
+
+            console.log('저장 데이터:', formData);
+
+            if (bizPbancNo) {
+                // 수정
+                const res = await http.put(`/api/v1/public-announcement/${bizPbancNo}`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                if (res?.success) {
+                    alert('수정되었습니다.');
+                    navigate('/sprtBiz/bizPbanc/sprtBizPbanc');
+                } else {
+                    alert('수정에 실패했습니다.');
+                }
             } else {
-                alert('수정에 실패했습니다.');
+                // 신규
+                const res = await http.post(`/api/v1/public-announcement`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                if (res?.success) {
+                    alert('등록되었습니다.');
+                    navigate('/sprtBiz/bizPbanc/sprtBizPbanc');
+                } else {
+                    alert('등록에 실패했습니다.');
+                }
             }
-        } else {
-            const res = await http.post(`/api/v1/public-announcement`, form);
-            if (res?.success) {
-                alert('등록되었습니다.');
-            } else {
-                alert('등록에 실패했습니다.');
-            }
+        } catch (error) {
+            console.error('저장 실패:', error);
+            alert('저장 중 오류가 발생했습니다.');
         }
     };
 
@@ -553,51 +651,61 @@ export default function PublicAnnouncementDetail() {
                         <col style={{ width: '180px' }} />
                         <col style={{ width: 'auto' }} />
                       </colgroup>
-                      <tbody>
+                        <tbody>
                         <tr>
-                          <td>신청사이트</td>
-                          <td>
-                            <MenuInputBox menuType="input" menuSize="100%" />
-                          </td>
+                            <td>신청사이트</td>
+                            <td>
+                                <MenuInputBox menuType="input" menuSize="100%"/>
+                            </td>
                         </tr>
                         <tr>
-                          <td>신청경로</td>
-                          <td>
-                            <MenuInputBox menuType="input" menuSize="100%" />
-                          </td>
+                            <td>신청경로</td>
+                            <td>
+                                <MenuInputBox menuType="input" menuSize="100%"/>
+                            </td>
                         </tr>
                         <tr>
-                          <td>상세정보 경로</td>
-                          <td>
-                            <MenuInputBox menuType="input" menuSize="100%" />
-                          </td>
+                            <td>상세정보 경로</td>
+                            <td>
+                                <MenuInputBox menuType="input" menuSize="100%"/>
+                            </td>
                         </tr>
                         <tr>
-                          <td>공고문</td>
-                          <td>
-                           <Button btnType="addfile" btnNames="파일 선택"/>
-                            <input type="file" />
-                            <div className="onflex onflexcolumn">
-                              <FileUpload mode="edit"/>
-                            </div>
-                          </td>
+                            <td>공고문</td>
+                            <td>
+                                <FileUpload
+                                    mode="edit"
+                                    maxFiles={1}
+                                    fileType="notice"
+                                    files={noticeFiles}
+                                    onFilesChange={setNoticeFiles}
+                                />
+                            </td>
                         </tr>
                         <tr>
-                          <td>첨부파일 주소</td>
-                          <td>
-                            <MenuInputBox menuType="input" menuSize="100%" />
-                          </td>
+                            <td>첨부파일</td>
+                            <td>
+                                <FileUpload
+                                    mode="edit"
+                                    maxFiles={5}
+                                    fileType="attachment"
+                                    files={attachFiles}
+                                    onFilesChange={setAttachFiles}
+                                />
+                            </td>
                         </tr>
-                      </tbody>
+                        </tbody>
                     </table>
                   </div>
                 </div>
-                <div className="onflexbtns">
-                  <div style={{ marginRight: 'auto' }}>
-                    <Button btnType="list" btnNames="목록"/>
-                  </div>
-                  <Button btnType="del" btnNames="삭제" />
-                  <Button btnType="add" btnNames="저장" onClick={() => {handleSave()}}/>
+                  <div className="onflexbtns">
+                      <div style={{marginRight: 'auto'}}>
+                          <Button btnType="list" btnNames="목록" onClick={() => {
+                              navigate('/sprtBiz/bizPbanc/sprtBizPbanc')
+                          }}/>
+                      </div>
+                      <Button btnType="del" btnNames="삭제"/>
+                      <Button btnType="add" btnNames="저장" onClick={() => {handleSave()}}/>
                 </div>
               </div>
             </div>

@@ -599,6 +599,7 @@ caption {
   position: relative;
   display: flex;
   align-items: center;
+  flex-direction: column;
   width: 100%;
   min-height: 64px;
   padding: 8px 0px;
@@ -610,7 +611,6 @@ caption {
 .onselect-form.open {
   padding: 0;
   min-height: 180px;
-  flex-direction: column;
 }
 .onselect-form .onparagraph {
   position: relative;
@@ -640,6 +640,9 @@ caption {
   gap: 16px;
 }
 .onselect-form .onparagraph.dashed::after {
+  content: none;
+}
+.onselect-form.open .onparagraph.dashed::after {
   content: '';
   position: absolute;
   left: 0;
@@ -1078,6 +1081,10 @@ input.searchBox {
   border-radius: 5px;
   border: 1px solid #D7D7D7;
   background: #FFF;
+  outline: none;
+}
+input.searchBox:focus {
+  outline: none;
 }
 input.searchBox::placeholder {
   color: #666;
@@ -1724,4 +1731,7 @@ input.searchBox::placeholder {
 }
 .mb-24 {
   margin-bottom: 24px;
+}
+.react-datepicker-popper {
+  z-index: 9999 !important;
 }
