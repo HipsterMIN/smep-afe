@@ -48,19 +48,6 @@ export default function BbsList() {
     useYn: ""
   });
 
-  // 게시판 그리드 컬럼 정의
-  const bbsColumns = [
-    { cell: "CheckBox", id: "checkbox", width: 40 },
-    { id: "bbsNo", flexgrow: 1, header: "게시판 ID" },
-    { id: "bbsNm", flexgrow: 1, header: "게시판 명" },
-    { id: "bbsTypeCd", flexgrow: 1, header: "게시판 유형" },
-    { id: "bbsExplnCn", flexgrow: 2, header: "게시판 소개글" },
-    { id: "useYn", width: 80, header: "사용여부" },
-    { id: "regDate", flexgrow: 1, header: "등록일" ,
-      template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm:ss'),},
-    { cell: ButtonCell, id: 'management', header: '관리', width: 76 },
-  ];
-
   // 게시판 목록 조회 API 호출
   const fetchBbsList = async (nextCursor = null) => {
     setLoading(true);
@@ -114,6 +101,46 @@ export default function BbsList() {
       [name]: value
     }));
   };
+
+  // 그리드 수정 버튼 클릭 -> 수정 화면 이동
+  const handleMoveToEdit = (bbsNo) => {
+    if (!bbsNo) {
+      alert('게시판 번호가 없습니다.');
+      return;
+    }
+    navigate(`${bbsNo}`);
+  };
+
+  const handleGridAction = (payload = {}) => {
+    const action = payload?.action;
+    const data = payload?.data ?? {};
+    const isEditAction = action === 'custom-button' || data?.column === 'management';
+    const bbsNo = data?.rowData?.bbsNo;
+
+    if (!isEditAction || !bbsNo) {
+      return;
+    }
+
+    handleMoveToEdit(bbsNo);
+  };
+
+  // 게시판 그리드 컬럼 정의
+  const bbsColumns = [
+    { id: "no", width: 40 },
+    { id: "bbsNo", flexgrow: 1, header: "게시판 ID" },
+    { id: "bbsNm", flexgrow: 1, header: "게시판 명" },
+    { id: "bbsTypeCd", flexgrow: 1, header: "게시판 유형" },
+    { id: "bbsExplnCn", flexgrow: 2, header: "게시판 소개글" },
+    { id: "useYn", width: 80, header: "사용여부" },
+    { id: "regDate", flexgrow: 1, header: "등록일" ,
+      template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm:ss'),},
+    {
+      id: 'management',
+      header: '관리',
+      width: 76,
+      cell: (props) => <ButtonCell {...props} onAction={handleGridAction} />,
+    },
+  ];
 
   return (
       <div className="oncontentbox full">
@@ -181,7 +208,7 @@ export default function BbsList() {
               <Button btnType="add" btnNames="등록" onClick={() => handleAdd()} />
             </div>
 
-            <div className="ongrid-tableform mask">
+            <div className="ongrid-tableform">
               {loading ? (
                   <div className="loading">데이터를 불러오는 중...</div>
               ) : (
@@ -190,7 +217,7 @@ export default function BbsList() {
                       columns={bbsColumns}
                       gridProps={{
                         selection: true,
-                        autoHeight: true
+                        autoHeight: true,
                       }}
                   />
               )}
