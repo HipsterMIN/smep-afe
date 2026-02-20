@@ -2,14 +2,20 @@ import CommonCodeRadioGroup from "@components/commoncode/CommonCodeRadioGroup.js
 import Button from "@components/ui/Button.jsx";
 import MenuInputBox from "@components/ui/MenuInputBox.jsx";
 import RadioButton from "@components/ui/RadioButton.jsx";
+import http from "@lib/http.js";
 import React, {useEffect, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 
 export default function BbsForm() {
   const navigate = useNavigate();
+  const {bbsNo} = useParams();
+  const isEdit = !!bbsNo;
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // 폼 데이터 state
   const [formData, setFormData] = useState({
+    bbsNo: '',
     bbsNm: '',
     bbsExplnCn: '',
     bbsTypeCd: 'BSC', //초기값 설정
@@ -26,11 +32,76 @@ export default function BbsForm() {
   // 카테고리 관련 state
   const [categoryInput, setCategoryInput] = useState('');
   const [categories, setCategories] = useState([]);
-  const [setEditingIndex] = useState(null);
+  const [, setEditingIndex] = useState(null);
 
-  // 공통코드 조회
+  const applyDetailToForm = (data) => {
+    if (!data) {
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      bbsNo: data.bbsNo || prev.bbsNo,
+      bbsNm: data.bbsNm || '',
+      bbsExplnCn: data.bbsExplnCn || '',
+      bbsTypeCd: data.bbsTypeCd || prev.bbsTypeCd,
+      useYn: data.useYn || 'Y',
+      ctgryUseYn: data.ctgryUseYn || 'N',
+      atchFileUseYn: data.fileAtchPsbltyYn || 'N',
+      regPsbltyYn: data.edtrUseYn || 'N',
+      answerPsbltyYn: data.cmntPsbltyYn || 'N',
+      atchFileSizeLimit: data.maxAtchFileSz
+          ? String(Math.floor(Number(data.maxAtchFileSz) / (1024 * 1024)))
+          : 0,
+      scrnId: data.scrnId || '',
+    }));
+
+    const detailCategories = Array.isArray(data.categories)
+        ? data.categories
+            .map((category) => ({
+              ctgryNo: category?.ctgryNo,
+              name: category?.ctgryNm || category?.name || '',
+              useYn: category?.useYn || 'Y',
+              isEditing: false,
+            }))
+            .filter((category) => category.name.trim() !== '')
+        : [];
+    setCategories(detailCategories);
+  };
+
+  // 상세 조회
   useEffect(() => {
-  }, []);
+    const fetchBbs = async () => {
+      setLoading(true);
+      try {
+        const response = await http.get(`/api/v1/board/bbs/${bbsNo}`);
+        const data = response?.data;
+        if (!data) {
+          return;
+        }
+        applyDetailToForm(data);
+      } catch (error) {
+        console.error('게시판 상세 조회 실패:', error);
+        alert(error?.response?.data?.message || '게시판 상세 조회에 실패했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isEdit) {
+      fetchBbs();
+    }
+  }, [bbsNo, isEdit]);
+
+  const getCurrentMemberNo = () => {
+    const candidates = [
+      sessionStorage.getItem('mbrNo'),
+      localStorage.getItem('mbrNo'),
+      sessionStorage.getItem('memberNo'),
+      localStorage.getItem('memberNo'),
+    ];
+    const value = candidates.find((item) => item && item.trim() !== '');
+    return value || 'M000000000000001';
+  };
 
   // 폼 입력 핸들러
   const handleInputChange = (field, value) => {
@@ -50,11 +121,15 @@ export default function BbsForm() {
 
   // 카테고리 추가
   const handleAddCategory = () => {
-    if (categoryInput.trim() === '') {
+    const categoryName = categoryInput.trim();
+    if (categoryName === '') {
       alert('카테고리 내용을 입력해주세요.');
       return;
     }
-    setCategories([...categories, { name: categoryInput, isEditing: false }]);
+    setCategories([
+      ...categories,
+      { name: categoryName, useYn: 'Y', isEditing: false },
+    ]);
     setCategoryInput('');
   };
 
@@ -68,12 +143,13 @@ export default function BbsForm() {
 
   // 카테고리 수정 저장
   const handleSaveCategory = (index, newName) => {
-    if (newName.trim() === '') {
+    const categoryName = newName.trim();
+    if (categoryName === '') {
       alert('카테고리 내용을 입력해주세요.');
       return;
     }
     setCategories(categories.map((cat, i) =>
-        i === index ? { ...cat, name: newName, isEditing: false } : cat
+        i === index ? { ...cat, name: categoryName, isEditing: false } : cat
     ));
     setEditingIndex(null);
   };
@@ -102,7 +178,7 @@ export default function BbsForm() {
   };
 
   // 저장
-  const handleSave = () => {
+  const handleSave = async () => {
     if (formData.bbsNm.trim() === '') {
       alert('게시판명을 입력해주세요.');
       return;
@@ -112,14 +188,63 @@ export default function BbsForm() {
       return;
     }
 
-    const saveData = {
-      ...formData,
-      categories: categories.map(cat => cat.name),
+    const memberNo = getCurrentMemberNo();
+    const requestCategories =
+      formData.ctgryUseYn === 'Y'
+        ? categories
+            .map((category, index) => ({
+              ctgryNm: (category?.name || '').trim(),
+              sortSeq: index + 1,
+              useYn: category?.useYn || 'Y',
+            }))
+            .filter((category) => category.ctgryNm !== '')
+        : [];
+
+    const requestData = {
+      bbsNm: formData.bbsNm.trim(),
+      bbsExplnCn: formData.bbsExplnCn.trim(),
+      bbsTypeCd: formData.bbsTypeCd,
+      mngMbrNo: memberNo,
+      scrnId: formData.scrnId.trim(),
+      fileAtchPsbltyYn: formData.atchFileUseYn,
+      maxAtchFileSz: Number(formData.atchFileSizeLimit || 0) * 1024 * 1024,
+      atchFileExtnCn: '',
+      edtrUseYn: formData.regPsbltyYn,
+      ctgryUseYn: formData.ctgryUseYn,
+      cmntPsbltyYn: formData.answerPsbltyYn,
+      bbsRegMbrNo: memberNo,
+      bbsMdfcnMbrNo: memberNo,
+      useYn: formData.useYn,
+      categories: requestCategories,
     };
 
-    console.log('저장할 데이터:', saveData);
-    alert('저장 기능은 API 연동이 필요합니다.');
+    setSaving(true);
+    try {
+      if (isEdit) {
+        await http.put(`/api/v1/board/bbs/${bbsNo}`, requestData);
+        alert('게시판이 수정되었습니다.');
+      } else {
+        await http.post('/api/v1/board/bbs', requestData);
+        alert('게시판이 등록되었습니다.');
+      }
+      navigate(-1);
+    } catch (error) {
+      console.error('게시판 저장 실패:', error);
+      alert(error?.response?.data?.message || '게시판 저장에 실패했습니다.');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+        <div className="oncontentbox full">
+          <div className="oncontents">
+            <div className="loading">데이터를 불러오는 중입니다.</div>
+          </div>
+        </div>
+    );
+  }
 
   return (
       <div className="oncontentbox full">
@@ -156,7 +281,7 @@ export default function BbsForm() {
                     />
                   </td>
                   <td>게시판 ID</td>
-                  <td>자동생성</td>
+                  <td>{isEdit ? (formData.bbsNo || bbsNo || '-') : '자동생성'}</td>
                 </tr>
 
                 <tr>
@@ -452,7 +577,7 @@ export default function BbsForm() {
             </div>
             <Button
                 btnType="add"
-                btnNames="저장"
+                btnNames={saving ? "저장중..." : "저장"}
                 onClick={handleSave}
             />
           </div>

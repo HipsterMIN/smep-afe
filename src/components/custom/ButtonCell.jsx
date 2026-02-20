@@ -9,11 +9,12 @@ function ButtonCell({ row, column, onAction }) {
         data: {
           column: column.id,
           row: row.id,
+          rowData: row,
         },
       });
   }
 
-  return <Button btnType="edit" btnNames="수정" />;
+  return <Button btnType="edit" btnNames="수정" onClick={onClick} />;
 }
 
 export default ButtonCell;

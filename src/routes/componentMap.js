@@ -120,6 +120,10 @@ export const componentMap = {
         component: BbsForm, // 게시판 등록
         // layout 상속 (부모와 동일)
       },
+      {
+        path: ':bbsNo',
+        component: BbsForm,
+      },
     ],
   },
   // 공통코드관리
