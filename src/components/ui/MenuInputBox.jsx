@@ -51,6 +51,7 @@ export default function MenuInputBox({
             style={{ width: menuSize }}
             value={value ?? ''} // value 기본값을 빈 문자열로 통일
             onChange={handleChange}
+            onKeyDown={onKeyDown}
             disabled={disabled}
           >
             {/* options 배열이 존재하고 비어있지 않을 때 */}
