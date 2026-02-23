@@ -1,3 +1,4 @@
+import http from "@lib/http.js";
 import React, { useRef } from 'react';
 
 import Button from './Button';
@@ -36,25 +37,59 @@ export default function FileUpload({
   };
 
   const handleDeleteFile = (fileId) => {
-    const updatedFiles = files.map((f) => {
-      if (f.id === fileId) {
-        return { ...f, status: 'deleted' };
-      }
-      return f;
-    });
+    const updatedFiles = files
+        .map((f) => {
+          if (f.id !== fileId) return f;
+
+          // 등록화면의 신규 파일은 서버 ID가 없으므로 그냥 목록에서 제거
+          if (f.status === 'new') return { ...f, status: 'removed' };
+
+          // 수정화면의 기존 파일만 deleted로 남겨서 삭제 ID 전송
+          return { ...f, status: 'deleted' };
+        })
+        .filter((f) => f.status !== 'removed');
 
     onFilesChange(updatedFiles);
   };
 
-  const handleDownload = (e, file) => {
+  const handleDownload = async (e, file) => {
     e.preventDefault();
+
     if (file.status === 'new') {
-      // 신규 파일은 다운로드 불가
-      alert('저장된 파일만 다운로드 가능합니다.');
+      alert('신규 파일은 아직 서버에 저장되지 않아 다운로드할 수 없습니다.');
       return;
     }
-    // 기존 파일 다운로드 로직
-    console.log('다운로드:', file);
+
+    const atchFileId = file.atchFileId;
+    const atchFileSn = file.atchFileSn;
+
+    if (!atchFileId || atchFileSn === undefined || atchFileSn === null) {
+      alert('다운로드에 필요한 파일 식별자(atchFileId, atchFileSn)가 없습니다.');
+      return;
+    }
+
+    try {
+      const blob = await http.get(
+          `/api/v1/files/download/${encodeURIComponent(atchFileId)}/${encodeURIComponent(String(atchFileSn))}`,
+          {
+            responseType: 'blob',
+            headers: { Accept: 'application/octet-stream' }
+          }
+      );
+
+      const downloadName = file.fileName || file.orgnlFileNm || 'download';
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = downloadName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('파일 다운로드 실패:', error);
+      alert('파일 다운로드 중 오류가 발생했습니다.');
+    }
   };
 
   const getFileSizeDisplay = (bytes) => {
@@ -106,7 +141,7 @@ export default function FileUpload({
                 <i className="onicon clip"></i>
                 {file.fileName}
                 {file.status === 'new' ? ' (신규)' : ''}
-                {` (${getFileSizeDisplay(file.fileSize)} `}
+                {` (${getFileSizeDisplay(file.fileSize)}) `}
               </a>
               {mode === 'edit' && (
                 <button

@@ -15,6 +15,7 @@ import {useNavigate, useParams} from "react-router-dom";
 export default function PublicAnnouncementDetail() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [hashtagInput, setHashtagInput] = useState('');
   const { bizPbancNo } = useParams();
   const isEdit = !!bizPbancNo;
 
@@ -46,6 +47,7 @@ export default function PublicAnnouncementDetail() {
     bizPbancInqplHmpgUrlAddr: '', //문의처 홈페이지
     bizPbancInqplTkcgDeptNm: '', //문의처 담당부서
     bizPbancInqplTelnoCn: '', //문의처 전화번호
+    bizPbancHstgCn: '',
     //공고정보end
     //제한조건start
     bizSprtQlfcRqmtCn: '', //자격요건
@@ -57,7 +59,7 @@ export default function PublicAnnouncementDetail() {
     bizPbancSprtAmtCn: '', //지원금액
     //제한조건end
     //신청정보start
-    //todo 몰루겠음 첨부파일추가필요
+    bizAplyUrlAddr: '',
     //신청정보end
   });
 
@@ -67,7 +69,9 @@ export default function PublicAnnouncementDetail() {
 
   const extractVal = (v) => (v && v.target !== undefined ? v.target.value : v);
   const mapExistingFile = (file) => ({
-    id: file.atchFileSn,
+    id: file.atchFileSn,          // React key/삭제용
+    atchFileId: file.atchFileId,  // 다운로드용
+    atchFileSn: file.atchFileSn,  // 다운로드용
     fileName: file.orgnlFileNm,
     fileSize: file.fileSz ?? 0,
     status: 'existing'
@@ -81,8 +85,11 @@ export default function PublicAnnouncementDetail() {
     setLoading(true);
     try {
       const res = await http.get(`/api/v1/public-announcement/${bizPbancNo}`);
-        console.log('상세 데이터 조회:', res.data);
-        setForm(res.data);
+      console.log('상세 데이터 조회:', res.data);
+      setForm(res.data);
+
+      const tags = parseHashtagJson(res.data?.bizPbancHstgCn);
+      setHashtagInput(tags.join(', '));
 
       const existingNoticeFiles = (res.data?.pbancMtxtAtchFiles ?? []).map(mapExistingFile);
       const existingAttachFiles = (res.data?.pbancAtchFiles ?? []).map(mapExistingFile);
@@ -136,6 +143,16 @@ export default function PublicAnnouncementDetail() {
             //         formData.append(key, form[key]);
             //     }
             // });
+            const payload = {
+                ...form,
+                bizPbancHstgCn: toHashtagJsonString(hashtagInput)
+            };
+
+            formData.append(
+                "data",
+                new Blob([JSON.stringify(payload)], { type: "application/json" })
+            );
+
             formData.append(
                 "data",
                 new Blob([JSON.stringify(form)], {
@@ -163,8 +180,8 @@ export default function PublicAnnouncementDetail() {
             const fileStatusInfo = {
                 noticeFileCount: visibleNoticeFiles.length,
                 attachFileCount: visibleAttachFiles.length,
-                deletedNoticeFile: noticeFiles.filter(f => f.status === 'deleted').map(f => f.id),
-                deletedAttachFileIds: attachFiles.filter(f => f.status === 'deleted').map(f => f.id)
+                deletedNoticeFile: noticeFiles.filter(f => f.status === 'deleted' && f.id && f.status !== 'new').map(f => f.id),
+                deletedAttachFileIds: attachFiles.filter(f => f.status === 'deleted' && f.id && f.status !== 'new').map(f => f.id)
             };
             formData.append('fileStatusInfo', JSON.stringify(fileStatusInfo));
 
@@ -201,6 +218,25 @@ export default function PublicAnnouncementDetail() {
             console.error('저장 실패:', error);
             alert('저장 중 오류가 발생했습니다.');
         }
+    };
+
+    const parseHashtagJson = (v) => {
+        if (!v) return [];
+        try {
+            const obj = typeof v === 'string' ? JSON.parse(v) : v;
+            const arr = Array.isArray(obj?.hstgnm) ? obj.hstgnm : [];
+            return arr.map((s) => String(s).trim()).filter(Boolean);
+        } catch {
+            return [];
+        }
+    };
+
+    const toHashtagJsonString = (raw) => {
+        const tags = raw
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+        return JSON.stringify({ hstgnm: tags });
     };
 
   // 상세조회
@@ -565,6 +601,17 @@ export default function PublicAnnouncementDetail() {
                             />
                           </td>
                         </tr>
+                        <tr>
+                            <td>해시태그<br/>※쉼표 (&nbsp;,&nbsp;) 로 구분</td>
+                            <td colSpan={3}>
+                                <MenuInputBox
+                                    menuType="input"
+                                    menuSize="100%"
+                                    value={hashtagInput}
+                                    onChange={(v) => setHashtagInput(v?.target ? v.target.value : v)}
+                                />
+                            </td>
+                        </tr>
                       </tbody>
                     </table>
                   </div>
@@ -653,21 +700,14 @@ export default function PublicAnnouncementDetail() {
                       </colgroup>
                         <tbody>
                         <tr>
-                            <td>신청사이트</td>
+                            <td>신청사이트URL</td>
                             <td>
-                                <MenuInputBox menuType="input" menuSize="100%"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>신청경로</td>
-                            <td>
-                                <MenuInputBox menuType="input" menuSize="100%"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>상세정보 경로</td>
-                            <td>
-                                <MenuInputBox menuType="input" menuSize="100%"/>
+                                <MenuInputBox
+                                    menuType="input"
+                                    menuSize="100%"
+                                    value={form.bizAplyUrlAddr}
+                                    onChange={(v) => handleInputChange('bizAplyUrlAddr', v)}
+                                />
                             </td>
                         </tr>
                         <tr>
