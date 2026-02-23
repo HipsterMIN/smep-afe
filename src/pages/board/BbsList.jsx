@@ -15,6 +15,17 @@ export default function BbsList() {
   // 로딩 상태
   const [loading, setLoading] = useState(false);
   const [bbsTypeCdList, setBbsTypeCdList] = useState([]);
+  const getBbsTypeLabel = (code) => {
+    if (!code) return '';
+    const matchedCode = bbsTypeCdList.find((item) => item?.value === code);
+    return matchedCode?.label || code;
+  };
+  const stripHtmlTags = (value = '') =>
+    String(value)
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
   // 컴포넌트 마운트 시 초기 데이터 로드
   useEffect(() => {
@@ -62,13 +73,14 @@ export default function BbsList() {
       const data = response?.data || [];
 
       // API 응답 데이터를 Grid 형식에 맞게 변환
-      const formattedData = data.data.map((item) => ({
+      const formattedData = data.data.map((item, index) => ({
+        no: index + 1,
         bbsNo: item?.bbsNo || '',
         bbsNm: item?.bbsNm || '',
-        bbsTypeCd: item?.bbsTypeCd || '',
-        bbsExplnCn: item?.bbsExplnCn || '',
+        bbsTypeCd: getBbsTypeLabel(item?.bbsTypeCd || ''),
+        bbsExplnCn: stripHtmlTags(item?.bbsExplnCn || ''),
         useYn: item?.useYn === "Y" ? "사용" : "미사용",
-        regDate: item?.regDate || '',
+        regDt: item?.regDt || '',
         management: "관리"
       })) || [];
 
@@ -126,13 +138,13 @@ export default function BbsList() {
 
   // 게시판 그리드 컬럼 정의
   const bbsColumns = [
-    { id: "no", width: 40 },
-    { id: "bbsNo", flexgrow: 1, header: "게시판 ID" },
+    { id: "no", width: 40, header: "no" },
+    { id: "bbsNo", width: 120,  header: "게시판 ID" },
     { id: "bbsNm", flexgrow: 1, header: "게시판 명" },
     { id: "bbsTypeCd", flexgrow: 1, header: "게시판 유형" },
     { id: "bbsExplnCn", flexgrow: 2, header: "게시판 소개글" },
     { id: "useYn", width: 80, header: "사용여부" },
-    { id: "regDate", flexgrow: 1, header: "등록일" ,
+    { id: "regDt", flexgrow: 1, header: "등록일" ,
       template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm:ss'),},
     {
       id: 'management',

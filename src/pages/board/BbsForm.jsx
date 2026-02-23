@@ -2,6 +2,7 @@ import CommonCodeRadioGroup from "@components/commoncode/CommonCodeRadioGroup.js
 import Button from "@components/ui/Button.jsx";
 import MenuInputBox from "@components/ui/MenuInputBox.jsx";
 import RadioButton from "@components/ui/RadioButton.jsx";
+import RichEditor from "@components/ui/RichEditor.jsx";
 import http from "@lib/http.js";
 import React, {useEffect, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
@@ -153,16 +154,36 @@ export default function BbsForm() {
     }
   };
 
+
   // 화면 ID 중복 체크
-  const handleCheckDuplicate = () => {
-    if (formData.scrnId.trim() === '') {
+  const handleCheckDuplicateApi = async () => {
+    const trimmedScrnId = formData.scrnId.trim();
+    if (trimmedScrnId === '') {
       alert('화면 ID를 입력해주세요.');
       return;
     }
-    alert('중복 체크 기능은 API 연동이 필요합니다.');
+
+    try {
+      const params = { scrnId: trimmedScrnId };
+      if (isEdit && bbsNo) {
+        params.bbsNo = bbsNo;
+      }
+
+      const response = await http.get('/api/v1/board/bbs/scrn-id/duplicate-check', { params });
+      const duplicated = Boolean(response?.data?.duplicated);
+
+      if (duplicated) {
+        alert('이미 사용 중인 화면 ID 입니다.');
+        return;
+      }
+
+      alert('사용 가능한 화면 ID 입니다.');
+    } catch (error) {
+      console.error('화면 ID 중복 체크 실패:', error);
+      alert(error?.response?.data?.message || '화면 ID 중복 체크에 실패했습니다.');
+    }
   };
 
-  // 목록으로 이동
   const handleGoToList = () => {
     if (window.confirm('작성 중인 내용이 저장되지 않습니다. 목록으로 이동하시겠습니까?')) {
       navigate(-1);
@@ -178,6 +199,16 @@ export default function BbsForm() {
     if (!formData.bbsTypeCd) {
       alert('게시판 유형을 선택해주세요.');
       return;
+    }
+
+    if (formData.ctgryUseYn === 'Y') {
+      const hasCategory = categories.some(
+        (category) => (category?.name || '').trim() !== ''
+      );
+      if (!hasCategory) {
+        alert('카테고리를 1개 이상 등록해주세요.');
+        return;
+      }
     }
 
     const memberNo = getCurrentMemberNo();
@@ -279,11 +310,10 @@ export default function BbsForm() {
                 <tr>
                   <td>게시판 소개</td>
                   <td colSpan={3}>
-                    <MenuInputBox
-                        menuType="input"
-                        menuSize='100%'
+                    <RichEditor
+                        theme="light"
                         value={formData.bbsExplnCn}
-                        onChange={(e) => handleChange('bbsExplnCn', e.target.value)}
+                        onChange={(value) => handleChange('bbsExplnCn', value)}
                     />
                   </td>
                 </tr>
@@ -549,7 +579,7 @@ export default function BbsForm() {
                       <Button
                           btnType="edit"
                           btnNames="중복체크"
-                          onClick={handleCheckDuplicate}
+                          onClick={handleCheckDuplicateApi}
                       />
                     </div>
                   </td>
