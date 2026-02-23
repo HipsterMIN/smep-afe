@@ -288,6 +288,133 @@ caption {
   letter-spacing: -1.68px;
   margin-bottom: 38px;
 }
+.oninfoNavbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 24px;
+  margin-bottom: 21px;
+  border-radius: 10px;
+  border: 1px solid #E9E9E9;
+  background: #F4F5F6;
+}
+.oninfoNavbar .oninfoNavLeft dl,
+.oninfoNavbar .oninfoNavRight dl {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  line-height: 1;
+}
+.oninfoNavbar .oninfoNavLeft dl dt {
+  color: #333;
+  font-family: Pretendard;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: -0.84px;
+}
+.oninfoNavbar .oninfoNavLeft dl dd > span.onDotState {
+  position: relative;
+  font-family: Pretendard;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: -0.84px;
+  padding-left: 13px;
+}
+.oninfoNavbar .oninfoNavLeft dl dd > span.onDotState.normal {
+  color: #267337;
+}
+.oninfoNavbar .oninfoNavLeft dl dd > span.onDotState.delay {
+  color: #8A5C00;
+}
+.oninfoNavbar .oninfoNavLeft dl dd > span.onDotState.failure {
+  color: #BD2C0F;
+}
+.oninfoNavbar .oninfoNavLeft dl dd > span.onDotState.inspect {
+  color: #096AB3;
+}
+.oninfoNavbar .oninfoNavLeft dl dd > span.onDotState::before {
+  content: '';
+  position: absolute;
+  top: calc(50% - 3.5px);
+  left: 0;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+}
+.oninfoNavbar .oninfoNavLeft dl dd > span.onDotState.normal::before {
+  content: '';
+  background-color: #228738;
+}
+.oninfoNavbar .oninfoNavLeft dl dd > span.onDotState.delay::before {
+  content: '';
+  background-color: #9E6A00;
+}
+.oninfoNavbar .oninfoNavLeft dl dd > span.onDotState.failure::before {
+  content: '';
+  background-color: #DE3412;
+}
+.oninfoNavbar .oninfoNavLeft dl dd > span.onDotState.inspect::before {
+  content: '';
+  background-color: #0B78CB;
+}
+.oninfoNavbar .oninfoNavLeft dl dd.onupdates {
+  color: #555;
+  font-family: Pretendard;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.84px;  
+}
+.oninfoNavbar .oninfoNavRight {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+.oninfoNavbar .oninfoNavRight dl {
+  position: relative;
+}
+.oninfoNavbar .oninfoNavRight dl::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -8.5px;
+  width: 0;
+  height: 100%;
+  border-right: 1px dashed #B9BAC8;
+}
+.oninfoNavbar .oninfoNavRight dl dt {
+  font-family: Pretendard;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.84px;
+}
+.oninfoNavbar .oninfoNavRight dl dd {
+  font-family: Pretendard;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.84px;
+}
+.oninfoNavbar .oninfoNavRight dl.default dt {
+  color: #333;
+}
+.oninfoNavbar .oninfoNavRight dl.default dd {
+  color: #555;
+}
+.oninfoNavbar .oninfoNavRight dl.truth dt, 
+.oninfoNavbar .oninfoNavRight dl.truth dd {
+  color: #267337;
+}
+.oninfoNavbar .oninfoNavRight dl.fail dt, 
+.oninfoNavbar .oninfoNavRight dl.fail dd {
+  color: #BD2C0F;
+}
+.oninfoNavbar .oninfoNavRight span {
+  color: #555;
+}
+
 .loginform {
   display: flex;
   flex-direction: column;
@@ -1710,6 +1837,15 @@ input.searchBox::placeholder {
   font-weight: 600;
   color: #999;
   letter-spacing: -1.08px;
+} 
+.infoNumber-box .count-box em {
+  margin-right: 4px;
+  font-size: 25px;
+  font-style: normal;
+  font-weight: 600;
+  color: #333;
+  letter-spacing: -1.8px;
+  text-align: left;
 } 
 .infoNumber-box .count-box strong {
   margin-right: 4px;

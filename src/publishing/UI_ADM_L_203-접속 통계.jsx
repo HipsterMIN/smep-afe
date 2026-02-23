@@ -49,7 +49,7 @@ export default function CommonCode() {
         </ul>
       </div>
       <div className="oncontents">
-        <div className="oncontent">
+        <div className="oncontent" style={{ overflow : 'hidden' }}>
           <div className="onselect-form open" style={{ minHeight : 'auto' }}>
             {/** open 클래스로 동작, 펼치기/접기 */}
             <div className="onparagraph">

@@ -90,7 +90,9 @@ export default function IntegrationLoginSiteList() {
       const data = response?.data || {};
       const linkSiteList = data?.data || [];
       const formattedData = linkSiteList.map((item, index) => ({
-        id: item?.linkSiteCd || `${nextCursor || 'first'}-${index}`,
+        id: item?.linkSiteCd
+          ? `site-${item.linkSiteCd}`
+          : `site-${nextCursor || 'first'}-${index}`,
         no: 0,
         linkSiteCd: item?.linkSiteCd || '-',
         siteNm: item?.siteNm || '-',
@@ -108,7 +110,8 @@ export default function IntegrationLoginSiteList() {
         const seen = new Set();
 
         merged.forEach((row) => {
-          const key = row.linkSiteCd && row.linkSiteCd !== '-' ? row.linkSiteCd : row.id;
+          const key =
+            row.linkSiteCd && row.linkSiteCd !== '-' ? row.linkSiteCd : row.id;
           if (seen.has(key)) return;
           seen.add(key);
           uniqueRows.push(row);
@@ -144,8 +147,8 @@ export default function IntegrationLoginSiteList() {
   };
 
   const columns = [
-    { id: 'no', header: '순번', width: 42 },
-    { id: 'linkSiteCd', header: '사이트코드', width: 210 },
+    { id: 'no', header: '순번', width: 44 },
+    { id: 'linkSiteCd', header: '사이트코드', width: 208 },
     { id: 'siteNm', header: '사이트명', width: 350 },
     { id: 'siteMngInstNm', header: '관리기관', width: 300 },
     { id: 'linkUseTrgtSeCdNm', header: '회원유형', width: 100 },
@@ -154,13 +157,13 @@ export default function IntegrationLoginSiteList() {
     {
       id: 'regDt',
       header: '등록일시',
-      width: 305,
+      width: 292,
       template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm:ss'),
     },
     {
       id: 'management',
       header: '관리',
-      width: 76,
+      width: 89,
       cell: ({ row }) => (
         <button
           type="button"
@@ -315,10 +318,7 @@ export default function IntegrationLoginSiteList() {
           </div>
 
           <div className="ongrid-tableform">
-            <GridTable
-              data={gridMemberList}
-              columns={columns}
-            />
+            <GridTable data={gridMemberList} columns={columns} />
             <div ref={observerRef} style={{ height: 40 }} />
           </div>
         </div>
