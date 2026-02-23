@@ -147,8 +147,8 @@ export default function IntegrationLoginSiteList() {
   };
 
   const columns = [
-    { id: 'no', header: '순번', width: 42 },
-    { id: 'linkSiteCd', header: '사이트코드', width: 210 },
+    { id: 'no', header: '순번', width: 44 },
+    { id: 'linkSiteCd', header: '사이트코드', width: 208 },
     { id: 'siteNm', header: '사이트명', width: 350 },
     { id: 'siteMngInstNm', header: '관리기관', width: 300 },
     { id: 'linkUseTrgtSeCdNm', header: '회원유형', width: 100 },
