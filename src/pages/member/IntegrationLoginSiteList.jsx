@@ -90,7 +90,9 @@ export default function IntegrationLoginSiteList() {
       const data = response?.data || {};
       const linkSiteList = data?.data || [];
       const formattedData = linkSiteList.map((item, index) => ({
-        id: item?.linkSiteCd || `${nextCursor || 'first'}-${index}`,
+        id: item?.linkSiteCd
+          ? `site-${item.linkSiteCd}`
+          : `site-${nextCursor || 'first'}-${index}`,
         no: 0,
         linkSiteCd: item?.linkSiteCd || '-',
         siteNm: item?.siteNm || '-',
@@ -108,7 +110,8 @@ export default function IntegrationLoginSiteList() {
         const seen = new Set();
 
         merged.forEach((row) => {
-          const key = row.linkSiteCd && row.linkSiteCd !== '-' ? row.linkSiteCd : row.id;
+          const key =
+            row.linkSiteCd && row.linkSiteCd !== '-' ? row.linkSiteCd : row.id;
           if (seen.has(key)) return;
           seen.add(key);
           uniqueRows.push(row);
@@ -154,13 +157,13 @@ export default function IntegrationLoginSiteList() {
     {
       id: 'regDt',
       header: '등록일시',
-      width: 305,
+      width: 292,
       template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm:ss'),
     },
     {
       id: 'management',
       header: '관리',
-      width: 76,
+      width: 89,
       cell: ({ row }) => (
         <button
           type="button"
@@ -315,10 +318,7 @@ export default function IntegrationLoginSiteList() {
           </div>
 
           <div className="ongrid-tableform">
-            <GridTable
-              data={gridMemberList}
-              columns={columns}
-            />
+            <GridTable data={gridMemberList} columns={columns} />
             <div ref={observerRef} style={{ height: 40 }} />
           </div>
         </div>
