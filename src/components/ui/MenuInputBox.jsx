@@ -10,12 +10,17 @@ export default function MenuInputBox({
   placeholder, // input type일 때 placeholder
   value, // controlled component로 사용 시 현재 값
   onChange, // 값 변경 시 호출될 핸들러
+  onKeyDown, // 키 입력 이벤트 핸들러 (엔터키 처리용)
   disabled = false, // input/select 비활성화 여부 (기본 false)
 }) {
   // 입력값 변경 시 부모 컴포넌트로 이벤트 전달
   const handleChange = (e) => {
-    if (onChange) onChange(e)
-  }
+    if (onChange) onChange(e);
+  };
+  // 키 입력 이벤트 핸들러 (엔터키 처리용)
+  const handleKeyDown = (e) => {
+    if (onKeyDown) onKeyDown(e);
+  };
 
   return (
     <>
@@ -31,6 +36,7 @@ export default function MenuInputBox({
             style={{ width: menuSize }}
             value={value ?? ''} // null/undefined 방지를 위해 기본값 ''
             onChange={handleChange}
+            onKeyDown={handleKeyDown}
             disabled={disabled}
           />
         </div>
@@ -76,5 +82,5 @@ export default function MenuInputBox({
         </div>
       ) : null}
     </>
-  )
+  );
 }
