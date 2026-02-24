@@ -14,6 +14,12 @@ const MenuAdminMng = lazy(() => import('@pages/menu/MenuAdmin.jsx'));
 const SupportBusiness = lazy(
   () => import('@pages/support-business/SupportBusiness.jsx')
 );
+const SupportBusinessDetail = lazy(
+  () => import('@pages/support-business/SupportBusinessDetail.jsx')
+);
+const SupportBusinessForm = lazy(
+  () => import('@pages/support-business/SupportBusinessForm.jsx')
+);
 const PublicAnnouncement = lazy(
   () => import('@pages/public-announcement/PublicAnnouncement.jsx')
 );
@@ -47,6 +53,7 @@ const PolicyFinanceDetail = lazy(
 const PolicyFinanceUpdate = lazy(
   () => import('@pages/business/policyFinanceUpdate.jsx')
 );
+const PopupManagement = lazy(() => import('@pages/popup/PopupManagement.jsx'));
 
 /**
  * =============================================================================
@@ -251,10 +258,10 @@ export const componentMap = {
   //   layout: AdminLayoutWithAuth,
   // },
   // 팝업관리
-  // 'M_PIIO_00035': {
-  //   component: TODO_M_PIIO_00035,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00035: {
+    component: PopupManagement,
+    layout: AdminLayoutWithAuth,
+  },
   // 배너관리
   // 'M_PIIO_00036': {
   //   component: TODO_M_PIIO_00036,
@@ -386,6 +393,20 @@ export const componentMap = {
   M_PIIO_00011: {
     component: SupportBusiness,
     layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create',
+        component: SupportBusinessForm,
+      },
+      {
+        path: ':sprtBizId',
+        component: SupportBusinessDetail,
+      },
+      {
+        path: ':sprtBizId/edit',
+        component: SupportBusinessForm,
+      },
+    ],
   },
   // 지원사업 공고관리
   M_PIIO_00012: {

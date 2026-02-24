@@ -1,5 +1,20 @@
 import axios from 'axios'
 
+const getLoginRoutePath = () => {
+  const base = import.meta.env.BASE_URL || '/'
+  const normalizedBase =
+    base.endsWith('/') && base !== '/' ? base.slice(0, -1) : base
+  const basePath = normalizedBase === '/' ? '' : normalizedBase
+  return `${basePath}/login`
+}
+
+const isAuthLoginRequest = (url = '') => {
+  return (
+    url.includes('/api/v1/account/login') ||
+    url.includes('/api/v1/account/temporary-login')
+  )
+}
+
 // 공통 Axios 인스턴스: 세션 쿠키(JSESSIONID)를 포함하여 요청
 const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -32,7 +47,16 @@ http.interceptors.response.use(
     if (error.response?.status === 401) {
       console.error('[HTTP] 401 Unauthorized: 세션이 만료되었거나 권한이 없습니다.')
       localStorage.removeItem('access_token')
-      // 필요시 로그인 페이지로 이동 로직 추가 가능
+      localStorage.removeItem('refresh_token')
+
+      if (typeof window !== 'undefined' && !isAuthLoginRequest(error.config?.url)) {
+        const loginPath = getLoginRoutePath()
+        const isLoginPage = window.location.pathname.endsWith('/login')
+
+        if (!isLoginPage) {
+          window.location.replace(loginPath)
+        }
+      }
     }
     // SonarQube: Expected the Promise rejection reason to be an Error.
     return Promise.reject(error instanceof Error ? error : new Error(error))
