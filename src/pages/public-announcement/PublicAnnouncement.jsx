@@ -96,7 +96,16 @@ export default function PublicAnnouncement() {
   const ManagementCell = ({row, data}) => {
     const item = row || data || {};
     return (
-        <Button btnType="edit" btnNames="수정" onClick={(e) => {e.stopPropagation();handleEdit(item);}} />
+        <button
+            type="button"
+            className="defaultbutton edit"
+            data-action="ignore-click"
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {e.stopPropagation();handleEdit(item);}}
+        >
+          수정
+        </button>
     );
   };
 

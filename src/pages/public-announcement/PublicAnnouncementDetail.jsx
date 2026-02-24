@@ -22,44 +22,44 @@ export default function PublicAnnouncementDetail() {
   const [form, setForm] = useState({
       bizPbancInqCnt: 0,
     //상세영역start
-    pbancYmdNm: '', //진행상태
+    pbancYmdNm: null, //진행상태
     linkInstBizPbancRlsSttsCd: 'BS01', //공개여부
-    bizPbancClsfCd: '', //사업유형
+    bizPbancClsfCd: null, //사업유형
     bizPbancRlsSttsCd: 'BS01', //통합플랫폼공개여부
-    bizPbancSprtTypeCd: '', //지원유형
-    bizPbancSprtInstCd: '', //지원기관
-    bizSprvsnInstNm: '', //주관기관
-    bizPbancLinkInstCd: '', //연계시스템
-    scrapCnt: '', //스크랩수
-    mdfcnDt: '', //최종수정일시
+    bizPbancSprtTypeCd: null, //지원유형
+    bizPbancSprtInstCd: null, //지원기관
+    bizSprvsnInstNm: null, //주관기관
+    bizPbancLinkInstCd: null, //연계시스템
+    scrapCnt: 0, //스크랩수
+    mdfcnDt: null, //최종수정일시
     //상세영역end
     //공고정보start
-    bizPbancNm: '', //공고명
-    bizPbancOtln: '', //사업개요
-    bizSprtSclCn: '', //지원규모
-    bizSprtCn: '', //지원내용
-    bizSprtTrgtCn: '', //지원대상
-    bizAplyPrdCn: '', //기간내용
-    bizAplyBgngYmd: '', //시작일
-    bizAplyDdlnYmd: '', //마감일
-    bizAplyMthdCn: '', //신청방법
-    bizPbancInqplCn: '', //문의처
-    bizPbancInqplHmpgUrlAddr: '', //문의처 홈페이지
-    bizPbancInqplTkcgDeptNm: '', //문의처 담당부서
-    bizPbancInqplTelnoCn: '', //문의처 전화번호
-    bizPbancHstgCn: '',
+    bizPbancNm: null, //공고명
+    bizPbancOtln: null, //사업개요
+    bizSprtSclCn: null, //지원규모
+    bizSprtCn: null, //지원내용
+    bizSprtTrgtCn: null, //지원대상
+    bizAplyPrdCn: null, //기간내용
+    bizAplyBgngYmd: null, //시작일
+    bizAplyDdlnYmd: null, //마감일
+    bizAplyMthdCn: null, //신청방법
+    bizPbancInqplCn: null, //문의처
+    bizPbancInqplHmpgUrlAddr: null, //문의처 홈페이지
+    bizPbancInqplTkcgDeptNm: null, //문의처 담당부서
+    bizPbancInqplTelnoCn: null, //문의처 전화번호
+    bizPbancHstgCn: null,
     //공고정보end
     //제한조건start
-    bizSprtQlfcRqmtCn: '', //자격요건
-    bizAplyExclTrgtCn: '', //제외대상
-    bizAplySbmsnDcmntCn: '', //제출서류
-    sprtQlfcEntSclNm: '', //지원자격기업규모
-    sprtQlfcEntTypeCn: '', //지원자격기업유형
-    bizPbancPrtrtMttrCn: '', //우대사항
-    bizPbancSprtAmtCn: '', //지원금액
+    bizSprtQlfcRqmtCn: null, //자격요건
+    bizAplyExclTrgtCn: null, //제외대상
+    bizAplySbmsnDcmntCn: null, //제출서류
+    sprtQlfcEntSclNm: null, //지원자격기업규모
+    sprtQlfcEntTypeCn: null, //지원자격기업유형
+    bizPbancPrtrtMttrCn: null, //우대사항
+    bizPbancSprtAmtCn: null, //지원금액
     //제한조건end
     //신청정보start
-    bizAplyUrlAddr: '',
+    bizAplyUrlAddr: null,
     //신청정보end
   });
 
@@ -130,9 +130,22 @@ export default function PublicAnnouncementDetail() {
             alert('공고명을 입력하세요.');
             return;
         }
+        if (!form.bizPbancClsfCd) {
+            alert('사업유형을 입력하세요.');
+            return;
+        }
+        if (!form.bizPbancSprtTypeCd) {
+            alert('지원유형을 입력하세요.');
+            return;
+        }
+        if (!form.bizPbancSprtInstCd) {
+            alert('지원기관을 입력하세요.');
+            return;
+        }
 
         if (!window.confirm('저장하시겠습니까?')) return;
 
+        setLoading(true);
         try {
             // FormData 생성
             const formData = new FormData();
@@ -151,13 +164,6 @@ export default function PublicAnnouncementDetail() {
             formData.append(
                 "data",
                 new Blob([JSON.stringify(payload)], { type: "application/json" })
-            );
-
-            formData.append(
-                "data",
-                new Blob([JSON.stringify(form)], {
-                    type: "application/json"
-                })
             );
 
             // 공고문 파일
@@ -217,6 +223,8 @@ export default function PublicAnnouncementDetail() {
         } catch (error) {
             console.error('저장 실패:', error);
             alert('저장 중 오류가 발생했습니다.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -247,7 +255,14 @@ export default function PublicAnnouncementDetail() {
   }, [bizPbancNo]);
 
   return (
+
     <div className="oncontentbox full">
+        {loading && (
+            <div className="save-loading-overlay">
+                <div className="save-loading-spinner" />
+                <p>파일 처리 중입니다. 잠시만 기다려주세요...</p>
+            </div>
+        )}
               <div className="oncontentTitle">
                 <h2>지원사업공고 등록</h2>
                 <ul className="onbreadcrumb">
@@ -720,6 +735,9 @@ export default function PublicAnnouncementDetail() {
                                     files={noticeFiles}
                                     onFilesChange={setNoticeFiles}
                                 />
+                                {form.strmdcsId && (
+                                    <a href={`http://192.168.16.82:8088/venturein-pdf/view/sd;streamdocsId=${form.strmdcsId}`} target="_blank" rel="noreferrer">미리보기임시</a>
+                                )}
                             </td>
                         </tr>
                         <tr>
@@ -744,10 +762,47 @@ export default function PublicAnnouncementDetail() {
                               navigate('/sprtBiz/bizPbanc/sprtBizPbanc')
                           }}/>
                       </div>
-                      <Button btnType="del" btnNames="삭제"/>
-                      <Button btnType="add" btnNames="저장" onClick={() => {handleSave()}}/>
+                      {/*<Button btnType="del" btnNames="삭제"/>*/}
+                      <Button
+                          btnType="add"
+                          btnNames={loading ? "저장중..." : "저장"}
+                          onClick={() => { if (!loading) handleSave(); }}
+                          disabled={loading}
+                      />
                 </div>
               </div>
+              <style>
+                  {`.save-loading-overlay {
+                        position: fixed;
+                        inset: 0;
+                        background: rgba(255, 255, 255, 0.72);
+                        z-index: 9999;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-direction: column;
+                        gap: 12px;
+                      }
+                    
+                      .save-loading-spinner {
+                        width: 44px;
+                        height: 44px;
+                        border: 4px solid #d9d9d9;
+                        border-top-color: #1f6feb;
+                        border-radius: 50%;
+                        animation: save-spin 0.8s linear infinite;
+                      }
+                    
+                      .save-loading-text {
+                        margin: 0;
+                        font-size: 14px;
+                        color: #333;
+                      }
+                    
+                      @keyframes save-spin {
+                        to { transform: rotate(360deg); }
+                      }`}
+              </style>
             </div>
   );
 }
