@@ -12,11 +12,20 @@ export default function MemberList() {
   const [gridMemberList, setGridMemberList] = useState([]);
   const [mbrSttscdList, setMbrSttscdList] = useState([]);
   const [mbrTypecdList, setMbrTypecdList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [cursor, setCursor] = useState(null);
+  const [hasNext, setHasNext] = useState(true);
+  const observerRef = useRef(null);
+  const listScrollRef = useRef(null);
 
-  //검색 파라미터 ref
-  const searchParamsRef = useRef({
-    hasNext: false,
-    nextCursor: null,
+  const appliedSearchParamsRef = useRef({
+    mbrTypeCd: '',
+    mbrSttsCd: '',
+    mbrNm: '',
+    joinStartDt: null,
+    endJoinDt: null,
+    startRegDt: null,
+    endRegDt: null,
   });
 
   //검색 파라미터 state
@@ -61,21 +70,108 @@ export default function MemberList() {
   }, []);
 
   //조회
-  const handleSearch = async (nextCursor = null) => {
-    const response = await http.post('/api/v1/member/search', {
-      cursorPageRequest: {
-        size: 20,
-        cursor: nextCursor,
-      },
-      ...searchParams,
-    });
-    const data = response?.data || [];
-    setGridMemberList(data.data);
-    searchParamsRef.current = {
-      hasNext: data.hasNext,
-      nextCursor: data.nextCursor,
-    };
+  const fetchMemberList = async (nextCursor = null, reset = false) => {
+    if (loading) return;
+    if (!hasNext && !reset) return;
+    if (!reset && (nextCursor === null || nextCursor === undefined)) return;
+
+    setLoading(true);
+    if (reset) {
+      appliedSearchParamsRef.current = { ...searchParams };
+    }
+
+    try {
+      const params = reset ? searchParams : appliedSearchParamsRef.current;
+      const response = await http.post('/api/v1/member/search', {
+        cursorPageRequest: {
+          size: 20,
+          cursor: nextCursor,
+        },
+        ...params,
+      });
+      const data = response?.data || {};
+      const memberList = data?.data || [];
+
+      setGridMemberList((prev) => {
+        const merged = reset ? memberList : [...prev, ...memberList];
+        const uniqueRows = [];
+        const seen = new Set();
+
+        merged.forEach((row, rowIndex) => {
+          const key =
+            row?.mbrNo || row?.lgnId || `${row?.mbrNm || 'member'}-${rowIndex}`;
+          if (seen.has(key)) return;
+          seen.add(key);
+          uniqueRows.push(row);
+        });
+
+        return uniqueRows.map((row, rowIndex) => ({
+          ...row,
+          index: rowIndex + 1,
+        }));
+      });
+
+      setCursor(data?.nextCursor ?? null);
+      setHasNext(Boolean(data?.hasNext));
+    } catch (error) {
+      console.error('회원 목록 조회 실패:', error);
+      alert('회원 목록을 불러오는데 실패했습니다.');
+      if (reset) {
+        setGridMemberList([]);
+      }
+      setHasNext(false);
+      setCursor(null);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleScrollLoadMore = (target) => {
+    if (!target || loading || !hasNext) return;
+
+    const bottomOffset = target.scrollHeight - target.scrollTop - target.clientHeight;
+    if (bottomOffset <= 24) {
+      fetchMemberList(cursor, false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMemberList(null, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!observerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNext && !loading) {
+          fetchMemberList(cursor, false);
+        }
+      },
+      { threshold: 1 }
+    );
+
+    observer.observe(observerRef.current);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cursor, hasNext, loading]);
+
+  useEffect(() => {
+    const listScrollElement = listScrollRef.current;
+    if (!listScrollElement) return;
+
+    const gridScrollElement = listScrollElement.querySelector('.wx-scroll');
+    if (!gridScrollElement) return;
+
+    const onGridScroll = () => handleScrollLoadMore(gridScrollElement);
+    gridScrollElement.addEventListener('scroll', onGridScroll, { passive: true });
+
+    return () => {
+      gridScrollElement.removeEventListener('scroll', onGridScroll);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cursor, hasNext, loading, gridMemberList.length]);
 
   //그리드 컬럼 정의
   const defaultColumns = [
@@ -159,7 +255,7 @@ export default function MemberList() {
                   <Button
                     btnType="menuSearch"
                     btnNames="검색"
-                    onClick={() => handleSearch()}
+                    onClick={() => fetchMemberList(null, true)}
                   />
                 </div>
               </div>
@@ -178,7 +274,7 @@ export default function MemberList() {
                     value={searchParams.endJoinDt}
                     outputFormat="datetime" // 이것만 추가
                     onChange={(date) => {
-                      setSearchParams({ ...searchParams, joinEndDt: date });
+                      setSearchParams({ ...searchParams, endJoinDt: date });
                     }}
                   />
                 </div>
@@ -205,13 +301,18 @@ export default function MemberList() {
           </div>
           <div className="ontable-legend">
             <span>
-              총 <b>10</b>건
+              총 <b>{gridMemberList.length}</b>건
             </span>
             <Button btnType="add" btnNames="등록" />
           </div>
 
-          <div className="ongrid-tableform onSCrollBox">
+          <div
+            ref={listScrollRef}
+            className="ongrid-tableform onSCrollBox"
+            onScroll={(e) => handleScrollLoadMore(e.currentTarget)}
+          >
             <GridTable data={gridMemberList} columns={defaultColumns} />
+            <div ref={observerRef} style={{ height: 40 }} />
           </div>
         </div>
 
