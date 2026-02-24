@@ -244,27 +244,27 @@ export default function PolicyFinanceList() {
 
   const columns = [
     { id: 'index', header: '순번', width: 44 },
-    { id: 'plcyFnncGdsTypeCdNm', header: '유형', width: 100 },
-    { id: 'bizFlfmtInstCdNm', header: '사업수행기관', width: 180 },
-    { id: 'plcyFnncNm', header: '상품명', width: 220 },
-    { id: 'plcyFnncAplyMthCdNm', header: '신청 방식', width: 150 },
-    { id: 'plcyFnncGdsSttsCdNm', header: '승인여부', width: 90 },
-    { id: 'plcyFnncEntSclCdNm', header: '기업 규모', width: 100 },
-    { id: 'industry', header: '업종', width: 130 },
-    { id: 'plcyFnncDtlCndCdNm', header: '우대기업유형', width: 120 },
+    { id: 'plcyFnncGdsTypeCdNm', header: '유형', width: 80 },
+    { id: 'bizFlfmtInstCdNm', header: '사업수행기관', width: 130 },
+    { id: 'plcyFnncNm', header: '상품명', width: 180 },
+    { id: 'plcyFnncAplyMthCdNm', header: '신청 방식', width: 110 },
+    { id: 'plcyFnncGdsSttsCdNm', header: '승인여부', width: 80 },
+    { id: 'plcyFnncEntSclCdNm', header: '기업 규모', width: 80 },
+    { id: 'industry', header: '업종', width: 100 },
+    { id: 'plcyFnncDtlCndCdNm', header: '우대기업유형', width: 100 },
     { id: 'plcyFnncRcptSttsCdNm', header: '접수 상황', width: 95 },
-    { id: 'rgtrId', header: '등록자', width: 95 },
+    { id: 'rgtrId', header: '등록자', width: 80 },
     {
       id: 'regDt',
       header: '등록 일시',
-      width: 152,
+      width: 140,
       template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm:ss'),
     },
-    { id: 'mdfrId', header: '수정자', width: 95 },
+    { id: 'mdfrId', header: '수정자', width: 80 },
     {
       id: 'mdfcnDt',
       header: '수정 일시',
-      width: 152,
+      width: 140,
       template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm:ss'),
     },
     {
@@ -468,7 +468,7 @@ export default function PolicyFinanceList() {
             </div>
           </div>
 
-          <div className="ongrid-tableform">
+          <div className="ongrid-tableform" style={{ scrollbarGutter: 'stable' }}>
             <GridTable data={gridPolicyFinanceList} columns={columns} />
             <div ref={observerRef} style={{ height: 40 }} />
             <div
