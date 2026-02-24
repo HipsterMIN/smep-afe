@@ -7,6 +7,7 @@ const BbsList = lazy(() => import('@pages/board/BbsList'));
 const BbsForm = lazy(() => import('@pages/board/BbsForm'));
 const BbsInfoList = lazy(() => import('@pages/board/BbsInfoList'));
 const PstList = lazy(() => import('@pages/board/PstList'));
+const PstForm = lazy(() => import('@pages/board/PstForm'));
 const MemberList = lazy(() => import('@pages/member/MemberList'));
 const MenuUserMng = lazy(() => import('@pages/menu/MenuUser.jsx'));
 const MenuAdminMng = lazy(() => import('@pages/menu/MenuAdmin.jsx'));
@@ -137,6 +138,14 @@ export const componentMap = {
       {
         path: ':bbsNo',
         component: PstList,
+      },
+      {
+        path: ':bbsNo/create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':bbsNo/:pstNo',
+        component: PstForm,
       },
     ],
   },
