@@ -212,12 +212,12 @@ export default function BbsList() {
   return (
     <div className="oncontentbox full">
       <div className="oncontentTitle">
-        <h2>게시물 선택</h2>
+        <h2>게시판 선택</h2>
         <ul className="onbreadcrumb">
           <li>시스템 관리</li>
           <li>시스템 설정</li>
           <li>게시물 관리</li>
-          <li className="on">게시물 선택</li>
+          <li className="on">게시판 선택</li>
         </ul>
       </div>
 
