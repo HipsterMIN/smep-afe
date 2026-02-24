@@ -9,6 +9,7 @@ import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useRef, useState } from 'react';
 
 export default function MemberList() {
+  const PAGE_SIZE = 20;
   const [gridMemberList, setGridMemberList] = useState([]);
   const [mbrSttscdList, setMbrSttscdList] = useState([]);
   const [mbrTypecdList, setMbrTypecdList] = useState([]);
@@ -27,6 +28,42 @@ export default function MemberList() {
     startRegDt: null,
     endRegDt: null,
   });
+
+  const getFallbackCursorFromRows = (rows) => {
+    if (!rows?.length) return null;
+    const lastRow = rows[rows.length - 1];
+    return lastRow?.mbrNo || lastRow?.lgnId || null;
+  };
+
+  const parseNextCursor = (data, rows) => {
+    const cursorCandidates = [
+      data?.nextCursor,
+      data?.cursor,
+      data?.next,
+      data?.cursorPageResponse?.nextCursor,
+      data?.page?.nextCursor,
+      getFallbackCursorFromRows(rows),
+    ];
+
+    const validCursor = cursorCandidates.find(
+      (value) => value !== undefined && value !== null && value !== ''
+    );
+
+    return validCursor ?? null;
+  };
+
+  const parseHasNext = (data, rows, nextCursorValue) => {
+    const raw =
+      data?.hasNext ??
+      data?.cursorPageResponse?.hasNext ??
+      data?.page?.hasNext;
+
+    if (typeof raw === 'boolean') return raw;
+    if (raw === 'Y') return true;
+    if (raw === 'N') return false;
+
+    return rows.length >= PAGE_SIZE && Boolean(nextCursorValue);
+  };
 
   //검색 파라미터 state
   const [searchParams, setSearchParams] = useState({
@@ -73,7 +110,6 @@ export default function MemberList() {
   const fetchMemberList = async (nextCursor = null, reset = false) => {
     if (loading) return;
     if (!hasNext && !reset) return;
-    if (!reset && (nextCursor === null || nextCursor === undefined)) return;
 
     setLoading(true);
     if (reset) {
@@ -111,8 +147,15 @@ export default function MemberList() {
         }));
       });
 
-      setCursor(data?.nextCursor ?? null);
-      setHasNext(Boolean(data?.hasNext));
+      const resolvedNextCursor = parseNextCursor(data, memberList);
+      const resolvedHasNext = parseHasNext(
+        data,
+        memberList,
+        resolvedNextCursor
+      );
+
+      setCursor(resolvedNextCursor);
+      setHasNext(resolvedHasNext);
     } catch (error) {
       console.error('회원 목록 조회 실패:', error);
       alert('회원 목록을 불러오는데 실패했습니다.');
@@ -129,9 +172,11 @@ export default function MemberList() {
   const handleScrollLoadMore = (target) => {
     if (!target || loading || !hasNext) return;
 
-    const bottomOffset = target.scrollHeight - target.scrollTop - target.clientHeight;
+    const bottomOffset =
+      target.scrollHeight - target.scrollTop - target.clientHeight;
     if (bottomOffset <= 24) {
-      fetchMemberList(cursor, false);
+      const fallbackCursor = cursor ?? getFallbackCursorFromRows(gridMemberList);
+      fetchMemberList(fallbackCursor, false);
     }
   };
 
@@ -146,7 +191,9 @@ export default function MemberList() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasNext && !loading) {
-          fetchMemberList(cursor, false);
+          const fallbackCursor =
+            cursor ?? getFallbackCursorFromRows(gridMemberList);
+          fetchMemberList(fallbackCursor, false);
         }
       },
       { threshold: 1 }
@@ -155,7 +202,7 @@ export default function MemberList() {
     observer.observe(observerRef.current);
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, hasNext, loading]);
+  }, [cursor, hasNext, loading, gridMemberList]);
 
   useEffect(() => {
     const listScrollElement = listScrollRef.current;
