@@ -14,6 +14,12 @@ const MenuAdminMng = lazy(() => import('@pages/menu/MenuAdmin.jsx'));
 const SupportBusiness = lazy(
   () => import('@pages/support-business/SupportBusiness.jsx')
 );
+const SupportBusinessDetail = lazy(
+  () => import('@pages/support-business/SupportBusinessDetail.jsx')
+);
+const SupportBusinessForm = lazy(
+  () => import('@pages/support-business/SupportBusinessForm.jsx')
+);
 const PublicAnnouncement = lazy(
   () => import('@pages/public-announcement/PublicAnnouncement.jsx')
 );
@@ -386,6 +392,20 @@ export const componentMap = {
   M_PIIO_00011: {
     component: SupportBusiness,
     layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create',
+        component: SupportBusinessForm,
+      },
+      {
+        path: ':sprtBizId',
+        component: SupportBusinessDetail,
+      },
+      {
+        path: ':sprtBizId/edit',
+        component: SupportBusinessForm,
+      },
+    ],
   },
   // 지원사업 공고관리
   M_PIIO_00012: {
