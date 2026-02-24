@@ -53,6 +53,7 @@ const PolicyFinanceDetail = lazy(
 const PolicyFinanceUpdate = lazy(
   () => import('@pages/business/policyFinanceUpdate.jsx')
 );
+const PopupManagement = lazy(() => import('@pages/popup/PopupManagement.jsx'));
 
 /**
  * =============================================================================
@@ -257,10 +258,10 @@ export const componentMap = {
   //   layout: AdminLayoutWithAuth,
   // },
   // 팝업관리
-  // 'M_PIIO_00035': {
-  //   component: TODO_M_PIIO_00035,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00035: {
+    component: PopupManagement,
+    layout: AdminLayoutWithAuth,
+  },
   // 배너관리
   // 'M_PIIO_00036': {
   //   component: TODO_M_PIIO_00036,
