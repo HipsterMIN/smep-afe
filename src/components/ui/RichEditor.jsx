@@ -12,7 +12,7 @@ import Underline from '@tiptap/extension-underline';
 import Youtube from '@tiptap/extension-youtube';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 // 간단한 아이콘 컴포넌트들 (인라인 SVG)
 const Icon = {
@@ -933,11 +933,22 @@ export default function RichEditor({
   const [isHtmlView, setIsHtmlView] = useState(false);
   const [htmlSource, setHtmlSource] = useState('');
   const [isFormatting, setIsFormatting] = useState(false);
+  const editorContainerRef = useRef(null);
+  const htmlViewContainerRef = useRef(null);
+  const [contentHeight, setContentHeight] = useState(null);
   const prettierRef = useMemo(
     () => ({ loaded: false, prettier: null, plugins: null }),
     []
   );
   const [fileInputKey, setFileInputKey] = useState(0); // 파일 입력 초기화용
+
+  const syncContentHeightFromElement = (element) => {
+    if (height != null || !element) return;
+    const nextHeight = Math.round(element.getBoundingClientRect().height);
+    if (nextHeight > 0) {
+      setContentHeight(`${nextHeight}px`);
+    }
+  };
 
   // Prettier 로딩 (1회)
   async function ensurePrettierLoaded() {
@@ -1470,6 +1481,27 @@ export default function RichEditor({
     [minHeight, maxHeight, height, resizable]
   );
 
+  const resolvedContentStyle = useMemo(() => {
+    if (height != null || !contentHeight) return contentStyle;
+    return { ...contentStyle, height: contentHeight };
+  }, [contentStyle, contentHeight, height]);
+
+  useEffect(() => {
+    const container = editorContainerRef.current;
+    if (!container || !editor) return undefined;
+
+    const handleMouseDown = (event) => {
+      if (isHtmlView || event.button !== 0) return;
+      if (event.target !== container) return;
+      editor.commands.focus('end');
+    };
+
+    container.addEventListener('mousedown', handleMouseDown);
+    return () => {
+      container.removeEventListener('mousedown', handleMouseDown);
+    };
+  }, [editor, isHtmlView]);
+
   return (
     <div className={`tiptap-wrap ${isDark ? 'dark' : 'light'} ${className}`}>
       {/* 컴포넌트 로컬 스타일: 다크/라이트 테마 대비 향상 */}
@@ -1548,7 +1580,7 @@ export default function RichEditor({
         .tiptap-wrap .editor .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; color: #9aa0a6; pointer-events: none; height: 0; }
         /* HTML 소스 보기 영역 */
         .tiptap-wrap .html-view { padding: 12px; }
-        .tiptap-wrap .html-view textarea { width: 100%; box-sizing: border-box; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 12px; line-height: 1.5; border-radius: 6px; border: 1px solid; padding: 10px; height: 100%; min-height: 160px; resize: vertical; }
+        .tiptap-wrap .html-view textarea { width: 100%; box-sizing: border-box; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 12px; line-height: 1.5; border-radius: 6px; border: 1px solid; padding: 10px; height: 98%; min-height: 160px; resize: vertical; }
         .tiptap-wrap.light .html-view textarea { background: #fff; color: #111; border-color: #ddd; }
         .tiptap-wrap.dark .html-view textarea { background: #111; color: #eee; border-color: #444; }
       `}</style>
@@ -1582,6 +1614,7 @@ export default function RichEditor({
               onClick={async () => {
                 if (!editor) return;
                 if (!isHtmlView) {
+                  syncContentHeightFromElement(editorContainerRef.current);
                   // 진입: 에디터의 현재 HTML을 로드하고(필요 시) 포맷한 뒤 표시
                   let raw = '';
                   try {
@@ -1604,6 +1637,7 @@ export default function RichEditor({
                     }
                     try {
                       editor.commands.setContent(sourceToApply || '', false);
+                      syncContentHeightFromElement(htmlViewContainerRef.current);
                       setIsHtmlView(false);
                     } catch (e) {
                       console.warn(
@@ -1613,6 +1647,7 @@ export default function RichEditor({
                       // 적용 실패 시 HTML 보기 유지
                     }
                   } else {
+                    syncContentHeightFromElement(htmlViewContainerRef.current);
                     setIsHtmlView(false);
                   }
                 }
@@ -2110,7 +2145,11 @@ export default function RichEditor({
         </div>
 
         {isHtmlView ? (
-          <div className="html-view" style={contentStyle}>
+          <div
+            className="html-view"
+            style={resolvedContentStyle}
+            ref={htmlViewContainerRef}
+          >
             <label htmlFor="html-source" className="sr-only">
               HTML source
             </label>
@@ -2131,7 +2170,11 @@ export default function RichEditor({
             />
           </div>
         ) : (
-          <div className="editor" style={contentStyle}>
+          <div
+            className="editor"
+            style={resolvedContentStyle}
+            ref={editorContainerRef}
+          >
             <EditorContent editor={editor} />
           </div>
         )}
