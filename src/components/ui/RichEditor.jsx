@@ -1402,9 +1402,14 @@ export default function RichEditor({
           ? typeof height === 'number'
             ? `${height}px`
             : String(height)
-          : undefined,
+          : typeof minHeight === 'number'
+            ? `${minHeight}px`
+            : String(minHeight),
       resize: resizable ? 'vertical' : 'none',
       overflow: 'auto',
+      width: '100%',
+      maxWidth: '100%',
+      boxSizing: 'border-box',
     }),
     [minHeight, maxHeight, height, resizable]
   );
@@ -1435,7 +1440,7 @@ export default function RichEditor({
       {/* 컴포넌트 로컬 스타일: 다크/라이트 테마 대비 향상 */}
       <style>{`
         .tiptap-wrap { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-        .tiptap-wrap .rte { border: 1px solid; border-radius: 10px; overflow: hidden; transition: box-shadow .15s, border-color .15s, background .15s; }
+        .tiptap-wrap .rte { border: 1px solid; border-radius: 10px; overflow: hidden; transition: box-shadow .15s, border-color .15s, background .15s; width: 100%; max-width: 100%; box-sizing: border-box; }
         .tiptap-wrap .rte:focus-within { box-shadow: 0 0 0 3px rgba(107,156,255,.25); }
         .tiptap-wrap .toolbar { display: flex; gap: 4px; flex-wrap: wrap; padding: 6px; align-items: center; }
         .tiptap-wrap .toolbar .spacer { flex: 1 1 auto; }
@@ -1475,7 +1480,7 @@ export default function RichEditor({
         .tiptap-wrap .header { padding: 8px 12px; font-size: 12px; opacity: .9; display: flex; align-items: center; gap: 8px; }
         .tiptap-wrap.light .header { background: #f3f3f3; border-bottom: 1px solid #e5e5e5; color: #333; }
         .tiptap-wrap.dark .header { background: #151515; border-bottom: 1px solid #2a2a2a; color: #ddd; }
-        .tiptap-wrap .editor { padding: 12px; text-align: left; }
+        .tiptap-wrap .editor { padding: 12px; text-align: left; width: 100%; max-width: 100%; box-sizing: border-box; overflow: auto; }
         .tiptap-wrap .editor .ProseMirror { outline: none; text-align: left; }
         /* 에디터 내부 리스트 스타일 복구 (중요) */
         .tiptap-wrap .editor .ProseMirror ul {
@@ -1536,7 +1541,7 @@ export default function RichEditor({
         /* Placeholder 색상 보정 */
         .tiptap-wrap .editor .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; color: #9aa0a6; pointer-events: none; height: 0; }
         /* HTML 소스 보기 영역 */
-        .tiptap-wrap .html-view { padding: 12px; }
+        .tiptap-wrap .html-view { padding: 12px; width: 100%; max-width: 100%; box-sizing: border-box; overflow: auto; }
         .tiptap-wrap .html-view textarea { width: 100%; box-sizing: border-box; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 12px; line-height: 1.5; border-radius: 6px; border: 1px solid; padding: 10px; height: 98%; min-height: 160px; resize: vertical; }
         .tiptap-wrap.light .html-view textarea { background: #fff; color: #111; border-color: #ddd; }
         .tiptap-wrap.dark .html-view textarea { background: #111; color: #eee; border-color: #444; }
