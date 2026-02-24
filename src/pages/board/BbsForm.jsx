@@ -1,24 +1,24 @@
-import CommonCodeRadioGroup from "@components/commoncode/CommonCodeRadioGroup.jsx";
-import Button from "@components/ui/Button.jsx";
-import MenuInputBox from "@components/ui/MenuInputBox.jsx";
-import RadioButton from "@components/ui/RadioButton.jsx";
-import http from "@lib/http.js";
-import React, {useEffect, useState} from 'react';
-import {useNavigate, useParams} from 'react-router-dom';
+import CommonCodeRadioGroup from '@components/commoncode/CommonCodeRadioGroup.jsx';
+import Button from '@components/ui/Button.jsx';
+import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import RadioButton from '@components/ui/RadioButton.jsx';
+import RichEditor from '@components/ui/RichEditor.jsx';
+import http from '@lib/http.js';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export default function BbsForm() {
   const navigate = useNavigate();
-  const {bbsNo} = useParams();
+  const { bbsNo } = useParams();
   const isEdit = !!bbsNo;
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // 폼 데이터 state
   const [formData, setFormData] = useState({
     bbsNo: '',
     bbsNm: '',
     bbsExplnCn: '',
-    bbsTypeCd: 'BSC', //초기값 설정
+    bbsTypeCd: 'BSC',
     useYn: 'Y',
     ctgryUseYn: 'N',
     atchFileUseYn: 'N',
@@ -29,15 +29,16 @@ export default function BbsForm() {
     scrnId: '',
   });
 
-  // 카테고리 관련 state
   const [categoryInput, setCategoryInput] = useState('');
   const [categories, setCategories] = useState([]);
   const [, setEditingIndex] = useState(null);
+  const visibleCategories = categories
+    .map((category, index) => ({ category, index }))
+    .filter(({ category }) => (category?.useYn || 'Y') !== 'N');
 
   const applyDetailToForm = (data) => {
-    if (!data) {
-      return;
-    }
+    if (!data) return;
+
     setFormData((prev) => ({
       ...prev,
       bbsNo: data.bbsNo || prev.bbsNo,
@@ -50,35 +51,30 @@ export default function BbsForm() {
       regPsbltyYn: data.edtrUseYn || 'N',
       answerPsbltyYn: data.cmntPsbltyYn || 'N',
       atchFileSizeLimit: data.maxAtchFileSz
-          ? String(Math.floor(Number(data.maxAtchFileSz) / (1024 * 1024)))
-          : 0,
+        ? String(Math.floor(Number(data.maxAtchFileSz) / (1024 * 1024)))
+        : 0,
       scrnId: data.scrnId || '',
     }));
 
     const detailCategories = Array.isArray(data.categories)
-        ? data.categories
-            .map((category) => ({
-              ctgryNo: category?.ctgryNo,
-              name: category?.ctgryNm || category?.name || '',
-              useYn: category?.useYn || 'Y',
-              isEditing: false,
-            }))
-            .filter((category) => category.name.trim() !== '')
-        : [];
+      ? data.categories
+          .map((category) => ({
+            ctgryNo: category?.ctgryNo,
+            name: category?.ctgryNm || category?.name || '',
+            useYn: category?.useYn || 'Y',
+            isEditing: false,
+          }))
+          .filter((category) => category.name.trim() !== '')
+      : [];
     setCategories(detailCategories);
   };
 
-  // 상세 조회
   useEffect(() => {
     const fetchBbs = async () => {
       setLoading(true);
       try {
         const response = await http.get(`/api/v1/board/bbs/${bbsNo}`);
-        const data = response?.data;
-        if (!data) {
-          return;
-        }
-        applyDetailToForm(data);
+        applyDetailToForm(response?.data);
       } catch (error) {
         console.error('게시판 상세 조회 실패:', error);
         alert(error?.response?.data?.message || '게시판 상세 조회에 실패했습니다.');
@@ -87,9 +83,7 @@ export default function BbsForm() {
       }
     };
 
-    if (isEdit) {
-      fetchBbs();
-    }
+    if (isEdit) fetchBbs();
   }, [bbsNo, isEdit]);
 
   const getCurrentMemberNo = () => {
@@ -103,93 +97,119 @@ export default function BbsForm() {
     return value || 'M000000000000001';
   };
 
-  // 폼 입력 핸들러 (통합)
   const handleChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // 카테고리 추가
   const handleAddCategory = () => {
     const categoryName = categoryInput.trim();
     if (categoryName === '') {
-      alert('카테고리 내용을 입력해주세요.');
+      alert('카테고리 내용을 입력해 주세요.');
       return;
     }
-    setCategories([
-      ...categories,
-      { name: categoryName, useYn: 'Y', isEditing: false },
-    ]);
+    setCategories([...categories, { name: categoryName, useYn: 'Y', isEditing: false }]);
     setCategoryInput('');
   };
 
-  // 카테고리 수정 모드 진입
   const handleEditCategory = (index) => {
     setEditingIndex(index);
-    setCategories(categories.map((cat, i) =>
-        i === index ? { ...cat, isEditing: true } : cat
-    ));
+    setCategories(categories.map((cat, i) => (i === index ? { ...cat, isEditing: true } : cat)));
   };
 
-  // 카테고리 수정 저장
   const handleSaveCategory = (index, newName) => {
     const categoryName = newName.trim();
     if (categoryName === '') {
-      alert('카테고리 내용을 입력해주세요.');
+      alert('카테고리 내용을 입력해 주세요.');
       return;
     }
-    setCategories(categories.map((cat, i) =>
-        i === index ? { ...cat, name: categoryName, isEditing: false } : cat
-    ));
+    setCategories(
+      categories.map((cat, i) =>
+        i === index ? { ...cat, name: categoryName, useYn: 'Y', isEditing: false } : cat
+      )
+    );
     setEditingIndex(null);
   };
 
-  // 카테고리 삭제
   const handleDeleteCategory = (index) => {
-    if (window.confirm('삭제하시겠습니까?')) {
-      setCategories(categories.filter((_, i) => i !== index));
-    }
+    if (!window.confirm('삭제하시겠습니까?')) return;
+
+    setCategories((prev) => {
+      const target = prev[index];
+      if (!target) return prev;
+
+      if (target.ctgryNo) {
+        return prev.map((category, i) =>
+          i === index ? { ...category, useYn: 'N', isEditing: false } : category
+        );
+      }
+
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
-  // 화면 ID 중복 체크
-  const handleCheckDuplicate = () => {
-    if (formData.scrnId.trim() === '') {
-      alert('화면 ID를 입력해주세요.');
+  const handleCheckDuplicateApi = async () => {
+    const trimmedScrnId = formData.scrnId.trim();
+    if (trimmedScrnId === '') {
+      alert('화면 ID를 입력해 주세요.');
       return;
     }
-    alert('중복 체크 기능은 API 연동이 필요합니다.');
+
+    try {
+      const params = { scrnId: trimmedScrnId };
+      if (isEdit && bbsNo) params.bbsNo = bbsNo;
+
+      const response = await http.get('/api/v1/board/bbs/scrn-id/duplicate-check', { params });
+      const duplicated = Boolean(response?.data?.duplicated);
+      if (duplicated) {
+        alert('이미 사용 중인 화면 ID 입니다.');
+        return;
+      }
+      alert('사용 가능한 화면 ID 입니다.');
+    } catch (error) {
+      console.error('화면 ID 중복 체크 실패:', error);
+      alert(error?.response?.data?.message || '화면 ID 중복 체크에 실패했습니다.');
+    }
   };
 
-  // 목록으로 이동
   const handleGoToList = () => {
-    if (window.confirm('작성 중인 내용이 저장되지 않습니다. 목록으로 이동하시겠습니까?')) {
+    if (window.confirm('작성 중인 내용은 저장되지 않습니다. 목록으로 이동하시겠습니까?')) {
       navigate(-1);
     }
   };
 
-  // 저장
   const handleSave = async () => {
     if (formData.bbsNm.trim() === '') {
-      alert('게시판명을 입력해주세요.');
+      alert('게시판명을 입력해 주세요.');
       return;
     }
     if (!formData.bbsTypeCd) {
-      alert('게시판 유형을 선택해주세요.');
+      alert('게시판 유형을 선택해 주세요.');
       return;
     }
 
+    if (formData.ctgryUseYn === 'Y') {
+      const hasCategory = categories.some(
+        (category) =>
+          (category?.useYn || 'Y') !== 'N' && (category?.name || '').trim() !== ''
+      );
+      if (!hasCategory) {
+        alert('카테고리를 1개 이상 등록해 주세요.');
+        return;
+      }
+    }
+
     const memberNo = getCurrentMemberNo();
+    const activeCategories = categories.filter(
+      (category) =>
+        (category?.useYn || 'Y') !== 'N' && (category?.name || '').trim() !== ''
+    );
     const requestCategories =
       formData.ctgryUseYn === 'Y'
-        ? categories
-            .map((category, index) => ({
-              ctgryNm: (category?.name || '').trim(),
-              sortSeq: index + 1,
-              useYn: category?.useYn || 'Y',
-            }))
-            .filter((category) => category.ctgryNm !== '')
+        ? activeCategories.map((category, index) => ({
+            ctgryNm: (category?.name || '').trim(),
+            sortSeq: index + 1,
+            useYn: 'Y',
+          }))
         : [];
 
     const requestData = {
@@ -230,60 +250,59 @@ export default function BbsForm() {
 
   if (loading) {
     return (
-        <div className="oncontentbox full">
-          <div className="oncontents">
-            <div className="loading">데이터를 불러오는 중입니다.</div>
-          </div>
+      <div className="oncontentbox full">
+        <div className="oncontents">
+          <div className="loading">데이터를 불러오는 중입니다.</div>
         </div>
+      </div>
     );
   }
 
   return (
-      <div className="oncontentbox full">
-        <div className="oncontentTitle">
-          <h2>게시판 등록/수정</h2>
-          <ul className="onbreadcrumb">
-            <li>시스템 관리</li>
-            <li>시스템 설정</li>
-            <li>게시판 관리</li>
-            <li>게시판 목록</li>
-            <li className="on">게시판 등록/수정</li>
-          </ul>
-        </div>
+    <div className="oncontentbox full">
+      <div className="oncontentTitle">
+        <h2>게시판 등록/수정</h2>
+        <ul className="onbreadcrumb">
+          <li>시스템 관리</li>
+          <li>시스템 설정</li>
+          <li>게시판 관리</li>
+          <li>게시판 목록</li>
+          <li className="on">게시판 등록/수정</li>
+        </ul>
+      </div>
 
-        <div className="oncontents">
-          <div className="oncontent ontable-form">
-            <div className="ontableBox">
-              <table>
-                <colgroup>
-                  <col style={{ width: '180px' }} />
-                  <col style={{ width: 'auto' }} />
-                  <col style={{ width: '180px' }} />
-                  <col style={{ width: 'auto' }} />
-                </colgroup>
-                <tbody>
+      <div className="oncontents">
+        <div className="oncontent ontable-form">
+          <div className="ontableBox">
+            <table>
+              <colgroup>
+                <col style={{ width: '180px' }} />
+                <col style={{ width: 'auto' }} />
+                <col style={{ width: '180px' }} />
+                <col style={{ width: 'auto' }} />
+              </colgroup>
+              <tbody>
                 <tr>
                   <td>게시판명</td>
                   <td>
                     <MenuInputBox
-                        menuType="input"
-                        menuSize='500px'
-                        value={formData.bbsNm}
-                        onChange={(e) => handleChange('bbsNm', e.target.value)}
+                      menuType="input"
+                      menuSize="500px"
+                      value={formData.bbsNm}
+                      onChange={(e) => handleChange('bbsNm', e.target.value)}
                     />
                   </td>
                   <td>게시판 ID</td>
-                  <td>{isEdit ? (formData.bbsNo || bbsNo || '-') : '자동생성'}</td>
+                  <td>{isEdit ? formData.bbsNo || bbsNo || '-' : '자동생성'}</td>
                 </tr>
 
                 <tr>
                   <td>게시판 소개</td>
                   <td colSpan={3}>
-                    <MenuInputBox
-                        menuType="input"
-                        menuSize='100%'
-                        value={formData.bbsExplnCn}
-                        onChange={(e) => handleChange('bbsExplnCn', e.target.value)}
+                    <RichEditor
+                      theme="light"
+                      value={formData.bbsExplnCn}
+                      onChange={(value) => handleChange('bbsExplnCn', value)}
                     />
                   </td>
                 </tr>
@@ -292,12 +311,11 @@ export default function BbsForm() {
                   <td>게시판 유형</td>
                   <td colSpan={3}>
                     <div className="onradioBox">
-                      {/* 공통코드 RadioGroup 컴포넌트 사용 */}
                       <CommonCodeRadioGroup
-                          codeGroup="BBS_TYPE_CD"
-                          radioGroup="bbsTypeCd"
-                          selectedValue={formData.bbsTypeCd}
-                          onChange={(value) => handleChange('bbsTypeCd', value)}
+                        codeGroup="BBS_TYPE_CD"
+                        radioGroup="bbsTypeCd"
+                        selectedValue={formData.bbsTypeCd}
+                        onChange={(value) => handleChange('bbsTypeCd', value)}
                       />
                     </div>
                   </td>
@@ -308,20 +326,20 @@ export default function BbsForm() {
                   <td>
                     <div className="onradioBox">
                       <RadioButton
-                          groupId="useYn_y"
-                          radioGroup="useYn"
-                          radioValue="Y"
-                          radioName="사용"
-                          selectedValue={formData.useYn}
-                          onChange={(value) => handleChange('useYn', value)}
+                        groupId="useYn_y"
+                        radioGroup="useYn"
+                        radioValue="Y"
+                        radioName="사용"
+                        selectedValue={formData.useYn}
+                        onChange={(value) => handleChange('useYn', value)}
                       />
                       <RadioButton
-                          groupId="useYn_n"
-                          radioGroup="useYn"
-                          radioValue="N"
-                          radioName="미사용"
-                          selectedValue={formData.useYn}
-                          onChange={(value) => handleChange('useYn', value)}
+                        groupId="useYn_n"
+                        radioGroup="useYn"
+                        radioValue="N"
+                        radioName="미사용"
+                        selectedValue={formData.useYn}
+                        onChange={(value) => handleChange('useYn', value)}
                       />
                     </div>
                   </td>
@@ -329,20 +347,20 @@ export default function BbsForm() {
                   <td>
                     <div className="onradioBox">
                       <RadioButton
-                          groupId="ctgryUseYn_y"
-                          radioGroup="ctgryUseYn"
-                          radioValue="Y"
-                          radioName="사용"
-                          selectedValue={formData.ctgryUseYn}
-                          onChange={(value) => handleChange('ctgryUseYn', value)}
+                        groupId="ctgryUseYn_y"
+                        radioGroup="ctgryUseYn"
+                        radioValue="Y"
+                        radioName="사용"
+                        selectedValue={formData.ctgryUseYn}
+                        onChange={(value) => handleChange('ctgryUseYn', value)}
                       />
                       <RadioButton
-                          groupId="ctgryUseYn_n"
-                          radioGroup="ctgryUseYn"
-                          radioValue="N"
-                          radioName="미사용"
-                          selectedValue={formData.ctgryUseYn}
-                          onChange={(value) => handleChange('ctgryUseYn', value)}
+                        groupId="ctgryUseYn_n"
+                        radioGroup="ctgryUseYn"
+                        radioValue="N"
+                        radioName="미사용"
+                        selectedValue={formData.ctgryUseYn}
+                        onChange={(value) => handleChange('ctgryUseYn', value)}
                       />
                     </div>
                   </td>
@@ -353,20 +371,20 @@ export default function BbsForm() {
                   <td>
                     <div className="onradioBox">
                       <RadioButton
-                          groupId="atchFileUseYn_y"
-                          radioGroup="atchFileUseYn"
-                          radioValue="Y"
-                          radioName="사용"
-                          selectedValue={formData.atchFileUseYn}
-                          onChange={(value) => handleChange('atchFileUseYn', value)}
+                        groupId="atchFileUseYn_y"
+                        radioGroup="atchFileUseYn"
+                        radioValue="Y"
+                        radioName="사용"
+                        selectedValue={formData.atchFileUseYn}
+                        onChange={(value) => handleChange('atchFileUseYn', value)}
                       />
                       <RadioButton
-                          groupId="atchFileUseYn_n"
-                          radioGroup="atchFileUseYn"
-                          radioValue="N"
-                          radioName="미사용"
-                          selectedValue={formData.atchFileUseYn}
-                          onChange={(value) => handleChange('atchFileUseYn', value)}
+                        groupId="atchFileUseYn_n"
+                        radioGroup="atchFileUseYn"
+                        radioValue="N"
+                        radioName="미사용"
+                        selectedValue={formData.atchFileUseYn}
+                        onChange={(value) => handleChange('atchFileUseYn', value)}
                       />
                     </div>
                   </td>
@@ -375,90 +393,86 @@ export default function BbsForm() {
                     <div className="onflexcolumn">
                       <div className="onflexrow">
                         <MenuInputBox
-                            menuType="input"
-                            menuSize='300px'
-                            value={categoryInput}
-                            onChange={(e) => setCategoryInput(e.target.value)}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                handleAddCategory();
-                              }
-                            }}
+                          menuType="input"
+                          menuSize="300px"
+                          value={categoryInput}
+                          onChange={(e) => setCategoryInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddCategory();
+                            }
+                          }}
                         />
-                        <Button
-                            btnType="add"
-                            btnNames="추가"
-                            onClick={handleAddCategory}
-                        />
+                        <Button btnType="add" btnNames="추가" onClick={handleAddCategory} />
                       </div>
                       <div className="ontableBox categoryEdit">
                         <table>
                           <colgroup>
-                            <col/>
-                            <col style={{width: '76px'}}/>
-                            <col style={{width: '76px'}}/>
+                            <col />
+                            <col style={{ width: '76px' }} />
+                            <col style={{ width: '76px' }} />
                           </colgroup>
                           <tbody>
-                          {categories.length === 0 ? (
+                            {visibleCategories.length === 0 ? (
                               <tr>
                                 <td colSpan={3} style={{ textAlign: 'center', color: '#999' }}>
                                   등록된 카테고리가 없습니다.
                                 </td>
                               </tr>
-                          ) : (
-                              categories.map((category, index) => (
-                                  <tr key={index}>
-                                    <td>
-                                      {category.isEditing ? (
-                                          <MenuInputBox
-                                              menuType="input"
-                                              menuSize="100%"
-                                              value={category.name}
-                                              onChange={(e) => {
-                                                const newCategories = [...categories];
-                                                newCategories[index].name = e.target.value;
-                                                setCategories(newCategories);
-                                              }}
-                                              onKeyPress={(e) => {
-                                                if (e.key === 'Enter') {
-                                                  e.preventDefault();
-                                                  handleSaveCategory(index, category.name);
-                                                }
-                                              }}
-                                          />
-                                      ) : (
-                                          <span className="statusTxt">{category.name}</span>
-                                      )}
-                                    </td>
-                                    <td>
-                                      {category.isEditing ? (
-                                          <Button
-                                              btnType="add"
-                                              btnNames="저장"
-                                              size="small"
-                                              onClick={() => handleSaveCategory(index, category.name)}
-                                          />
-                                      ) : (
-                                          <Button
-                                              btnType="edit"
-                                              size="small"
-                                              btnNames="수정"
-                                              onClick={() => handleEditCategory(index)}
-                                          />
-                                      )}
-                                    </td>
-                                    <td>
-                                      <Button
-                                          btnType="del"
-                                          size="small"
-                                          btnNames="삭제"
-                                          onClick={() => handleDeleteCategory(index)}
+                            ) : (
+                              visibleCategories.map(({ category, index }) => (
+                                <tr key={`${category.ctgryNo ?? 'new'}-${index}`}>
+                                  <td>
+                                    {category.isEditing ? (
+                                      <MenuInputBox
+                                        menuType="input"
+                                        menuSize="100%"
+                                        value={category.name}
+                                        onChange={(e) => {
+                                          const newCategories = [...categories];
+                                          newCategories[index].name = e.target.value;
+                                          setCategories(newCategories);
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleSaveCategory(index, category.name);
+                                          }
+                                        }}
                                       />
-                                    </td>
-                                  </tr>
+                                    ) : (
+                                      <span className="statusTxt">{category.name}</span>
+                                    )}
+                                  </td>
+                                  <td>
+                                    {category.isEditing ? (
+                                      <Button
+                                        btnType="add"
+                                        btnNames="저장"
+                                        size="small"
+                                        onClick={() => handleSaveCategory(index, category.name)}
+                                      />
+                                    ) : (
+                                      <Button
+                                        btnType="edit"
+                                        size="small"
+                                        btnNames="수정"
+                                        onClick={() => handleEditCategory(index)}
+                                      />
+                                    )}
+                                  </td>
+                                  <td>
+                                    <Button
+                                      btnType="del"
+                                      size="small"
+                                      btnNames="삭제"
+                                      onClick={() => handleDeleteCategory(index)}
+                                    />
+                                  </td>
+                                </tr>
                               ))
-                          )}
+                            )}
                           </tbody>
                         </table>
                       </div>
@@ -471,20 +485,20 @@ export default function BbsForm() {
                   <td>
                     <div className="onradioBox">
                       <RadioButton
-                          groupId="regPsbltyYn_y"
-                          radioGroup="regPsbltyYn"
-                          radioValue="Y"
-                          radioName="사용"
-                          selectedValue={formData.regPsbltyYn}
-                          onChange={(value) => handleChange('regPsbltyYn', value)}
+                        groupId="regPsbltyYn_y"
+                        radioGroup="regPsbltyYn"
+                        radioValue="Y"
+                        radioName="사용"
+                        selectedValue={formData.regPsbltyYn}
+                        onChange={(value) => handleChange('regPsbltyYn', value)}
                       />
                       <RadioButton
-                          groupId="regPsbltyYn_n"
-                          radioGroup="regPsbltyYn"
-                          radioValue="N"
-                          radioName="미사용"
-                          selectedValue={formData.regPsbltyYn}
-                          onChange={(value) => handleChange('regPsbltyYn', value)}
+                        groupId="regPsbltyYn_n"
+                        radioGroup="regPsbltyYn"
+                        radioValue="N"
+                        radioName="미사용"
+                        selectedValue={formData.regPsbltyYn}
+                        onChange={(value) => handleChange('regPsbltyYn', value)}
                       />
                     </div>
                   </td>
@@ -495,20 +509,20 @@ export default function BbsForm() {
                   <td>
                     <div className="onradioBox">
                       <RadioButton
-                          groupId="answerPsbltyYn_y"
-                          radioGroup="answerPsbltyYn"
-                          radioValue="Y"
-                          radioName="사용"
-                          selectedValue={formData.answerPsbltyYn}
-                          onChange={(value) => handleChange('answerPsbltyYn', value)}
+                        groupId="answerPsbltyYn_y"
+                        radioGroup="answerPsbltyYn"
+                        radioValue="Y"
+                        radioName="사용"
+                        selectedValue={formData.answerPsbltyYn}
+                        onChange={(value) => handleChange('answerPsbltyYn', value)}
                       />
                       <RadioButton
-                          groupId="answerPsbltyYn_n"
-                          radioGroup="answerPsbltyYn"
-                          radioValue="N"
-                          radioName="미사용"
-                          selectedValue={formData.answerPsbltyYn}
-                          onChange={(value) => handleChange('answerPsbltyYn', value)}
+                        groupId="answerPsbltyYn_n"
+                        radioGroup="answerPsbltyYn"
+                        radioValue="N"
+                        radioName="미사용"
+                        selectedValue={formData.answerPsbltyYn}
+                        onChange={(value) => handleChange('answerPsbltyYn', value)}
                       />
                     </div>
                   </td>
@@ -519,19 +533,19 @@ export default function BbsForm() {
                   <td>
                     <div className="onflexrow">
                       <MenuInputBox
-                          menuType="input"
-                          menuSize='80px'
-                          value={formData.atchFilePsblCnt}
-                          onChange={(e) => handleChange('atchFilePsblCnt', e.target.value)}
+                        menuType="input"
+                        menuSize="80px"
+                        value={formData.atchFilePsblCnt}
+                        onChange={(e) => handleChange('atchFilePsblCnt', e.target.value)}
                       />
-                      <span>개 ※ 사이즈제한</span>
+                      <span>개 / 파일크기제한</span>
                       <MenuInputBox
-                          menuType="input"
-                          menuSize='80px'
-                          value={formData.atchFileSizeLimit}
-                          onChange={(e) => handleChange('atchFileSizeLimit', e.target.value)}
+                        menuType="input"
+                        menuSize="80px"
+                        value={formData.atchFileSizeLimit}
+                        onChange={(e) => handleChange('atchFileSizeLimit', e.target.value)}
                       />
-                      <span>MB (0일 경우 제한 없음)</span>
+                      <span>MB (0인 경우 제한 없음)</span>
                     </div>
                   </td>
                 </tr>
@@ -541,39 +555,31 @@ export default function BbsForm() {
                   <td colSpan={3}>
                     <div className="onflexrow">
                       <MenuInputBox
-                          menuType="input"
-                          menuSize='150px'
-                          value={formData.scrnId}
-                          onChange={(e) => handleChange('scrnId', e.target.value)}
+                        menuType="input"
+                        menuSize="150px"
+                        value={formData.scrnId}
+                        onChange={(e) => handleChange('scrnId', e.target.value)}
                       />
-                      <Button
-                          btnType="edit"
-                          btnNames="중복체크"
-                          onClick={handleCheckDuplicate}
-                      />
+                      <Button btnType="edit" btnNames="중복체크" onClick={handleCheckDuplicateApi} />
                     </div>
                   </td>
                 </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="onflexbtns">
-            <div style={{marginRight: 'auto'}}>
-              <Button
-                  btnType="list"
-                  btnNames="목록"
-                  onClick={handleGoToList}
-              />
-            </div>
-            <Button
-                btnType="add"
-                btnNames={saving ? "저장중..." : "저장"}
-                onClick={handleSave}
-            />
+              </tbody>
+            </table>
           </div>
         </div>
+
+        <div className="onflexbtns">
+          <div style={{ marginRight: 'auto' }}>
+            <Button btnType="list" btnNames="목록" onClick={handleGoToList} />
+          </div>
+          <Button
+            btnType="add"
+            btnNames={saving ? '저장중...' : '저장'}
+            onClick={handleSave}
+          />
+        </div>
       </div>
+    </div>
   );
 }

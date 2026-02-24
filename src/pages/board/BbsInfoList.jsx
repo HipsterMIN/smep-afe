@@ -88,7 +88,7 @@ export default function BbsList() {
         bbsExplnCn: stripHtmlTags(item?.bbsExplnCn || ''),
         useYn: item?.useYn === 'Y' ? '사용' : '미사용',
         regDt: item?.regDt || '',
-        management: '관리',
+        management: '선택',
       }));
 
       setBbsData((prev) => {
@@ -154,7 +154,7 @@ export default function BbsList() {
     },
     {
       id: 'management',
-      header: '관리',
+      header: '선택',
       width: 89,
       cell: ({ row }) => (
         <button
@@ -168,7 +168,7 @@ export default function BbsList() {
             handleMoveToEdit(row?.bbsNo);
           }}
         >
-          수정
+          선택
         </button>
       ),
     },
@@ -212,12 +212,12 @@ export default function BbsList() {
   return (
     <div className="oncontentbox full">
       <div className="oncontentTitle">
-        <h2>게시판 목록</h2>
+        <h2>게시물 선택</h2>
         <ul className="onbreadcrumb">
           <li>시스템 관리</li>
           <li>시스템 설정</li>
-          <li>게시판 관리</li>
-          <li className="on">게시판 목록</li>
+          <li>게시물 관리</li>
+          <li className="on">게시물 선택</li>
         </ul>
       </div>
 
@@ -285,7 +285,6 @@ export default function BbsList() {
             <span>
               총 <b>{totalCount}</b>건
             </span>
-            <Button btnType="add" btnNames="등록" onClick={() => navigate('create')} />
           </div>
 
           <div className="ongrid-tableform" style={{ scrollbarGutter: 'stable' }}>

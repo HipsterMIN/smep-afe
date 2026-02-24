@@ -5,6 +5,9 @@ import { lazy } from 'react';
 const CommonCode = lazy(() => import('@pages/CommonCode'));
 const BbsList = lazy(() => import('@pages/board/BbsList'));
 const BbsForm = lazy(() => import('@pages/board/BbsForm'));
+const BbsInfoList = lazy(() => import('@pages/board/BbsInfoList'));
+const PstList = lazy(() => import('@pages/board/PstList'));
+const PstForm = lazy(() => import('@pages/board/PstForm'));
 const MemberList = lazy(() => import('@pages/member/MemberList'));
 const MenuUserMng = lazy(() => import('@pages/menu/MenuUser.jsx'));
 const MenuAdminMng = lazy(() => import('@pages/menu/MenuAdmin.jsx'));
@@ -126,6 +129,27 @@ export const componentMap = {
       },
     ],
   },
+  // 게시물 관리 ( 게시판 선택 목록 )
+  M_PIIO_00134: {
+    component: BbsInfoList,
+    layout: AdminLayoutWithAuth,
+    // 자식 라우트 정의
+    children: [
+      {
+        path: ':bbsNo',
+        component: PstList,
+      },
+      {
+        path: ':bbsNo/create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':bbsNo/:pstNo',
+        component: PstForm,
+      },
+    ],
+  },
+
   // 공통코드관리
   M_PIIO_00060: {
     component: CommonCode,
