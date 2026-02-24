@@ -47,6 +47,15 @@ const PolicyFinanceDetail = lazy(
 const PolicyFinanceUpdate = lazy(
   () => import('@pages/business/policyFinanceUpdate.jsx')
 );
+const CertificateList = lazy(
+  () => import('@pages/certificate/CertificateList')
+);
+const CertificateForm = lazy(
+  () => import('@pages/certificate/CertificateForm')
+);
+const CertificateDetail = lazy(
+  () => import('@pages/certificate/CertificateDetail')
+);
 
 /**
  * =============================================================================
@@ -374,10 +383,24 @@ export const componentMap = {
   // },
   // ---------- 증명서 정보 관리 ----------
   // 증명서 정보 관리
-  // 'M_PIIO_00017': {
-  //   component: TODO_M_PIIO_00017,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00017: {
+    component: CertificateList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create',
+        component: CertificateForm,
+      },
+      {
+        path: ':prdocCd',
+        component: CertificateDetail,
+      },
+      {
+        path: ':prdocCd/edit',
+        component: CertificateForm,
+      },
+    ],
+  },
   // ==========================================
   // 지원사업 관리
   // ==========================================
