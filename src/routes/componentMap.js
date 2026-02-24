@@ -56,6 +56,9 @@ const CertificateForm = lazy(
 const CertificateDetail = lazy(
   () => import('@pages/certificate/CertificateDetail')
 );
+const CertificateIssuanceList = lazy(
+  () => import('@pages/certificate/CertificateIssuanceList')
+);
 
 /**
  * =============================================================================
@@ -371,10 +374,10 @@ export const componentMap = {
   // ==========================================
   // ---------- 증명서 발급 이력 ----------
   // 증명서 발급 이력
-  // 'M_PIIO_00018': {
-  //   component: TODO_M_PIIO_00018,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00018: {
+    component: CertificateIssuanceList,
+    layout: AdminLayoutWithAuth,
+  },
   // ---------- 증명서 일괄 확인 이력 ----------
   // 증명서 일괄 확인 이력
   // 'M_PIIO_00019': {
