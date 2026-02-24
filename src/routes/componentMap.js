@@ -38,6 +38,15 @@ const IntegrationLoginSiteCreate = lazy(
 const IntegrationLoginSiteSort = lazy(
   () => import('@pages/member/IntegrationLoginSiteSort.jsx')
 );
+const PolicyFinanceList = lazy(
+  () => import('@pages/business/policyFinanceList.jsx')
+);
+const PolicyFinanceDetail = lazy(
+  () => import('@pages/business/policyFinanceDetail.jsx')
+);
+const PolicyFinanceUpdate = lazy(
+  () => import('@pages/business/policyFinanceUpdate.jsx')
+);
 
 /**
  * =============================================================================
@@ -394,10 +403,24 @@ export const componentMap = {
     ],
   },
   // 정책금융관리
-  // 'M_PIIO_00013': {
-  //   component: TODO_M_PIIO_00013,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00013: {
+    component: PolicyFinanceList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: ':policyNo',
+        component: PolicyFinanceDetail,
+      },
+      {
+        path: 'create',
+        component: PolicyFinanceDetail,
+      },
+      {
+        path: ':policyNo/update',
+        component: PolicyFinanceUpdate,
+      },
+    ],
+  },
   // 주택특별공급 사업공고
   // 'M_PIIO_00014': {
   //   component: TODO_M_PIIO_00014,
