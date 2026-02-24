@@ -14,235 +14,163 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-// 간단한 아이콘 컴포넌트들 (인라인 SVG)
+// 세련된 선 중심의 아이콘 컴포넌트 (Lucide Style)
 const Icon = {
+  // 공통 설정을 적용한 기본 SVG 래퍼
+  Wrapper: ({ children, ...props }) => (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      style={{ width: '18px', height: '18px', display: 'block' }} // 인라인 스타일로 크기 보정
+      {...props}
+    >
+      {children}
+    </svg>
+  ),
+
   Bold: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M13.5 15H9v4H6V5h7a4 4 0 0 1 0 8Zm-4.5-3h4a2 2 0 0 0 0-4H9v4Zm9 7h-4v-3h4v3Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" />
+      <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" />
+    </Icon.Wrapper>
   ),
+
   Italic: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M10 5h9v3h-3.9l-3.2 8H19v3H5v-3h4.1l3.2-8H10V5Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <line x1="19" y1="4" x2="10" y2="4" />
+      <line x1="14" y1="20" x2="5" y2="20" />
+      <line x1="15" y1="4" x2="9" y2="20" />
+    </Icon.Wrapper>
   ),
+
   Underline: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M7 3h3v8a2 2 0 1 0 4 0V3h3v8a5 5 0 1 1-10 0V3Zm-2 18h14v-2H5v2Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <path d="M6 3v7a6 6 0 0 0 12 0V3" />
+      <line x1="4" y1="21" x2="20" y2="21" />
+    </Icon.Wrapper>
   ),
+
   Strike: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M4 10h16v2H4v-2Zm9.5 3.2c1.2.5 2.5 1.2 2.5 2.9 0 2-1.9 3.4-5 3.4-2.3 0-4.1-.8-5.1-1.8l1.6-1.6c.7.7 2 1.4 3.6 1.4 1.6 0 2.7-.6 2.7-1.6 0-.8-.7-1.2-1.9-1.7l1.6-1Zm-7-6.8C7.4 4.6 9 4 11 4c2.8 0 5 1.3 5.9 3.1l-2.2 1.1C14.1 6.9 12.8 6 11 6 9.8 6 8.9 6.3 8.3 6.8L6.5 5.4Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <path d="M16 4H9a3 3 0 0 0 0 6h7a3 3 0 0 1 0 6H7" />
+      <line x1="4" y1="10" x2="20" y2="10" />
+    </Icon.Wrapper>
   ),
+
   UL: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M7 5h14v2H7V5Zm0 6h14v2H7v-2Zm0 6h14v2H7v-2ZM3 5h2v2H3V5Zm0 6h2v2H3v-2Zm0 6h2v2H3v-2Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      {/* 점 부분: stroke 대신 fill을 사용하여 확실히 보이게 함 */}
+      <circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none" />
+      {/* 선 부분 */}
+      <line x1="9" y1="6" x2="20" y2="6" />
+      <line x1="9" y1="12" x2="20" y2="12" />
+      <line x1="9" y1="18" x2="20" y2="18" />
+    </Icon.Wrapper>
   ),
+
   OL: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M7 5h14v2H7V5Zm0 6h14v2H7v-2Zm0 6h14v2H7v-2ZM5 7H3V5h2V3h2v6H5V7Zm0 8H3v-2h2v-1H3v-2h4v5H5v0Zm0 4h2v2H3v-2h2v-1H3v-2h4v3H5v0Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <path d="M4 6h1v4" />
+      <path d="M4 10h2" />
+      <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" />
+      <line x1="10" y1="6" x2="21" y2="6" />
+      <line x1="10" y1="12" x2="21" y2="12" />
+      <line x1="10" y1="18" x2="21" y2="18" />
+    </Icon.Wrapper>
   ),
+
   Table: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M3 3h18v18H3V3Zm8 2H5v4h6V5Zm8 0h-6v4h6V5ZM5 11v4h6v-4H5Zm8 0v4h6v-4h-6ZM5 17v4h6v-4H5Zm8 0v4h6v-4h-6Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="3" y1="9" x2="21" y2="9" /><line x1="3" y1="15" x2="21" y2="15" /><line x1="12" y1="3" x2="12" y2="21" />
+    </Icon.Wrapper>
   ),
+
   PlusCol: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M11 3h2v18h-2V3Zm4 8h6v2h-6v6h-2v-6H7v-2h6V5h2v6Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <rect x="2" y="3" width="12" height="18" rx="2" />
+      <line x1="19" y1="8" x2="19" y2="16" /><line x1="16" y1="12" x2="22" y2="12" />
+    </Icon.Wrapper>
   ),
+
   PlusRow: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M3 11h18v2H3v-2Zm8-4V1h2v6h6v2h-6v6h-2V9H5V7h6Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <rect x="3" y="2" width="18" height="12" rx="2" />
+      <line x1="8" y1="19" x2="16" y2="19" /><line x1="12" y1="16" x2="12" y2="22" />
+    </Icon.Wrapper>
   ),
+
   DeleteTable: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M3 3h18v18H3V3Zm2 2v4h6V5H5Zm8 0v4h6V5h-6ZM5 11v4h6v-4H5Zm8 0v4h6v-4h-6ZM5 17v2h14v-2H5Zm2.7-8.7 1.4-1.4L12 9.4l2.9-2.9 1.4 1.4L13.4 10.8l2.9 2.9-1.4 1.4L12 12.2l-2.9 2.9-1.4-1.4 2.9-2.9-2.9-2.9Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="m15 9-6 6" /><path d="m9 9 6 6" />
+    </Icon.Wrapper>
   ),
+
   Undo: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M7 7V3L1 9l6 6v-4h5a5 5 0 0 1 0 10h-1v-2h1a3 3 0 1 0 0-6H7V7Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <path d="M3 7v6h6" /><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+    </Icon.Wrapper>
   ),
+
   Redo: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M17 7V3l6 6-6 6v-4h-5a5 5 0 1 0 0 10h1v-2h-1a3 3 0 1 1 0-6h5V7Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <path d="M21 7v6h-6" /><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" />
+    </Icon.Wrapper>
   ),
+
   AlignLeft: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M3 5h18v2H3V5Zm0 4h12v2H3V9Zm0 4h18v2H3v-2Zm0 4h12v2H3v-2Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <line x1="21" y1="6" x2="3" y2="6" /><line x1="15" y1="12" x2="3" y2="12" /><line x1="18" y1="18" x2="3" y2="18" />
+    </Icon.Wrapper>
   ),
+
   AlignCenter: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M3 5h18v2H3V5Zm3 4h12v2H6V9Zm-3 4h18v2H3v-2Zm3 4h12v2H6v-2Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <line x1="21" y1="6" x2="3" y2="6" /><line x1="18" y1="12" x2="6" y2="12" /><line x1="21" y1="18" x2="3" y2="18" />
+    </Icon.Wrapper>
   ),
+
   AlignRight: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M3 5h18v2H3V5Zm6 4h12v2H9V9ZM3 13h18v2H3v-2Zm6 4h12v2H9v-2Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <line x1="21" y1="6" x2="3" y2="6" /><line x1="21" y1="12" x2="9" y2="12" /><line x1="21" y1="18" x2="3" y2="18" />
+    </Icon.Wrapper>
   ),
+
   AlignJustify: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M3 5h18v2H3V5Zm0 4h18v2H3V9Zm0 4h18v2H3v-2Zm0 4h18v2H3v-2Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <line x1="21" y1="6" x2="3" y2="6" /><line x1="21" y1="12" x2="3" y2="12" /><line x1="21" y1="18" x2="3" y2="18" /><line x1="21" y1="21" x2="3" y2="21" style={{opacity: 0}} />
+    </Icon.Wrapper>
   ),
+
   Code: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M8.6 16.6 4 12l4.6-4.6L10 8.8 6.8 12 10 15.2l-1.4 1.4Zm6.8 0L14 15.2 17.2 12 14 8.8 15.4 7.4 20 12l-4.6 4.6ZM13.7 4l-3.4 16-2-.4L11.7 3.6l2 .4Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <polyline points="16 18 22 12 16 6" />
+      <polyline points="8 6 2 12 8 18" />
+    </Icon.Wrapper>
   ),
+
   Image: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M21 3H3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm0 16H3V5h18v14ZM8.5 7.5A2.5 2.5 0 1 0 11 10a2.5 2.5 0 0 0-2.5-2.5ZM20 17l-5-7-4 5-2-3-5 5h16Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="m21 15-5-5L5 21" />
+    </Icon.Wrapper>
   ),
+
   Upload: (props) => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M5 20h14v-2H5v2Zm7-16-5 5h3v4h4v-4h3l-5-5Z" />
-    </svg>
+    <Icon.Wrapper {...props}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
+    </Icon.Wrapper>
   ),
 };
 
@@ -1516,14 +1444,27 @@ export default function RichEditor({
         .tiptap-wrap.dark { color: #eee; }
         .tiptap-wrap.light .rte { border-color: #ddd; background: #fafafa; }
         .tiptap-wrap.dark .rte { border-color: #333; background: #1a1a1a; }
-        .tiptap-wrap .toolbar .btn { height: 30px; width: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid; cursor: pointer; line-height: 0; }
-        /* 아이콘(SVG)이 보이지 않는 경우를 대비해 명시적으로 크기/색 지정 */
-        .tiptap-wrap .toolbar .btn svg { width: 18px; height: 18px; color: inherit; fill: currentColor; display: block; flex-shrink: 0; }
+        // .tiptap-wrap .toolbar .btn { height: 30px; width: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid; cursor: pointer; line-height: 0; }
+        /* 뭉개짐 방지를 위한 CSS 수정 */
+        .tiptap-wrap .toolbar .btn svg {
+          fill: none !important;
+          stroke: currentColor !important;
+          stroke-width: 2.2; /* 가독성을 위해 살짝 두껍게 조절 */
+        }  
+        /* UL/OL 아이콘의 '점'과 '선' 가시성 보정 */
+        .tiptap-wrap .toolbar .btn svg circle {
+          fill: currentColor !important; /* 리스트 점은 채워져야 보임 */
+          stroke: none !important;
+        }
         .tiptap-wrap .toolbar .btn.wide { width: auto; padding: 0 8px; line-height: 1; gap: 6px; }
         .tiptap-wrap.light .toolbar .btn { background: #fff; color: #111; border-color: #ddd; }
         .tiptap-wrap.dark .toolbar .btn { background: #222; color: #eee; border-color: #444; }
         .tiptap-wrap .toolbar .btn:hover { filter: brightness(1.06); }
-        .tiptap-wrap .toolbar .btn.active { outline: 2px solid #6b9cff33; }
+        .tiptap-wrap .toolbar .btn.active {
+          background: rgba(107, 156, 255, 0.2) !important;
+          border-color: #6b9cff !important;
+          color: #6b9cff !important;
+        }
         .tiptap-wrap .toolbar .btn:disabled { opacity: .5; cursor: not-allowed; }
         .tiptap-wrap .toolbar .select { height: 30px; border-radius: 6px; border: 1px solid; padding: 0 8px; background: transparent; }
         .tiptap-wrap.light .toolbar .select { background: #fff; color: #111; border-color: #ddd; }
@@ -1536,6 +1477,22 @@ export default function RichEditor({
         .tiptap-wrap.dark .header { background: #151515; border-bottom: 1px solid #2a2a2a; color: #ddd; }
         .tiptap-wrap .editor { padding: 12px; text-align: left; }
         .tiptap-wrap .editor .ProseMirror { outline: none; text-align: left; }
+        /* 에디터 내부 리스트 스타일 복구 (중요) */
+        .tiptap-wrap .editor .ProseMirror ul {
+          list-style-type: disc !important;
+          padding-left: 1.5rem !important;
+          margin: 1rem 0 !important;
+        }
+        
+        .tiptap-wrap .editor .ProseMirror ol {
+          list-style-type: decimal !important;
+          padding-left: 1.5rem !important;
+          margin: 1rem 0 !important;
+        }
+        
+        .tiptap-wrap .editor .ProseMirror li {
+          display: list-item !important; /* 일부 프레임워크에서 block으로 변경하는 것 방지 */
+        }
         .tiptap-wrap.light .editor { background: #fff; }
         .tiptap-wrap.dark .editor { background: #111; }
         /* 임베드(iframe/video) 기본 크기 확보: 고정 크기가 없을 때 16:9 비율 유지 */
