@@ -187,11 +187,11 @@ export default function PopupManagement() {
         <div className="oncontent">
           <div className="ongrid-form">
             <h4>팝업 목록</h4>
-            <div className="onselect-form open" style={{ minHeight: 'auto' }}>
+            <div className="onselect-form">
               <div className="onparagraph">
                 <MenuInputBox
                   menuType="select"
-                  menuName="팝업 종류"
+                  menuName="팝업종류"
                   menuSize="100px"
                   options={POPUP_KND_OPTIONS}
                   value={search.popupKndCd}
@@ -205,7 +205,7 @@ export default function PopupManagement() {
                 <MenuInputBox
                   menuType="input"
                   menuName="제목"
-                  menuSize="300px"
+                  menuSize="200px"
                   value={search.popupTtl}
                   onChange={(e) =>
                     setSearch((prev) => ({
@@ -215,15 +215,6 @@ export default function PopupManagement() {
                   }
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
-                <div style={{ marginLeft: 'auto' }}>
-                  <Button
-                    btnType="menuSearch"
-                    btnNames="검색"
-                    onClick={handleSearch}
-                  />
-                </div>
-              </div>
-              <div className="onparagraph middle">
                 <div className="ondatepickerbox">
                   <DatepickerBox
                     menuName="게시기간"
@@ -252,6 +243,13 @@ export default function PopupManagement() {
                     setSearch((prev) => ({ ...prev, useYn: e.target.value }))
                   }
                 />
+                <div className="onbtn" style={{ marginLeft: 'auto' }}>
+                  <Button
+                    btnType="menuSearch"
+                    btnNames="검색"
+                    onClick={handleSearch}
+                  />
+                </div>
               </div>
             </div>
           </div>
