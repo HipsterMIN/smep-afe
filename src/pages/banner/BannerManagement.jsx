@@ -1,16 +1,16 @@
-import PopupDetail from '@components/popup/PopupDetail';
-import PopupForm from '@components/popup/PopupForm';
-import PopupGrid from '@components/popup/PopupGrid';
+import BannerDetail from '@components/banner/BannerDetail';
+import BannerForm from '@components/banner/BannerForm';
+import BannerGrid from '@components/banner/BannerGrid';
 import Button from '@components/ui/Button.jsx';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
 import { useEffect, useState } from 'react';
 
-const POPUP_KND_OPTIONS = [
-  { value: 'NWND', label: '새창' },
-  { value: 'LAYR', label: '레이어' },
-  { value: 'BNDB', label: '띠배너' },
+const BNR_PSTN_OPTIONS = [
+  { value: 'UEBN', label: '상단배너' },
+  { value: 'MDBN', label: '중단배너' },
+  { value: 'LPBN', label: '하단배너' },
 ];
 
 const USE_YN_OPTIONS = [
@@ -18,75 +18,76 @@ const USE_YN_OPTIONS = [
   { value: 'N', label: '사용안함' },
 ];
 
-export default function PopupManagement() {
-  const [popupList, setPopupList] = useState([]);
+export default function BannerManagement() {
+  const [bannerList, setBannerList] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [search, setSearch] = useState({
-    popupKndCd: '',
-    popupTtl: '',
+    bnrPstnSeCd: '',
+    bnrTtl: '',
     pstgBgngYmdFrom: '',
     pstgEndYmdTo: '',
     useYn: '',
   });
   const [rightPanel, setRightPanel] = useState(null); // null | 'detail' | 'form'
-  const [selectedPopupId, setSelectedPopupId] = useState(null);
+  const [selectedBnrId, setSelectedBnrId] = useState(null);
   const [detailData, setDetailData] = useState(null);
 
   useEffect(() => {
-    fetchPopupList();
+    fetchBannerList();
   }, []);
 
-  const fetchPopupList = async (searchParams = search) => {
+  const fetchBannerList = async (searchParams = search) => {
     try {
       const params = { size: 100 };
-      if (searchParams.popupKndCd) params.popupKndCd = searchParams.popupKndCd;
-      if (searchParams.popupTtl) params.popupTtl = searchParams.popupTtl;
+      if (searchParams.bnrPstnSeCd)
+        params.bnrPstnSeCd = searchParams.bnrPstnSeCd;
+      if (searchParams.bnrTtl) params.bnrTtl = searchParams.bnrTtl;
       if (searchParams.pstgBgngYmdFrom)
         params.pstgBgngYmdFrom = searchParams.pstgBgngYmdFrom;
       if (searchParams.pstgEndYmdTo)
         params.pstgEndYmdTo = searchParams.pstgEndYmdTo;
       if (searchParams.useYn) params.useYn = searchParams.useYn;
 
-      const response = await http.get('/api/v1/popups', { params });
+      const response = await http.get('/api/v1/banners', { params });
       const data = (response.data?.data || []).map((item) => ({
         ...item,
-        id: item.popupId,
+        id: item.bnrId,
       }));
-      setPopupList(data);
+      setBannerList(data);
       setTotalCount(data.length);
     } catch (error) {
-      console.error('팝업 목록 조회 실패:', error);
-      setPopupList([]);
+      console.error('배너 목록 조회 실패:', error);
+      setBannerList([]);
     }
   };
 
-  const fetchPopupDetail = async (popupId) => {
+  const fetchBannerDetail = async (bnrId) => {
     try {
-      const response = await http.get(`/api/v1/popups/${popupId}`);
+      const response = await http.get(`/api/v1/banners/${bnrId}`);
       setDetailData(response.data);
       return response.data;
     } catch (error) {
-      console.error('팝업 상세 조회 실패:', error);
+      console.error('배너 상세 조회 실패:', error);
     }
   };
 
-  const handleSearch = () => fetchPopupList(search);
+  const handleSearch = () => fetchBannerList(search);
 
   const handleRegister = () => {
-    setSelectedPopupId(null);
+    setSelectedBnrId(null);
     setDetailData(null);
     setRightPanel('form');
   };
 
   const handleRowClick = async (row) => {
-    setSelectedPopupId(row.popupId);
-    await fetchPopupDetail(row.popupId);
+    setSelectedBnrId(row.bnrId);
+    await fetchBannerDetail(row.bnrId);
     setRightPanel('detail');
   };
 
   const handleEdit = async (row) => {
-    setSelectedPopupId(row.popupId);
-    await fetchPopupDetail(row.popupId);
+    setSelectedBnrId(row.bnrId);
+    await fetchBannerDetail(row.bnrId);
     setRightPanel('form');
   };
 
@@ -94,10 +95,10 @@ export default function PopupManagement() {
 
   const handleToggleUseYn = async (row) => {
     try {
-      await http.patch(`/api/v1/popups/${row.popupId}/use-yn`);
-      fetchPopupList();
-      if (selectedPopupId === row.popupId) {
-        fetchPopupDetail(row.popupId);
+      await http.patch(`/api/v1/banners/${row.bnrId}/use-yn`);
+      fetchBannerList();
+      if (selectedBnrId === row.bnrId) {
+        fetchBannerDetail(row.bnrId);
       }
     } catch (error) {
       console.error('사용여부 변경 실패:', error);
@@ -105,15 +106,12 @@ export default function PopupManagement() {
     }
   };
 
-  const handlePreview = (row) => {
-    window.open(
-      `/popup/preview/${row.popupId}`,
-      '_blank',
-      'width=800,height=600'
-    );
-  };
-
-  const handleFormSave = async (formData, newFile, fileStatusInfoJson) => {
+  const handleFormSave = async (
+    formData,
+    imgFile,
+    moblImgFile,
+    fileStatusInfoJson
+  ) => {
     try {
       const fd = new FormData();
       fd.append(
@@ -122,60 +120,58 @@ export default function PopupManagement() {
           type: 'application/json',
         })
       );
-      if (newFile) {
-        fd.append('imgFile', newFile);
-      }
-      if (fileStatusInfoJson) {
+      if (imgFile) fd.append('imgFile', imgFile);
+      if (moblImgFile) fd.append('moblImgFile', moblImgFile);
+      if (fileStatusInfoJson)
         fd.append('fileStatusInfoJson', fileStatusInfoJson);
-      }
 
-      if (selectedPopupId) {
-        await http.put(`/api/v1/popups/${selectedPopupId}`, fd, {
+      if (selectedBnrId) {
+        await http.put(`/api/v1/banners/${selectedBnrId}`, fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        alert('팝업이 수정되었습니다.');
-        await fetchPopupDetail(selectedPopupId);
+        alert('배너가 수정되었습니다.');
+        await fetchBannerDetail(selectedBnrId);
         setRightPanel('detail');
       } else {
-        await http.post('/api/v1/popups', fd, {
+        await http.post('/api/v1/banners', fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        alert('팝업이 등록되었습니다.');
+        alert('배너가 등록되었습니다.');
         setRightPanel(null);
-        setSelectedPopupId(null);
+        setSelectedBnrId(null);
       }
-      fetchPopupList();
+      fetchBannerList();
     } catch (error) {
       const errorMessage =
-        error.response?.data?.message || '팝업 저장에 실패했습니다.';
+        error.response?.data?.message || '배너 저장에 실패했습니다.';
       alert(errorMessage);
     }
   };
 
   const handleFormDelete = async () => {
-    if (!selectedPopupId) return;
-    if (!window.confirm('팝업을 삭제하시겠습니까?')) return;
+    if (!selectedBnrId) return;
+    if (!window.confirm('배너를 삭제하시겠습니까?')) return;
     try {
-      await http.delete(`/api/v1/popups/${selectedPopupId}`);
-      alert('팝업이 삭제되었습니다.');
+      await http.delete(`/api/v1/banners/${selectedBnrId}`);
+      alert('배너가 삭제되었습니다.');
       setRightPanel(null);
-      setSelectedPopupId(null);
+      setSelectedBnrId(null);
       setDetailData(null);
-      fetchPopupList();
+      fetchBannerList();
     } catch (error) {
-      console.error('팝업 삭제 실패:', error);
-      alert('팝업 삭제에 실패했습니다.');
+      console.error('배너 삭제 실패:', error);
+      alert('배너 삭제에 실패했습니다.');
     }
   };
 
   return (
     <div className="oncontentbox">
       <div className="oncontentTitle">
-        <h2>팝업 관리</h2>
+        <h2>배너 관리</h2>
         <ul className="onbreadcrumb">
           <li>정보제공</li>
           <li>고객지원 관리</li>
-          <li className="on">팝업 목록</li>
+          <li className="on">배너 목록</li>
         </ul>
       </div>
 
@@ -186,19 +182,19 @@ export default function PopupManagement() {
         {/* 좌측: 목록 */}
         <div className="oncontent">
           <div className="ongrid-form">
-            <h4>팝업 목록</h4>
+            <h4>배너 목록</h4>
             <div className="onselect-form">
               <div className="onparagraph">
                 <MenuInputBox
                   menuType="select"
-                  menuName="팝업종류"
+                  menuName="배너구분"
                   menuSize="100px"
-                  options={POPUP_KND_OPTIONS}
-                  value={search.popupKndCd}
+                  options={BNR_PSTN_OPTIONS}
+                  value={search.bnrPstnSeCd}
                   onChange={(e) =>
                     setSearch((prev) => ({
                       ...prev,
-                      popupKndCd: e.target.value,
+                      bnrPstnSeCd: e.target.value,
                     }))
                   }
                 />
@@ -206,12 +202,9 @@ export default function PopupManagement() {
                   menuType="input"
                   menuName="제목"
                   menuSize="200px"
-                  value={search.popupTtl}
+                  value={search.bnrTtl}
                   onChange={(e) =>
-                    setSearch((prev) => ({
-                      ...prev,
-                      popupTtl: e.target.value,
-                    }))
+                    setSearch((prev) => ({ ...prev, bnrTtl: e.target.value }))
                   }
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
@@ -253,31 +246,34 @@ export default function PopupManagement() {
               </div>
             </div>
           </div>
+
           <div className="ontable-legend">
             <span>
               총 <b>{totalCount}</b>건
             </span>
             <Button btnType="add" btnNames="등록" onClick={handleRegister} />
           </div>
+
           <div className="ongrid-tableform onSCrollBox">
-            <PopupGrid
-              data={popupList}
+            <BannerGrid
+              data={bannerList}
               onRowClick={handleRowClick}
               onEdit={handleEdit}
               onToggleUseYn={handleToggleUseYn}
-              onPreview={handlePreview}
             />
           </div>
         </div>
+
         {/* 우측: 상세조회 */}
         {rightPanel === 'detail' && detailData && (
-          <PopupDetail data={detailData} onEdit={handleDetailEdit} />
+          <BannerDetail data={detailData} onEdit={handleDetailEdit} />
         )}
+
         {/* 우측: 등록/수정 */}
         {rightPanel === 'form' && (
-          <PopupForm
+          <BannerForm
             data={detailData}
-            isEdit={!!selectedPopupId}
+            isEdit={!!selectedBnrId}
             onSave={handleFormSave}
             onDelete={handleFormDelete}
           />
