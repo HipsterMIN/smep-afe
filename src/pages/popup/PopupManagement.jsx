@@ -113,35 +113,39 @@ export default function PopupManagement() {
     );
   };
 
-  const handleFormSave = async (formData, newFile) => {
+  const handleFormSave = async (formData, newFile, fileStatusInfoJson) => {
     try {
-      let imgAtchFileId = formData.imgAtchFileId;
-
-      // 신규 파일이 있을 경우 파일 업로드 선행 처리
+      const fd = new FormData();
+      fd.append(
+        'request',
+        new Blob([JSON.stringify(formData)], {
+          type: 'application/json',
+        })
+      );
       if (newFile) {
-        const fd = new FormData();
-        fd.append('file', newFile);
-        // TODO: 파일 업로드 API 엔드포인트 확인 후 수정
-        const uploadRes = await http.post('/api/v1/files/upload', fd);
-        imgAtchFileId = uploadRes.data?.atchFileId || '';
+        fd.append('imgFile', newFile);
+      }
+      if (fileStatusInfoJson) {
+        fd.append('fileStatusInfoJson', fileStatusInfoJson);
       }
 
-      const submitData = { ...formData, imgAtchFileId };
-
       if (selectedPopupId) {
-        await http.put(`/api/v1/popups/${selectedPopupId}`, submitData);
+        await http.put(`/api/v1/popups/${selectedPopupId}`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         alert('팝업이 수정되었습니다.');
         await fetchPopupDetail(selectedPopupId);
         setRightPanel('detail');
       } else {
-        await http.post('/api/v1/popups', submitData);
+        await http.post('/api/v1/popups', fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         alert('팝업이 등록되었습니다.');
         setRightPanel(null);
         setSelectedPopupId(null);
       }
       fetchPopupList();
     } catch (error) {
-      console.error('팝업 저장 실패:', error);
       const errorMessage =
         error.response?.data?.message || '팝업 저장에 실패했습니다.';
       alert(errorMessage);
