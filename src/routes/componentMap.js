@@ -190,6 +190,11 @@ export const componentMap = {
     component: AccountView,
     layout: AdminLayoutWithAuth,
   },
+  // 접속허용IP 관리
+  M_PIIO_00135: {
+    component: AccountView,
+    layout: AdminLayoutWithAuth,
+  },
   // API 연계 관리
   // 'M_PIIO_00062': {
   //   component: TODO_M_PIIO_00062,
