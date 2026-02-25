@@ -30,7 +30,7 @@ export default function Contentbox({ children }) {
   // ==========================================
   const navigateToHome = () => {
     // window.location을 사용하여 완전한 URL로 이동
-    // 예: http://localhost:5173/admin-dev/ 로 이동
+    // 예: http://localhost:5173/home-admin-dev/ 로 이동
     const baseUrl = import.meta.env.BASE_URL || '/';
     // 마지막 슬래시가 없으면 추가
     const homeUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
