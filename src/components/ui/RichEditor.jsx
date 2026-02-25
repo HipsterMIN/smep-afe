@@ -181,6 +181,7 @@ export default function RichEditor({
   height,
   resizable = true,
   className = '',
+  editable = true,
   showHeader = true,
   placeholder = '여기에 내용을 입력하세요…',
   allowTextAlign = true,
@@ -869,6 +870,7 @@ export default function RichEditor({
     []
   );
   const [fileInputKey, setFileInputKey] = useState(0); // 파일 입력 초기화용
+  const isEditable = !!editable;
 
   const syncContentHeightFromElement = (element) => {
     if (height != null || !element) return;
@@ -960,6 +962,7 @@ export default function RichEditor({
       TableHeader,
       TableCell,
     ],
+    editable: isEditable && !isHtmlView,
     content: '<p></p>',
     onCreate: ({ editor }) => {
       // 기본 정렬 적용
@@ -1000,6 +1003,7 @@ export default function RichEditor({
     },
     editorProps: {
       handlePaste: (view, event) => {
+        if (!isEditable) return false;
         if (isHtmlView) return false;
         // 이미지 붙여넣기
         if (allowPasteDropImage) {
@@ -1056,6 +1060,7 @@ export default function RichEditor({
         return false;
       },
       handleDrop: (view, event, _slice, moved) => {
+        if (!isEditable) return false;
         if (isHtmlView) return false;
         if (moved) return false;
         const files = event.dataTransfer?.files;
@@ -1082,6 +1087,11 @@ export default function RichEditor({
       },
     },
   });
+
+  useEffect(() => {
+    if (!editor) return;
+    editor.setEditable(isEditable && !isHtmlView);
+  }, [editor, isEditable, isHtmlView]);
 
   // 파일을 이미지로 삽입하는 헬퍼
   async function insertImageFromFile(file) {
@@ -1424,7 +1434,7 @@ export default function RichEditor({
     if (!container || !editor) return undefined;
 
     const handleMouseDown = (event) => {
-      if (isHtmlView || event.button !== 0) return;
+      if (!isEditable || isHtmlView || event.button !== 0) return;
       if (event.target !== container) return;
       editor.commands.focus('end');
     };
@@ -1433,7 +1443,7 @@ export default function RichEditor({
     return () => {
       container.removeEventListener('mousedown', handleMouseDown);
     };
-  }, [editor, isHtmlView]);
+  }, [editor, isEditable, isHtmlView]);
 
   return (
     <div className={`tiptap-wrap ${isDark ? 'dark' : 'light'} ${className}`}>
@@ -1547,7 +1557,7 @@ export default function RichEditor({
         .tiptap-wrap.dark .html-view textarea { background: #111; color: #eee; border-color: #444; }
       `}</style>
       <div className="rte">
-        {showHeader && (
+        {showHeader && isEditable && (
           <div className="header" aria-hidden="true">
             <span>편집 영역</span>
           </div>

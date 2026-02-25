@@ -72,6 +72,17 @@ const parseHasNext = (data, rows, nextCursorValue) => {
   return rows.length >= PAGE_SIZE && Boolean(nextCursorValue);
 };
 
+const linkLikeButtonStyle = {
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  color: '#0000EE',
+  cursor: 'pointer',
+  textAlign: 'left',
+  textDecoration: 'underline',
+  font: 'inherit',
+};
+
 export default function PolicyFinanceList() {
   const navigate = useNavigate();
   const observerRef = useRef(null);
@@ -96,6 +107,7 @@ export default function PolicyFinanceList() {
   );
 
   const [gridPolicyFinanceList, setGridPolicyFinanceList] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [cursor, setCursor] = useState(null);
   const [hasNext, setHasNext] = useState(true);
@@ -162,6 +174,9 @@ export default function PolicyFinanceList() {
 
       const data = response?.data || {};
       const policyFinanceList = data?.data || [];
+      const resolvedTotalCount = Number(
+        data?.totalCount ?? data?.totlaCount ?? 0
+      );
       const formattedData = policyFinanceList.map((item, index) => ({
         id: item?.plcyFnncNo
           ? `policy-${item.plcyFnncNo}`
@@ -219,6 +234,7 @@ export default function PolicyFinanceList() {
         resolvedNextCursor
       );
 
+      setTotalCount(Number.isNaN(resolvedTotalCount) ? 0 : resolvedTotalCount);
       setCursor(resolvedNextCursor);
       setHasNext(resolvedHasNext);
     } catch (error) {
@@ -227,6 +243,7 @@ export default function PolicyFinanceList() {
       if (reset) {
         setGridPolicyFinanceList([]);
       }
+      setTotalCount(0);
       setHasNext(false);
       setCursor(null);
     } finally {
@@ -242,12 +259,57 @@ export default function PolicyFinanceList() {
     navigate(`${plcyFnncNo}`);
   };
 
+  const handleMoveToUpdate = (plcyFnncNo) => {
+    if (!plcyFnncNo) {
+      alert('정책금융번호가 없습니다.');
+      return;
+    }
+    navigate(`${plcyFnncNo}/update`);
+  };
+
+  const renderProductNameCell = ({ row }) => {
+    const productName = row?.plcyFnncNm || '-';
+    const hasPolicyNo = Boolean(row?.plcyFnncNo);
+
+    return (
+      <button
+        type="button"
+        className="onlinkbtn"
+        data-action="ignore-click"
+        disabled={!hasPolicyNo}
+        onMouseDown={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!hasPolicyNo) return;
+          handleMoveToDetail(row.plcyFnncNo);
+        }}
+        style={{
+          ...linkLikeButtonStyle,
+          color: hasPolicyNo ? linkLikeButtonStyle.color : '#666',
+          cursor: hasPolicyNo ? linkLikeButtonStyle.cursor : 'default',
+          textDecoration: hasPolicyNo
+            ? linkLikeButtonStyle.textDecoration
+            : 'none',
+        }}
+        title={productName}
+      >
+        {productName}
+      </button>
+    );
+  };
+
   const columns = [
     { id: 'index', header: '순번', width: 44 },
-    { id: 'plcyFnncGdsTypeCdNm', header: '유형', width: 80 },
-    { id: 'bizFlfmtInstCdNm', header: '사업수행기관', width: 130 },
-    { id: 'plcyFnncNm', header: '상품명', width: 180 },
-    { id: 'plcyFnncAplyMthCdNm', header: '신청 방식', width: 110 },
+    { id: 'plcyFnncGdsTypeCdNm', header: '유형', width: 45 },
+    { id: 'bizFlfmtInstCdNm', header: '사업수행기관', width: 140 },
+    {
+      id: 'plcyFnncNm',
+      header: '상품명',
+      width: 230,
+      cell: renderProductNameCell,
+    },
+    { id: 'plcyFnncAplyMthCdNm', header: '신청 방식', width: 90 },
     { id: 'plcyFnncGdsSttsCdNm', header: '승인여부', width: 80 },
     { id: 'plcyFnncEntSclCdNm', header: '기업 규모', width: 80 },
     { id: 'industry', header: '업종', width: 100 },
@@ -257,14 +319,14 @@ export default function PolicyFinanceList() {
     {
       id: 'regDt',
       header: '등록 일시',
-      width: 140,
+      width: 150,
       template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm:ss'),
     },
     { id: 'mdfrId', header: '수정자', width: 80 },
     {
       id: 'mdfcnDt',
       header: '수정 일시',
-      width: 140,
+      width: 150,
       template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm:ss'),
     },
     {
@@ -280,10 +342,10 @@ export default function PolicyFinanceList() {
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
-            handleMoveToDetail(row?.plcyFnncNo);
+            handleMoveToUpdate(row?.plcyFnncNo);
           }}
         >
-          상세
+          수정
         </button>
       ),
     },
@@ -459,7 +521,7 @@ export default function PolicyFinanceList() {
 
           <div className="ontable-legend">
             <span>
-              총 <b>{gridPolicyFinanceList.length}</b>건
+              총 <b>{totalCount}</b>건
             </span>
             <div className="onbtns">
               <Button btnType="add" btnNames="메세지 작성" />
@@ -468,7 +530,10 @@ export default function PolicyFinanceList() {
             </div>
           </div>
 
-          <div className="ongrid-tableform" style={{ scrollbarGutter: 'stable' }}>
+          <div
+            className="ongrid-tableform"
+            style={{ scrollbarGutter: 'stable' }}
+          >
             <GridTable data={gridPolicyFinanceList} columns={columns} />
             <div ref={observerRef} style={{ height: 40 }} />
             <div
