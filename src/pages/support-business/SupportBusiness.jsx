@@ -1,131 +1,467 @@
-import React, { useState } from 'react';
+﻿import Button from '@components/ui/Button.jsx';
+import CheckBox from '@components/ui/CheckBox.jsx';
+import GridTable from '@components/ui/GridTable.jsx';
+import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import http from '@lib/http.js';
+import { formatDate } from '@utils/stringUtils.js';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import MenuInputBox from "@components/ui/MenuInputBox.jsx";
-import CheckBox  from "@components/ui/CheckBox.jsx";
-import Button  from "@components/ui/Button.jsx";
-import GridTable from '@components/ui/GridTable';
+const LIST_PATH = '/sprtBiz/bizPbanc/bizInfo';
 
-export default function CommonCode() {
+const BIZ_TYPE_OPTIONS = [
+  { value: 'PC10', label: '금융' },
+  { value: 'PC20', label: '기술' },
+  { value: 'PC30', label: '인력' },
+  { value: 'PC40', label: '수출' },
+  { value: 'PC50', label: '내수' },
+  { value: 'PC60', label: '창업' },
+  { value: 'PC70', label: '경영' },
+  { value: 'PC80', label: '소상공인' },
+  { value: 'PC12', label: '중견' },
+  { value: 'PC99', label: '기타' },
+];
+
+const SUPPORT_INST_OPTIONS = [
+  { value: 'SP16', label: '중소벤처기업부' },
+  { value: 'SP01', label: '중소벤처기업진흥공단' },
+  { value: 'SP02', label: '중소기업기술정보진흥원' },
+  { value: 'SP03', label: '한국중소벤처기업유통원' },
+  { value: 'SP04', label: '창업진흥원' },
+  { value: 'SP05', label: '소상공인시장진흥공단' },
+  { value: 'SP06', label: '기술보증기금' },
+  { value: 'SP15', label: '지역신용보증재단' },
+  { value: 'SP10', label: '대.중소기업.농어업협력재단' },
+  { value: 'SP12', label: '여성기업종합지원포털' },
+  { value: 'SP13', label: '장애인기업종합지원센터' },
+  { value: 'SP14', label: '한국산업기술진흥원' },
+  { value: 'SP17', label: '중소기업중앙회' },
+  { value: 'SP18', label: '중소기업융합중앙회' },
+  { value: 'SP19', label: '한국창업보육협회' },
+  { value: 'SP20', label: '이노비즈협회' },
+  { value: 'SP21', label: '한국경영혁신중소기업협회' },
+  { value: 'SP22', label: '대한무역투자진흥공사' },
+  { value: 'SP23', label: '기업은행' },
+  { value: 'SP24', label: '대한상공회의소' },
+  { value: 'SP25', label: '신용보증기금' },
+  { value: 'SP26', label: '신용보증재단중앙회' },
+  { value: 'SP27', label: '한국경제인협회중소기업협력센터' },
+  { value: 'SP28', label: '한국무역보험공사' },
+  { value: 'SP29', label: '한국무역협회' },
+  { value: 'SP30', label: '한국산업은행' },
+  { value: 'SP31', label: '한국수출입은행' },
+];
+
+const TARGET_ENT_OPTIONS = [
+  { value: 'SB01', label: '중소벤처기업' },
+  { value: 'SB02', label: '소상공인' },
+];
+
+const createSearchParams = () => ({
+  sprtBizCrtrYr: '',
+  sprtBizNm: '',
+  bizPbancClsfCd: [],
+  bizPbancSprtInstCd: [],
+  lfcyTrgtEntSeCd: [],
+});
+
+const getLabel = (options, value) => {
+  const matched = options.find((item) => item.value === value);
+  return matched?.label || value || '-';
+};
+
+const toApiValue = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item).trim())
+      .filter(Boolean)
+      .join(',');
+  }
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+};
+
+export default function SupportBusiness() {
+  const navigate = useNavigate();
+  const observerRef = useRef(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(true);
+  const appliedSearchParamsRef = useRef(createSearchParams());
+
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const [cursor, setCursor] = useState(null);
+  const [hasNext, setHasNext] = useState(true);
+  const [searchParams, setSearchParams] = useState(createSearchParams);
+
+  const columns = [
+    {
+      id: 'rowNumber',
+      header: '번호',
+      width: 70,
+      cell: ({ row }) =>
+        Number.isFinite(totalCount) && Number.isFinite(row?._rowIndex)
+          ? totalCount - (row._rowIndex - 1)
+          : '-',
+    },
+    { id: 'sprtBizId', header: '사업ID', width: 220 },
+    { id: 'sprtBizCrtrYr', header: '사업년도', width: 90 },
+    {
+      id: 'sprtBizNm',
+      header: '사업명',
+      width: 450,
+      cell: ({ row }) => (
+        <button
+          type="button"
+          className="onlinkbtn"
+          data-action="ignore-click"
+          onMouseDown={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!row?.sprtBizId) return;
+            navigate(`${row.sprtBizId}`);
+          }}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            color: '#004EA2',
+            cursor: 'pointer',
+            textAlign: 'left',
+            textDecoration: 'underline',
+          }}
+        >
+          {row?.sprtBizNm || '-'}
+        </button>
+      ),
+    },
+    {
+      id: 'bizPbancClsfCd',
+      header: '사업유형',
+      width: 120,
+      template: (value) => getLabel(BIZ_TYPE_OPTIONS, value),
+    },
+    {
+      id: 'bizPbancSprtInstCd',
+      header: '지원기관',
+      width: 170,
+      template: (value) => getLabel(SUPPORT_INST_OPTIONS, value),
+    },
+    {
+      id: 'lfcyTrgtEntSeCd',
+      header: '기업구분',
+      width: 120,
+      template: (value) => getLabel(TARGET_ENT_OPTIONS, value),
+    },
+    { id: 'announcementCount', header: '공고수', width: 80 },
+    {
+      id: 'mdfcnDt',
+      header: '최종수정일',
+      width: 150,
+      template: (value) => formatDate(value, 'yyyy-MM-dd'),
+    },
+    {
+      id: 'management',
+      header: '관리',
+      width: 90,
+      cell: ({ row }) => (
+        <button
+          type="button"
+          className="defaultbutton edit"
+          data-action="ignore-click"
+          onMouseDown={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!row?.sprtBizId) return;
+            navigate(`${row.sprtBizId}/edit`);
+          }}
+        >
+          수정
+        </button>
+      ),
+    },
+  ];
+
+  const buildParams = (baseParams) => {
+    const params = {
+      size: 20,
+      ...baseParams,
+    };
+
+    const filtered = {};
+    Object.entries(params).forEach(([key, value]) => {
+      const normalized = toApiValue(value);
+      if (normalized !== '') filtered[key] = normalized;
+    });
+
+    return filtered;
+  };
+
+  const fetchCount = async (paramsToApply) => {
+    try {
+      const res = await http.get('/api/v1/support-business/count', {
+        params: buildParams(paramsToApply),
+      });
+      const value =
+        typeof res?.data === 'number'
+          ? res.data
+          : typeof res === 'number'
+            ? res
+            : 0;
+      setTotalCount(value);
+    } catch (error) {
+      setTotalCount(0);
+    }
+  };
+
+  const fetchList = async (nextCursor = null, reset = false) => {
+    if (loading) return;
+    if (!hasNext && !reset) return;
+
+    setLoading(true);
+
+    if (reset) {
+      appliedSearchParamsRef.current = { ...searchParams };
+    }
+
+    try {
+      const params = reset ? searchParams : appliedSearchParamsRef.current;
+      const apiParams = buildParams(params);
+      if (nextCursor) {
+        apiParams.cursor = nextCursor;
+      }
+
+      const res = await http.get('/api/v1/support-business', {
+        params: apiParams,
+      });
+
+      const page = res?.data ?? res ?? {};
+      const list = Array.isArray(page?.data) ? page.data : [];
+      const withCount = list.map((item) => ({
+        ...item,
+        announcementCount: Number(item?.bizPbancCnt ?? 0),
+      }));
+
+      setRows((prev) => {
+        const merged = reset ? withCount : [...prev, ...withCount];
+        const unique = [];
+        const seen = new Set();
+
+        merged.forEach((row) => {
+          const key = row?.sprtBizId;
+          if (!key || seen.has(key)) return;
+          seen.add(key);
+          unique.push(row);
+        });
+
+        return unique.map((row, idx) => ({
+          ...row,
+          _rowIndex: idx + 1,
+        }));
+      });
+
+      setCursor(page?.nextCursor ?? null);
+      setHasNext(Boolean(page?.hasNext));
+    } catch (error) {
+      console.error('지원사업 목록 조회 실패:', error);
+      if (reset) {
+        setRows([]);
+      }
+      setHasNext(false);
+      setCursor(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (key, valueOrEvent) => {
+    const value = valueOrEvent?.target
+      ? valueOrEvent.target.value
+      : valueOrEvent;
+    setSearchParams((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const handleToggleDetail = () => {
+    setIsDetailOpen((prev) => !prev);
+  };
+
+  const handleMultiCheck = (key, value, checked) => {
+    setSearchParams((prev) => ({
+      ...prev,
+      [key]: checked
+        ? prev[key].includes(value)
+          ? prev[key]
+          : [...prev[key], value]
+        : prev[key].filter((item) => item !== value),
+    }));
+  };
+
+  const handleSearch = () => {
+    setCursor(null);
+    setHasNext(true);
+    fetchList(null, true);
+    fetchCount(searchParams);
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    handleSearch();
+  };
+
+  useEffect(() => {
+    fetchList(null, true);
+    fetchCount(searchParams);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!observerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNext && !loading) {
+          fetchList(cursor, false);
+        }
+      },
+      { threshold: 1 }
+    );
+
+    observer.observe(observerRef.current);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cursor, hasNext, loading]);
 
   return (
-   <div className="oncontentbox full">
-             <div className="oncontentTitle">
-               <h2>사업정보 관리</h2>
-               <ul className="onbreadcrumb">
-                 <li>지원사업 관리</li>
-                 <li>사업공고 관리</li>
-                 <li className="on">사업정보 관리</li>
-               </ul>
-             </div>
-             <div className="oncontents">
-               <div className="oncontent">
-                 <div className="onselect-form open">
-                   {' '}
-                   {/** open 클래스로 동작, 펼치기/접기 */}
-                   <div className="onparagraph dashed">
-                     <MenuInputBox
-                       menuType="select"
-                       menuName="사업년도"
-                       selectOption="2025"
-                     />
-                     <MenuInputBox
-                       menuType="input"
-                       menuSize="300px"
-                       menuName="사업명"
-                       placeholder="사업명을 입력하세요."
-                     />
-                     <div style={{ marginLeft: 'auto' }}>
-                       <Button btnType="detail" btnNames="상세조건 접기" />
-                     </div>
-                     <div className="onbtn">
-                       <Button btnType="menuSearch" btnNames="검색" />
-                     </div>
-                   </div>
-                   <div className="onparagraph column">
-                     <dl>
-                       <dt>사업유형</dt>
-                       <dd>
-                         <CheckBox chkId="1_1" chkName="전체" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="1_2" chkName="금융" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="1_3" chkName="기술" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="1_4" chkName="인력" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="1_5" chkName="수출" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="1_6" chkName="내수" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="1_7" chkName="창업" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="1_8" chkName="경영" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="1_9" chkName="소상공인" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="1_10" chkName="중견" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="1_11" chkName="기타" />
-                       </dd>
-                     </dl>
-                     <dl>
-                       <dt>지원기관</dt>
-                       <dd>
-                         <CheckBox chkId="2_1" chkName="전체" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="2_2" chkName="중소벤처기업부" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="2_3" chkName="중소벤처기업진흥공단" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="2_4" chkName="중소기업기술정보진흥원" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="2_5" chkName="한국산업은행" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="2_6" chkName="한국수출입은행" />
-                       </dd>
-                     </dl>
-                     <dl>
-                       <dt>기업구분</dt>
-                       <dd>
-                         <CheckBox chkId="3_1" chkName="전체" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="3_2" chkName="중소벤처기업" />
-                       </dd>
-                       <dd>
-                         <CheckBox chkId="3_3" chkName="소상공인" />
-                       </dd>
-                     </dl>
-                   </div>
-                 </div>
-   
-                 <div className="ontable-legend">
-                   <span>
-                     총 <b>468</b>개
-                   </span>
-                   <Button btnType="add" btnNames="등록" />
-                 </div>
-   
-                 <div className="ongrid-tableform mask">
-                   <GridTable />
-                 </div>
-               </div>
-             </div>
-           </div>
+    <div className="oncontentbox full">
+      <div className="oncontentTitle">
+        <h2>지원사업 목록</h2>
+        <ul className="onbreadcrumb">
+          <li>지원사업 관리</li>
+          <li>사업공고 관리</li>
+          <li className="on">사업정보 관리</li>
+        </ul>
+      </div>
+
+      <div className="oncontents">
+        <div className="oncontent">
+          <div className={`onselect-form ${isDetailOpen ? 'open' : ''}`}>
+            <div className="onparagraph dashed">
+              <MenuInputBox
+                menuType="input"
+                menuName="사업년도"
+                menuSize="100px"
+                value={searchParams.sprtBizCrtrYr}
+                onChange={(e) => handleInputChange('sprtBizCrtrYr', e)}
+                onKeyDown={handleSearchKeyDown}
+              />
+
+              <MenuInputBox
+                menuType="input"
+                menuName="사업명"
+                menuSize="300px"
+                value={searchParams.sprtBizNm}
+                onChange={(e) => handleInputChange('sprtBizNm', e)}
+                onKeyDown={handleSearchKeyDown}
+              />
+
+              <div style={{ marginLeft: 'auto' }}>
+                <Button
+                  btnType="detail"
+                  btnNames={isDetailOpen ? '상세조건 접기' : '상세조건 펼치기'}
+                  onClick={handleToggleDetail}
+                />
+              </div>
+
+              <div className="onbtn">
+                <Button
+                  btnType="menuSearch"
+                  btnNames="검색"
+                  onClick={handleSearch}
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div className="onparagraph column">
+              <dl>
+                <dt>사업유형</dt>
+                {BIZ_TYPE_OPTIONS.map((option) => (
+                  <dd key={option.value}>
+                    <CheckBox
+                      chkId={`search-biz-type-${option.value}`}
+                      chkName={option.label}
+                      value={option.value}
+                      checked={searchParams.bizPbancClsfCd.includes(option.value)}
+                      onChange={({ value, checked }) =>
+                        handleMultiCheck('bizPbancClsfCd', value, checked)
+                      }
+                    />
+                  </dd>
+                ))}
+              </dl>
+
+              <dl>
+                <dt>지원기관</dt>
+                {SUPPORT_INST_OPTIONS.map((option) => (
+                  <dd key={option.value}>
+                    <CheckBox
+                      chkId={`search-support-inst-${option.value}`}
+                      chkName={option.label}
+                      value={option.value}
+                      checked={searchParams.bizPbancSprtInstCd.includes(
+                        option.value
+                      )}
+                      onChange={({ value, checked }) =>
+                        handleMultiCheck('bizPbancSprtInstCd', value, checked)
+                      }
+                    />
+                  </dd>
+                ))}
+              </dl>
+
+              <dl>
+                <dt>기업구분</dt>
+                {TARGET_ENT_OPTIONS.map((option) => (
+                  <dd key={option.value}>
+                    <CheckBox
+                      chkId={`search-target-ent-${option.value}`}
+                      chkName={option.label}
+                      value={option.value}
+                      checked={searchParams.lfcyTrgtEntSeCd.includes(option.value)}
+                      onChange={({ value, checked }) =>
+                        handleMultiCheck('lfcyTrgtEntSeCd', value, checked)
+                      }
+                    />
+                  </dd>
+                ))}
+              </dl>
+            </div>
+          </div>
+
+          <div className="ontable-legend">
+            <span>
+              총 <b>{totalCount}</b>건
+            </span>
+            <Button
+              btnType="add"
+              btnNames="등록"
+              onClick={() => navigate('create')}
+            />
+          </div>
+
+          <div className="ongrid-tableform">
+            <GridTable columns={columns} data={rows} />
+          </div>
+
+          <div ref={observerRef} style={{ height: '20px' }} />
+        </div>
+      </div>
+    </div>
   );
 }

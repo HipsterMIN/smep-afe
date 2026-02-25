@@ -8,14 +8,27 @@ import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-const DEFAULT_SEARCH_PARAMS = {
+const formatYmd = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+};
+
+const getOffsetYmd = (offsetDays = 0) => {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  return formatYmd(date);
+};
+
+const createDefaultSearchParams = () => ({
   pstNo: '',
   pstTtl: '',
   ctgryNo: '',
-  pstgBgngYmd: '',
-  pstgEndYmd: '',
+  pstgBgngYmd: getOffsetYmd(-30),
+  pstgEndYmd: getOffsetYmd(0),
   useYn: '',
-};
+});
 
 const stripHtmlTags = (value = '') =>
   String(value)
@@ -40,11 +53,11 @@ export default function PstList() {
   const [totalCount, setTotalCount] = useState(0);
   const [cursor, setCursor] = useState(null);
   const [hasNext, setHasNext] = useState(true);
-  const [searchParams, setSearchParams] = useState(DEFAULT_SEARCH_PARAMS);
+  const [searchParams, setSearchParams] = useState(() => createDefaultSearchParams());
   const [bbsTypeCdList, setBbsTypeCdList] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const observerRef = useRef(null);
-  const appliedSearchParamsRef = useRef(DEFAULT_SEARCH_PARAMS);
+  const appliedSearchParamsRef = useRef(createDefaultSearchParams());
 
   const categoryLabelMap = useMemo(() => {
     return categoryOptions.reduce((acc, option) => {
@@ -174,6 +187,10 @@ export default function PstList() {
     navigate(`${pstNoValue}`);
   };
 
+  const handleGoToList = () => {
+      navigate(-1);
+  };
+
   const pstColumns = [
     { id: 'no', width: 40, header: 'No' },
     { id: 'pstNo', width: 110, header: '게시물 ID' },
@@ -261,7 +278,7 @@ export default function PstList() {
 
   useEffect(() => {
     if (!bbsNo) return;
-    const resetSearchParams = { ...DEFAULT_SEARCH_PARAMS };
+    const resetSearchParams = createDefaultSearchParams();
     setPstData([]);
     setCursor(null);
     setHasNext(true);
@@ -328,8 +345,12 @@ export default function PstList() {
               </tbody>
             </table>
           </div>
+          <div className="onflexbtns">
+            <div style={{ marginRight: 'auto' }}>
+              <Button btnType="list" btnNames="목록" onClick={handleGoToList} />
+            </div>
+          </div>
         </div>
-
         <div className="oncontent">
           <div className="onselect-form open" style={{ minHeight: 'auto' }}>
             <div className="onparagraph">
