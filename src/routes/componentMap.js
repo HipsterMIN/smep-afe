@@ -68,6 +68,9 @@ const CertificateIssuanceList = lazy(
   () => import('@pages/certificate/CertificateIssuanceList')
 );
 const PopupManagement = lazy(() => import('@pages/popup/PopupManagement.jsx'));
+const BannerManagement = lazy(
+  () => import('@pages/banner/BannerManagement.jsx')
+);
 
 /**
  * =============================================================================
@@ -282,10 +285,10 @@ export const componentMap = {
     layout: AdminLayoutWithAuth,
   },
   // 배너관리
-  // 'M_PIIO_00036': {
-  //   component: TODO_M_PIIO_00036,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00036: {
+    component: BannerManagement,
+    layout: AdminLayoutWithAuth,
+  },
   // SMS 발송
   // 'M_PIIO_00130': {
   //   component: TODO_M_PIIO_00130,

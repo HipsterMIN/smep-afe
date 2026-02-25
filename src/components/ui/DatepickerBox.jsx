@@ -73,6 +73,7 @@ export default function DatepickerBox({
   value,
   onChange,
   outputFormat = 'date', // 'date' | 'ymd' | 'dash' | 'datetime'
+  disabled = false,
 }) {
   const [selectedDate, setSelectedDate] = useState(
     parseDateValue(value) || null
@@ -107,6 +108,7 @@ export default function DatepickerBox({
           className="ondatepicker"
           locale={ko}
           dateFormatCalendar="yyyy년 MM월"
+          disabled={disabled}
         />
         <img src={calendarIcon} alt="calendar" className="ondatepicker-icon" />
       </div>
