@@ -96,6 +96,7 @@ export default function PolicyFinanceList() {
   );
 
   const [gridPolicyFinanceList, setGridPolicyFinanceList] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [cursor, setCursor] = useState(null);
   const [hasNext, setHasNext] = useState(true);
@@ -162,6 +163,9 @@ export default function PolicyFinanceList() {
 
       const data = response?.data || {};
       const policyFinanceList = data?.data || [];
+      const resolvedTotalCount = Number(
+        data?.totalCount ?? data?.totlaCount ?? 0
+      );
       const formattedData = policyFinanceList.map((item, index) => ({
         id: item?.plcyFnncNo
           ? `policy-${item.plcyFnncNo}`
@@ -219,6 +223,7 @@ export default function PolicyFinanceList() {
         resolvedNextCursor
       );
 
+      setTotalCount(Number.isNaN(resolvedTotalCount) ? 0 : resolvedTotalCount);
       setCursor(resolvedNextCursor);
       setHasNext(resolvedHasNext);
     } catch (error) {
@@ -227,6 +232,7 @@ export default function PolicyFinanceList() {
       if (reset) {
         setGridPolicyFinanceList([]);
       }
+      setTotalCount(0);
       setHasNext(false);
       setCursor(null);
     } finally {
@@ -459,7 +465,7 @@ export default function PolicyFinanceList() {
 
           <div className="ontable-legend">
             <span>
-              총 <b>{gridPolicyFinanceList.length}</b>건
+              총 <b>{totalCount}</b>건
             </span>
             <div className="onbtns">
               <Button btnType="add" btnNames="메세지 작성" />
