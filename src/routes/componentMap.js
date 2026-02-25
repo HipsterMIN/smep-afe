@@ -185,10 +185,10 @@ export const componentMap = {
     layout: AdminLayoutWithAuth,
   },
   // 보안설정
-  // 'M_PIIO_00061': {
-  //   component: TODO_M_PIIO_00061,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00061: {
+    component: AccountView,
+    layout: AdminLayoutWithAuth,
+  },
   // API 연계 관리
   // 'M_PIIO_00062': {
   //   component: TODO_M_PIIO_00062,
