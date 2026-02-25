@@ -51,6 +51,9 @@ const PolicyFinanceList = lazy(
 const PolicyFinanceDetail = lazy(
   () => import('@pages/business/policyFinanceDetail.jsx')
 );
+const PolicyFinanceCreate = lazy(
+  () => import('@pages/business/policyFinanceCreate.jsx')
+);
 const PolicyFinanceUpdate = lazy(
   () => import('@pages/business/policyFinanceUpdate.jsx')
 );
@@ -470,7 +473,7 @@ export const componentMap = {
       },
       {
         path: 'create',
-        component: PolicyFinanceDetail,
+        component: PolicyFinanceCreate,
       },
       {
         path: ':policyNo/update',
