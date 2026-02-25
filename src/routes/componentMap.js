@@ -3,6 +3,7 @@ import { lazy } from 'react';
 
 // Lazy import (필요할 때 로드)
 const CommonCode = lazy(() => import('@pages/CommonCode'));
+const AccountView = lazy(() => import('@pages/account/AccountView'));
 const BbsList = lazy(() => import('@pages/board/BbsList'));
 const BbsForm = lazy(() => import('@pages/board/BbsForm'));
 const BbsInfoList = lazy(() => import('@pages/board/BbsInfoList'));
