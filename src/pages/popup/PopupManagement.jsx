@@ -183,7 +183,7 @@ export default function PopupManagement() {
         <div className="oncontent">
           <div className="ongrid-form">
             <h4>팝업 목록</h4>
-            <div className="onselect-form">
+            <div className="onselect-form open" style={{ minHeight: 'auto' }}>
               <div className="onparagraph">
                 <MenuInputBox
                   menuType="select"
@@ -201,7 +201,7 @@ export default function PopupManagement() {
                 <MenuInputBox
                   menuType="input"
                   menuName="제목"
-                  menuSize="200px"
+                  menuSize="300px"
                   value={search.popupTtl}
                   onChange={(e) =>
                     setSearch((prev) => ({
@@ -211,6 +211,15 @@ export default function PopupManagement() {
                   }
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
+                <div style={{ marginLeft: 'auto' }}>
+                  <Button
+                    btnType="menuSearch"
+                    btnNames="검색"
+                    onClick={handleSearch}
+                  />
+                </div>
+              </div>
+              <div className="onparagraph middle">
                 <div className="ondatepickerbox">
                   <DatepickerBox
                     menuName="게시기간"
@@ -239,24 +248,15 @@ export default function PopupManagement() {
                     setSearch((prev) => ({ ...prev, useYn: e.target.value }))
                   }
                 />
-                <div className="onbtn" style={{ marginLeft: 'auto' }}>
-                  <Button
-                    btnType="menuSearch"
-                    btnNames="검색"
-                    onClick={handleSearch}
-                  />
-                </div>
               </div>
             </div>
           </div>
-
           <div className="ontable-legend">
             <span>
               총 <b>{totalCount}</b>건
             </span>
             <Button btnType="add" btnNames="등록" onClick={handleRegister} />
           </div>
-
           <div className="ongrid-tableform onSCrollBox">
             <PopupGrid
               data={popupList}
@@ -267,12 +267,10 @@ export default function PopupManagement() {
             />
           </div>
         </div>
-
         {/* 우측: 상세조회 */}
         {rightPanel === 'detail' && detailData && (
           <PopupDetail data={detailData} onEdit={handleDetailEdit} />
         )}
-
         {/* 우측: 등록/수정 */}
         {rightPanel === 'form' && (
           <PopupForm
