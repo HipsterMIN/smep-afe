@@ -48,18 +48,14 @@ export default function PopupForm({ data, isEdit, onSave, onDelete }) {
         useYn: data.useYn || 'Y',
       });
       setFiles(
-        data.imgAtchFileId
-          ? [
-              {
-                id: data.imgAtchFileId,
-                atchFileId: data.imgAtchFileId,
-                atchFileSn: 0,
-                fileName: '이미지 파일',
-                fileSize: 0,
-                status: 'existing',
-              },
-            ]
-          : []
+        (data.imgAtchFiles || []).map((f) => ({
+          id: f.atchFileId + '_' + f.atchFileSn,
+          atchFileId: f.atchFileId,
+          atchFileSn: f.atchFileSn,
+          fileName: f.orgnlFileNm,
+          fileSize: f.fileSz,
+          status: 'existing',
+        }))
       );
     } else {
       setForm(INITIAL_FORM);
@@ -82,7 +78,14 @@ export default function PopupForm({ data, isEdit, onSave, onDelete }) {
     }
 
     const newFile = files.find((f) => f.status === 'new')?.file || null;
-    const isFileDeleted = files.find((f) => f.status === 'deleted');
+    const deletedSns = files
+      .filter((f) => f.status === 'deleted' && f.atchFileSn !== undefined)
+      .map((f) => f.atchFileSn);
+
+    const fileStatusInfoJson =
+      deletedSns.length > 0
+        ? JSON.stringify({ deletedImgAtchFileSns: deletedSns })
+        : null;
 
     const submitData = {
       ...form,
@@ -90,10 +93,9 @@ export default function PopupForm({ data, isEdit, onSave, onDelete }) {
       lfsdPstnNvl: Number(form.lfsdPstnNvl),
       wdthLen: Number(form.wdthLen),
       vrtcLen: Number(form.vrtcLen),
-      imgAtchFileId: isFileDeleted ? '' : form.imgAtchFileId,
     };
 
-    onSave(submitData, newFile);
+    onSave(submitData, newFile, fileStatusInfoJson);
   };
 
   return (

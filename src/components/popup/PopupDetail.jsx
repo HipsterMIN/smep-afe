@@ -5,18 +5,14 @@ import PropTypes from 'prop-types';
 export default function PopupDetail({ data, onEdit }) {
   if (!data) return null;
 
-  const fileList = data.imgAtchFileId
-    ? [
-        {
-          id: data.imgAtchFileId,
-          atchFileId: data.imgAtchFileId,
-          atchFileSn: 0,
-          fileName: '이미지 파일',
-          fileSize: 0,
-          status: 'existing',
-        },
-      ]
-    : [];
+  const fileList = (data.imgAtchFiles || []).map((f) => ({
+    id: f.atchFileId + '_' + f.atchFileSn,
+    atchFileId: f.atchFileId,
+    atchFileSn: f.atchFileSn,
+    fileName: f.orgnlFileNm,
+    fileSize: f.fileSz,
+    status: 'existing',
+  }));
 
   return (
     <div className="oncontent ontable-form">
