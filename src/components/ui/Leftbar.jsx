@@ -3,7 +3,7 @@ import { useUserMenu } from '@context/UserMenuContext';
 import { useMenuStore } from '@store/useMenuStore'; // ✅ 추가
 import { buildFullPath } from '@utils/menuUtils'; // ✅ 추가
 import { useEffect, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { matchPath, NavLink, useLocation } from 'react-router-dom';
 
 export default function Leftbar() {
   const location = useLocation();
@@ -55,16 +55,22 @@ export default function Leftbar() {
     setOpenMenus((prev) => ({ ...prev, [menuId]: !prev[menuId] }));
   };
 
+  const normalizePath = (path = '') => {
+    if (!path) return '';
+    return path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path;
+  };
+
+  const isPathActive = (path, end = false) => {
+    const targetPath = normalizePath(path);
+    const currentPath = normalizePath(location.pathname);
+    if (!targetPath) return false;
+    return Boolean(matchPath({ path: targetPath, end }, currentPath));
+  };
+
   // ✅ 수정: 조건 추가
   if (!depth1Parent || !sideMenus || sideMenus.length === 0) {
     return null;
   }
-
-  const surveyMenuItems = [
-    { name: '설문 목록', path: '/survey-list' },
-    { name: '설문지 관리', path: '/survey-manage' },
-    { name: '설문 결과 보기', path: '/survey-result' },
-  ];
 
   return (
     <aside className="onleftbar">
@@ -74,14 +80,23 @@ export default function Leftbar() {
       <nav>
         <ul className="onleftbar-navlink navdepth1">
           {sideMenus.map((depth2Menu) => {
-            const isOpen = openMenus[depth2Menu.menuId]
+            const isOpen = openMenus[depth2Menu.menuId];
             const hasChildren =
-              depth2Menu.children && depth2Menu.children.length > 0
+              depth2Menu.children && depth2Menu.children.length > 0;
+            const hasActiveDepth3 =
+              hasChildren &&
+              depth2Menu.children.some((depth3Menu) =>
+                isPathActive(depth3Menu.link, true)
+              );
+            const isActiveDepth2 =
+              depth2Menu.scrnTypeCd !== 'M' &&
+              isPathActive(depth2Menu.link, !hasChildren);
+            const isOn = isOpen || hasActiveDepth3 || isActiveDepth2;
 
             return (
               <li
                 key={depth2Menu.menuId}
-                className={`navdepth1-list ${isOpen ? 'on' : ''}`}
+                className={`navdepth1-list ${isOn ? 'on' : ''}`}
               >
                 {/* depth2가 M타입(그룹)이면 button, T타입(페이지)이면 NavLink */}
                 {depth2Menu.scrnTypeCd === 'M' ? (
@@ -100,20 +115,26 @@ export default function Leftbar() {
                 {/* depth3 자식들 */}
                 {hasChildren && (
                   <ul className="navdepth2">
-                    {depth2Menu.children.map((depth3Menu) => (
-                      <li key={depth3Menu.menuId} className="navdepth2-list">
-                        <NavLink
-                          to={depth3Menu.link}
-                          className={({ isActive }) => (isActive ? 'on' : '')}
+                    {depth2Menu.children.map((depth3Menu) => {
+                      const isActiveDepth3 = isPathActive(depth3Menu.link, true);
+                      return (
+                        <li
+                          key={depth3Menu.menuId}
+                          className={`navdepth2-list ${isActiveDepth3 ? 'on' : ''}`}
                         >
-                          {depth3Menu.menuNm}
-                        </NavLink>
-                      </li>
-                    ))}
+                          <NavLink
+                            to={depth3Menu.link}
+                            className={({ isActive }) => (isActive ? 'on' : '')}
+                          >
+                            {depth3Menu.menuNm}
+                          </NavLink>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </li>
-            )
+            );
           })}
         </ul>
       </nav>
