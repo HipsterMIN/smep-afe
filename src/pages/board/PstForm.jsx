@@ -117,7 +117,7 @@ export default function PstForm() {
       .filter(Boolean);
 
     return candidates.some(
-      (value) => value.includes('FAQ') || value.includes('QNA') || value.includes('Q&A')
+      (value) => value.includes('QNA') || value.includes('Q&A')
     );
   }, [bbsInfo, bbsTypeLabel]);
 
