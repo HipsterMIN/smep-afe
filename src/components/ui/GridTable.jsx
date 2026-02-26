@@ -1,11 +1,29 @@
 import '@svar-ui/react-grid/all.css';
+import '@components/ui/css/GridTable.css';
 
 import { Grid, Willow } from '@svar-ui/react-grid';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import ButtonCell from '../custom/ButtonCell';
 import CheckBox from './CheckBox';
-import PropTypes from "prop-types";
+
+const DEFAULT_ALIGN = 'center';
+const VALID_ALIGNMENTS = ['left', 'center', 'right'];
+
+const mergeClassNames = (...classNames) => classNames.filter(Boolean).join(' ');
+
+const resolveColumnAlign = (column, columnAlignKey, globalAlign) => {
+  if (VALID_ALIGNMENTS.includes(column?.[columnAlignKey])) {
+    return column[columnAlignKey];
+  }
+
+  if (VALID_ALIGNMENTS.includes(globalAlign)) {
+    return globalAlign;
+  }
+
+  return DEFAULT_ALIGN;
+};
 
 // 그리드 컬럼 정의
 export const defaultColumns = [
@@ -129,17 +147,41 @@ export const defaultData = [
 export default function GridTable({
   data = defaultData,
   columns = defaultColumns,
+  headerAlign = DEFAULT_ALIGN,
+  dataAlign = DEFAULT_ALIGN,
   gridProps = {},
 }) {
+  const { columnStyle: customColumnStyle, cellStyle: customCellStyle, ...restGridProps } = gridProps;
+
+  const columnStyle = (column) =>
+    mergeClassNames(
+      typeof customColumnStyle === 'function' ? customColumnStyle(column) : '',
+      `gridtable-header-align-${resolveColumnAlign(column, 'headerAlign', headerAlign)}`
+    );
+
+  const cellStyle = (row, column) =>
+    mergeClassNames(
+      typeof customCellStyle === 'function' ? customCellStyle(row, column) : '',
+      `gridtable-data-align-${resolveColumnAlign(column, 'dataAlign', dataAlign)}`
+    );
+
   return (
     <Willow>
-      <Grid data={data} columns={columns} {...gridProps} />
+      <Grid
+        data={data}
+        columns={columns}
+        columnStyle={columnStyle}
+        cellStyle={cellStyle}
+        {...restGridProps}
+      />
     </Willow>
-  )
+  );
 }
 
 GridTable.propTypes = {
   data: PropTypes.array,
   columns: PropTypes.array,
+  headerAlign: PropTypes.oneOf(VALID_ALIGNMENTS),
+  dataAlign: PropTypes.oneOf(VALID_ALIGNMENTS),
   gridProps: PropTypes.object,
 };

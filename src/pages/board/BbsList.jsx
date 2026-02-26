@@ -135,16 +135,16 @@ export default function BbsList() {
   };
 
   const bbsColumns = [
-    { id: 'no', width: 40, header: 'No' },
+    { id: 'no', width: 40, header: 'No', headerAlign: 'center', dataAlign: 'center' },
     { id: 'bbsNo', width: 107, header: '게시판 ID' },
-    { id: 'bbsNm', width: 300, header: '게시판 명' },
+    { id: 'bbsNm', width: 300, header: '게시판 명', dataAlign: 'left' },
     {
       id: 'bbsTypeCd',
       width: 200,
       header: '게시판 유형',
       template: (value) => getBbsTypeLabel(value),
     },
-    { id: 'bbsExplnCn', flexgrow: 1, header: '게시판 소개글' },
+    { id: 'bbsExplnCn', flexgrow: 1, header: '게시판 소개글', dataAlign: 'left' },
     { id: 'useYn', width: 80, header: '사용여부' },
     {
       id: 'regDt',
@@ -292,10 +292,6 @@ export default function BbsList() {
             <GridTable
               data={bbsData}
               columns={bbsColumns}
-              gridProps={{
-                selection: true,
-                autoHeight: true,
-              }}
             />
             <div ref={observerRef} style={{ height: 40 }} />
             <div
