@@ -188,6 +188,7 @@ export default function PolicyFinanceList() {
           item?.bizFlfmtInstCdNm ||
           bizFlfmtInstMap[item?.bizFlfmtInstCd] ||
           item?.bizFlfmtInstCd ||
+          item?.bizFlfmtInstAbbrNm ||
           '-',
         plcyFnncNm: item?.plcyFnncNm || '-',
         plcyFnncAplyMthCdNm: formatCommaSeparated(
