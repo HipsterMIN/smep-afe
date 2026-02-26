@@ -1,4 +1,5 @@
 import Button from '@components/ui/Button';
+import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import RichEditor from '@components/ui/RichEditor.jsx';
 import http from '@lib/http.js';
 import { formatDate } from '@utils/stringUtils.js';
@@ -32,6 +33,34 @@ const getApplicationPeriodValue = (detail) => {
   if (!detail?.aplyBgngYmd && !detail?.aplyDdlnYmd) return '-';
 
   return `${toDisplayValue(detail?.aplyBgngYmd)} ~ ${toDisplayValue(detail?.aplyDdlnYmd)}`;
+};
+
+const parseHashtagTags = (raw) => {
+  if (raw === null || raw === undefined) return [];
+  const normalized = String(raw).trim();
+  if (!normalized) return [];
+
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(normalized) : raw;
+    if (Array.isArray(parsed)) {
+      return parsed.map((tag) => String(tag).trim()).filter(Boolean);
+    }
+    if (Array.isArray(parsed?.hstgnm)) {
+      return parsed.hstgnm.map((tag) => String(tag).trim()).filter(Boolean);
+    }
+  } catch {
+    // keep csv fallback
+  }
+
+  return normalized
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+};
+
+const getHashtagDisplayValue = (raw) => {
+  const tags = parseHashtagTags(raw);
+  return tags.length ? tags.join(',') : '-';
 };
 
 const hasRichEditorContent = (value) => {
@@ -209,31 +238,59 @@ export default function PolicyFinanceDetail() {
                 </tr>
                 <tr>
                   <td>문의</td>
-                  <td colSpan={3}>{renderReadOnlyRichEditor(detail?.inqplCn)}</td>
+                  <td colSpan={3}>
+                    {renderReadOnlyRichEditor(detail?.inqplCn)}
+                  </td>
                 </tr>
                 <tr>
                   <td>신청기간(일시)</td>
-                  <td colSpan={3}>{getApplicationPeriodValue(detail)}</td>
+                  <td colSpan={3}>
+                    {detail?.aplyBgngYmd || detail?.aplyDdlnYmd ? (
+                      <div className="ondatepickerbox">
+                        <DatepickerBox
+                          value={detail?.aplyBgngYmd}
+                          outputFormat="ymd"
+                          disabled={true}
+                        />
+                        <span className="onunit">~</span>
+                        <DatepickerBox
+                          value={detail?.aplyDdlnYmd}
+                          outputFormat="ymd"
+                          disabled={true}
+                        />
+                      </div>
+                    ) : (
+                      getApplicationPeriodValue(detail)
+                    )}
+                  </td>
                 </tr>
                 <tr>
                   <td>상세URL</td>
-                  <td colSpan={3}>{renderUrlValue(detail?.plcyFnncDtlUrlAddr)}</td>
+                  <td colSpan={3}>
+                    {renderUrlValue(detail?.plcyFnncDtlUrlAddr)}
+                  </td>
                 </tr>
                 <tr>
                   <td>문의URL</td>
-                  <td colSpan={3}>{renderUrlValue(detail?.plcyFnncInqplUrlAddr)}</td>
+                  <td colSpan={3}>
+                    {renderUrlValue(detail?.plcyFnncInqplUrlAddr)}
+                  </td>
                 </tr>
                 <tr>
                   <td>신청URL</td>
-                  <td colSpan={3}>{renderUrlValue(detail?.plcyFnncAplyUrlAddr)}</td>
+                  <td colSpan={3}>
+                    {renderUrlValue(detail?.plcyFnncAplyUrlAddr)}
+                  </td>
                 </tr>
                 <tr>
                   <td>첨부파일URL</td>
-                  <td colSpan={3}>{renderUrlValue(detail?.plcyFnncAtchFileUrlAddr)}</td>
+                  <td colSpan={3}>
+                    {renderUrlValue(detail?.plcyFnncAtchFileUrlAddr)}
+                  </td>
                 </tr>
                 <tr>
                   <td>해시태그</td>
-                  <td colSpan={3}>-</td>
+                  <td colSpan={3}>{getHashtagDisplayValue(detail?.plcyFnncHstgCn)}</td>
                 </tr>
                 <tr>
                   <td>기업규모</td>

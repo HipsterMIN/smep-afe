@@ -2,6 +2,7 @@ import Button from '@components/ui/Button.jsx';
 import CheckBox from '@components/ui/CheckBox.jsx';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import RadioButton from '@components/ui/RadioButton.jsx';
 import RichEditor from '@components/ui/RichEditor.jsx';
 import http from '@lib/http.js';
 import { fetchCommonCodes } from '@utils/commonUtils.js';
@@ -60,6 +61,7 @@ const DEFAULT_FORM_DATA = {
   plcyFnncEntSclSmryCn: '',
   plcyFnncCmpnRtCn: '',
   plcyFnncCmpnRtSmryCn: '',
+  plcyFnncHstgCn: '',
   useYn: 'Y',
   rgtrId: '',
   regDt: null,
@@ -80,6 +82,33 @@ const splitCommaCodes = (raw) =>
         .map((code) => code.trim())
         .filter(Boolean)
     : [];
+
+const parseHashtagTags = (raw) => {
+  if (raw === null || raw === undefined) return [];
+  const normalized = String(raw).trim();
+  if (!normalized) return [];
+
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(normalized) : raw;
+    if (Array.isArray(parsed)) {
+      return parsed.map((tag) => String(tag).trim()).filter(Boolean);
+    }
+    if (Array.isArray(parsed?.hstgnm)) {
+      return parsed.hstgnm.map((tag) => String(tag).trim()).filter(Boolean);
+    }
+  } catch {
+    // keep csv fallback
+  }
+
+  return normalized
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+};
+
+const toHashtagInputValue = (raw) => parseHashtagTags(raw).join(',');
+
+const toHashtagPayloadValue = (raw) => parseHashtagTags(raw).join(',');
 
 const withSelectPlaceholder = (options) => [
   { value: '', label: '선택' },
@@ -109,8 +138,11 @@ export default function PolicyFinanceForm({ mode }) {
   const [plcyFnncGdsKndOptions, setPlcyFnncGdsKndOptions] = useState([]);
   const [plcyFnncUseUsgSeOptions, setPlcyFnncUseUsgSeOptions] = useState([]);
 
-  const gdsSttsSelectOptions = useMemo(
-    () => withSelectPlaceholder(plcyFnncGdsSttsOptions),
+  const gdsSttsRadioOptions = useMemo(
+    () =>
+      (plcyFnncGdsSttsOptions || []).filter(
+        (option) => !String(option.label || '').includes('마감')
+      ),
     [plcyFnncGdsSttsOptions]
   );
   const rcptSttsSelectOptions = useMemo(
@@ -240,6 +272,7 @@ export default function PolicyFinanceForm({ mode }) {
     plcyFnncIspmPrtrtCndCn: null,
     plcyFnncCmpnRtCn: formData.plcyFnncCmpnRtCn.trim(),
     plcyFnncCmpnRtSmryCn: formData.plcyFnncCmpnRtSmryCn.trim(),
+    plcyFnncHstgCn: toHashtagPayloadValue(formData.plcyFnncHstgCn),
     insrncScrtVldPrdCn: null,
     plcyFnncAplyMthCd: selectedAplyMthCodes.join(','),
     loanPlcyFnncUseUsgSeCd: selectedLoanUseUsgCodes.join(','),
@@ -325,6 +358,7 @@ export default function PolicyFinanceForm({ mode }) {
         plcyFnncEntSclSmryCn: data.plcyFnncEntSclSmryCn || '',
         plcyFnncCmpnRtCn: data.plcyFnncCmpnRtCn || '',
         plcyFnncCmpnRtSmryCn: data.plcyFnncCmpnRtSmryCn || '',
+        plcyFnncHstgCn: toHashtagInputValue(data.plcyFnncHstgCn),
         useYn: data.useYn || 'Y',
         rgtrId: data.rgtrId || '',
         regDt: data.regDt || null,
@@ -415,14 +449,19 @@ export default function PolicyFinanceForm({ mode }) {
                 <tr>
                   <td>승인여부</td>
                   <td>
-                    <MenuInputBox
-                      menuType="select"
-                      menuSize="300px"
-                      options={gdsSttsSelectOptions}
-                      showAllOption={false}
-                      value={formData.plcyFnncGdsSttsCd}
-                      onChange={handleInputChange('plcyFnncGdsSttsCd')}
-                    />
+                    <div className="onradioBox">
+                      {gdsSttsRadioOptions.map((option, index) => (
+                        <RadioButton
+                          key={`gds-stts-${option.value}`}
+                          groupId={`gds-stts-${index}`}
+                          radioGroup="plcyFnncGdsSttsCd"
+                          radioValue={option.value}
+                          radioName={option.label}
+                          selectedValue={formData.plcyFnncGdsSttsCd}
+                          onChange={handleValueChange('plcyFnncGdsSttsCd')}
+                        />
+                      ))}
+                    </div>
                   </td>
                   <td>접수상황</td>
                   <td>
@@ -641,8 +680,19 @@ export default function PolicyFinanceForm({ mode }) {
                   </td>
                 </tr>
                 <tr>
-                  <td>해시태그</td>
-                  <td colSpan={3}>해시태그 연동 예정</td>
+                  <td>
+                    해시태그
+                    <br />
+                  </td>
+                  <td colSpan={3}>
+                    <MenuInputBox
+                      menuType="input"
+                      menuSize="100%"
+                      placeholder="예: 태그1,태그2,태그3"
+                      value={formData.plcyFnncHstgCn}
+                      onChange={handleInputChange('plcyFnncHstgCn')}
+                    />
+                  </td>
                 </tr>
                 <tr>
                   <td>기업규모</td>
