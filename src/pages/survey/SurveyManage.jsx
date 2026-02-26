@@ -1,19 +1,17 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import Button from '../../components/ui/Button';
-import MenuInputBox from "../../components/ui/MenuInputBox.jsx";
 import DatepickerBox  from "../../components/ui/DatepickerBox.jsx";
 import GridTable from '../../components/ui/GridTable';
+import MenuInputBox from "../../components/ui/MenuInputBox.jsx";
 import Popup from '../../components/ui/Popup.jsx';
 import RadioButton from '../../components/ui/RadioButton.jsx';
 import http from '../../lib/http.js';
 
 export default function SurveyManage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const srvyNo = queryParams.get('srvyNo');
+  const { surveyNo: srvyNo } = useParams();
   
   // 설문 마스터 상태
   const [srvyTtl, setSrvyTtl] = useState('');
@@ -116,7 +114,8 @@ export default function SurveyManage() {
     
     if (currentQuestion.index !== undefined) {
         const newQuestions = [...questions];
-        const { index, ...rest } = fixedQuestion;
+        const rest = { ...fixedQuestion };
+        delete rest.index;
         newQuestions[currentQuestion.index] = rest;
         setQuestions(newQuestions);
     } else {
