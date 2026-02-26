@@ -110,6 +110,11 @@ const toHashtagInputValue = (raw) => parseHashtagTags(raw).join(',');
 
 const toHashtagPayloadValue = (raw) => parseHashtagTags(raw).join(',');
 
+const toNullableValue = (raw) => {
+  const normalized = String(raw ?? '').trim();
+  return normalized === '' ? null : normalized;
+};
+
 const withSelectPlaceholder = (options) => [
   { value: '', label: '선택' },
   ...(options || []),
@@ -117,6 +122,40 @@ const withSelectPlaceholder = (options) => [
 
 const hasAnyValue = (...values) =>
   values.some((value) => String(value || '').trim() !== '');
+
+const EDITABLE_PAYLOAD_KEYS = new Set([
+  'plcyFnncGdsSttsCd',
+  'plcyFnncRcptSttsCd',
+  'bizFlfmtInstCd',
+  'plcyFnncNm',
+  'plcyFnncGdsPrps',
+  'plcyFnncSprtTrgtCn',
+  'grntePlcyFnncPrtrtCndCn',
+  'plcyFnncSprtLimCn',
+  'plcyFnncGrnteRtCn',
+  'plcyFnncGrfeCn',
+  'loanPlcyFnncUseUsgCn',
+  'plcyFnncSprtExclTrgtCn',
+  'cmptncRgnNm',
+  'inqplCn',
+  'aplyBgngYmd',
+  'aplyDdlnYmd',
+  'plcyFnncDtlUrlAddr',
+  'plcyFnncInqplUrlAddr',
+  'plcyFnncAplyUrlAddr',
+  'plcyFnncAtchFileUrlAddr',
+  'plcyFnncHstgCn',
+  'plcyFnncEntSclCd',
+  'tpbizLclsfCd',
+  'ksicCd',
+  'plcyFnncDtlCndCd',
+  'plcyFnncGdsKndCd',
+  'plcyFnncEntSclSmryCn',
+  'plcyFnncCmpnRtCn',
+  'plcyFnncCmpnRtSmryCn',
+  'plcyFnncAplyMthCd',
+  'loanPlcyFnncUseUsgSeCd',
+]);
 
 export default function PolicyFinanceForm({ mode }) {
   const navigate = useNavigate();
@@ -127,6 +166,7 @@ export default function PolicyFinanceForm({ mode }) {
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState(DEFAULT_FORM_DATA);
+  const [originalDetail, setOriginalDetail] = useState(null);
   const [selectedAplyMthCodes, setSelectedAplyMthCodes] = useState([]);
   const [selectedLoanUseUsgCodes, setSelectedLoanUseUsgCodes] = useState([]);
 
@@ -219,66 +259,86 @@ export default function PolicyFinanceForm({ mode }) {
     return true;
   };
 
-  const buildRequestPayload = () => ({
-    plcyFnncNo: isUpdateMode ? Number(policyNo) : null,
-    plcyFnncNm: formData.plcyFnncNm.trim(),
-    plcyFnncGdsCd: null,
-    plcyFnncGdsTypeCd: null,
-    plcyFnncGdsSttsCd: formData.plcyFnncGdsSttsCd,
-    plcyFnncNtslSttsCd: null,
-    plcyFnncDtlCndCd: formData.plcyFnncDtlCndCd,
-    plcyFnncEntSclCd: formData.plcyFnncEntSclCd,
-    plcyFnncRcptSttsCd: formData.plcyFnncRcptSttsCd,
-    bizFlfmtInstCd: formData.bizFlfmtInstCd,
-    bizFlfmtInstAbbrNm: '',
-    plcyFnncGdsPrps: formData.plcyFnncGdsPrps.trim(),
-    plcyFnncSprtTrgtCn: formData.plcyFnncSprtTrgtCn.trim(),
-    plcyFnncSprtLimCn: formData.plcyFnncSprtLimCn.trim(),
-    plcyFnncSprtExclTrgtCn: formData.plcyFnncSprtExclTrgtCn.trim(),
-    cmptncRgnNm: formData.cmptncRgnNm.trim(),
-    inqplCn: formData.inqplCn.trim(),
-    aplyBgngYmd: formData.aplyBgngYmd,
-    aplyDdlnYmd: formData.aplyDdlnYmd,
-    aplyPrdCn: '',
-    inqCnt: null,
-    plcyFnncEntSclSmryCn: formData.plcyFnncEntSclSmryCn.trim(),
-    tpbizLclsfCd: formData.tpbizLclsfCd.trim(),
-    ksicCd: formData.ksicCd.trim(),
-    plcyFnncDtlUrlAddr: formData.plcyFnncDtlUrlAddr.trim(),
-    plcyFnncInqplUrlAddr: formData.plcyFnncInqplUrlAddr.trim(),
-    plcyFnncAplyUrlAddr: formData.plcyFnncAplyUrlAddr.trim(),
-    plcyFnncAtchFileUrlAddr: formData.plcyFnncAtchFileUrlAddr.trim(),
-    plcyFnncFrstRegDt: null,
-    useYn: formData.useYn || 'Y',
-    loanAplySttsCn: null,
-    loanPlcyFnncUseUsgCn: formData.loanPlcyFnncUseUsgCn.trim(),
-    loanCrtrSlsCn: null,
-    loanCrtrCrnclCn: null,
-    loanMthdCn: null,
-    crtrIrtCn: null,
-    loanIrtCn: null,
-    loanPrdCn: null,
-    rcmdtnInstCd: null,
-    grntePlcyFnncPrtrtCndCn: formData.grntePlcyFnncPrtrtCndCn.trim(),
-    plcyFnncGrnteRtCn: formData.plcyFnncGrnteRtCn.trim(),
-    plcyFnncGrfeCn: formData.plcyFnncGrfeCn.trim(),
-    plcyFnncGdsKndCd: formData.plcyFnncGdsKndCd,
-    grntePlcyFnncUseUsgCn: null,
-    giveIspmCn: null,
-    ispmCn: null,
-    thmTpbizNm: null,
-    insrncPlcyFnncPrtrtCndCn: null,
-    giveIspmSmryCn: null,
-    plcyFnncIspmPrtrtCndCn: null,
-    plcyFnncCmpnRtCn: formData.plcyFnncCmpnRtCn.trim(),
-    plcyFnncCmpnRtSmryCn: formData.plcyFnncCmpnRtSmryCn.trim(),
-    plcyFnncHstgCn: toHashtagPayloadValue(formData.plcyFnncHstgCn),
-    insrncScrtVldPrdCn: null,
-    plcyFnncAplyMthCd: selectedAplyMthCodes.join(','),
-    loanPlcyFnncUseUsgSeCd: selectedLoanUseUsgCodes.join(','),
-    plcyFnncRpmtMthdCd: null,
-    grntePlcyFnncUseUsgSeCd: null,
-  });
+  const buildRequestPayload = () => {
+    const nullableJoin = (codes) => toNullableValue((codes || []).join(','));
+
+    // 기존 전체 컬럼 payload를 유지한다. (create 시 기본값 세팅 용도)
+    const payload = {
+      plcyFnncNo: isUpdateMode ? Number(policyNo) : null,
+      plcyFnncNm: formData.plcyFnncNm.trim(),
+      plcyFnncGdsCd: null,
+      plcyFnncGdsTypeCd: null,
+      plcyFnncGdsSttsCd: formData.plcyFnncGdsSttsCd,
+      plcyFnncNtslSttsCd: null,
+      plcyFnncDtlCndCd: toNullableValue(formData.plcyFnncDtlCndCd),
+      plcyFnncEntSclCd: toNullableValue(formData.plcyFnncEntSclCd),
+      plcyFnncRcptSttsCd: toNullableValue(formData.plcyFnncRcptSttsCd),
+      bizFlfmtInstCd: toNullableValue(formData.bizFlfmtInstCd),
+      bizFlfmtInstAbbrNm: null,
+      plcyFnncGdsPrps: toNullableValue(formData.plcyFnncGdsPrps),
+      plcyFnncSprtTrgtCn: toNullableValue(formData.plcyFnncSprtTrgtCn),
+      plcyFnncSprtLimCn: toNullableValue(formData.plcyFnncSprtLimCn),
+      plcyFnncSprtExclTrgtCn: toNullableValue(formData.plcyFnncSprtExclTrgtCn),
+      cmptncRgnNm: toNullableValue(formData.cmptncRgnNm),
+      inqplCn: toNullableValue(formData.inqplCn),
+      aplyBgngYmd: toNullableValue(formData.aplyBgngYmd),
+      aplyDdlnYmd: toNullableValue(formData.aplyDdlnYmd),
+      aplyPrdCn: '',
+      inqCnt: null,
+      plcyFnncEntSclSmryCn: toNullableValue(formData.plcyFnncEntSclSmryCn),
+      tpbizLclsfCd: toNullableValue(formData.tpbizLclsfCd),
+      ksicCd: toNullableValue(formData.ksicCd),
+      plcyFnncDtlUrlAddr: toNullableValue(formData.plcyFnncDtlUrlAddr),
+      plcyFnncInqplUrlAddr: toNullableValue(formData.plcyFnncInqplUrlAddr),
+      plcyFnncAplyUrlAddr: toNullableValue(formData.plcyFnncAplyUrlAddr),
+      plcyFnncAtchFileUrlAddr: toNullableValue(formData.plcyFnncAtchFileUrlAddr),
+      plcyFnncFrstRegDt: null,
+      useYn: formData.useYn || 'Y',
+      loanAplySttsCn: null,
+      loanPlcyFnncUseUsgCn: toNullableValue(formData.loanPlcyFnncUseUsgCn),
+      loanCrtrSlsCn: null,
+      loanCrtrCrnclCn: null,
+      loanMthdCn: null,
+      crtrIrtCn: null,
+      loanIrtCn: null,
+      loanPrdCn: null,
+      rcmdtnInstCd: null,
+      grntePlcyFnncPrtrtCndCn: toNullableValue(formData.grntePlcyFnncPrtrtCndCn),
+      plcyFnncGrnteRtCn: toNullableValue(formData.plcyFnncGrnteRtCn),
+      plcyFnncGrfeCn: toNullableValue(formData.plcyFnncGrfeCn),
+      plcyFnncGdsKndCd: toNullableValue(formData.plcyFnncGdsKndCd),
+      grntePlcyFnncUseUsgCn: null,
+      giveIspmCn: null,
+      ispmCn: null,
+      thmTpbizNm: null,
+      insrncPlcyFnncPrtrtCndCn: null,
+      giveIspmSmryCn: null,
+      plcyFnncIspmPrtrtCndCn: null,
+      plcyFnncCmpnRtCn: toNullableValue(formData.plcyFnncCmpnRtCn),
+      plcyFnncCmpnRtSmryCn: toNullableValue(formData.plcyFnncCmpnRtSmryCn),
+      plcyFnncHstgCn: toNullableValue(toHashtagPayloadValue(formData.plcyFnncHstgCn)),
+      insrncScrtVldPrdCn: null,
+      plcyFnncAplyMthCd: nullableJoin(selectedAplyMthCodes),
+      loanPlcyFnncUseUsgSeCd: nullableJoin(selectedLoanUseUsgCodes),
+      plcyFnncRpmtMthdCd: null,
+      grntePlcyFnncUseUsgSeCd: null,
+    };
+
+    if (!isUpdateMode || !originalDetail) {
+      return payload;
+    }
+
+    // 수정 시 화면에서 수정하지 않는 컬럼은 상세 원본값 유지
+    const mergedPayload = { ...payload };
+    Object.keys(mergedPayload).forEach((key) => {
+      if (EDITABLE_PAYLOAD_KEYS.has(key)) return;
+      if (Object.prototype.hasOwnProperty.call(originalDetail, key)) {
+        mergedPayload[key] = originalDetail[key];
+      }
+    });
+
+    return mergedPayload;
+  };
 
   const fetchPolicyFinanceCodes = async () => {
     try {
@@ -327,6 +387,7 @@ export default function PolicyFinanceForm({ mode }) {
         navigate('../..');
         return;
       }
+      setOriginalDetail(data);
 
       setFormData((prev) => ({
         ...prev,
