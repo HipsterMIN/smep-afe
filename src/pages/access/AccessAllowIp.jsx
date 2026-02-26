@@ -317,7 +317,7 @@ export default function AccessAllowIp() {
               mode={'create'}
             />
           )}
-          <div className="ongrid-tableform onSCrollBox">
+          <div className="ongrid-tableform">
             <AccessAllowIpGrid
               data={rows}
               onDelete={handleAccessAllowIpDelete}
