@@ -3,14 +3,13 @@ import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import Popup from '@components/ui/Popup.jsx';
 import { useEffect, useState } from 'react';
 
-export default function AccountAddModal({
+export default function AccessAllowIpAddModal({
   onClose,
   onSave,
   data,
   mode = 'create',
 }) {
   const [formData, setFormData] = useState({
-    // mnrgPrmIpNo: '',
     ipAddr: '',
     memoCn: '',
     useYn: 'Y',

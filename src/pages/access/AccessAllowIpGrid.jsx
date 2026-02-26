@@ -8,7 +8,6 @@ import React, { useEffect, useRef } from 'react';
 function CodeDeleteButton({ row, onDelete }) {
   const handleClick = (e) => {
     e.stopPropagation();
-    // console.log('clicked', row);
     if (onDelete) {
       onDelete(row);
     }
@@ -33,7 +32,7 @@ const defaultAccessAllowIpColumns = [
   { id: 'delete', width: 76, header: '삭제' },
 ];
 
-export default function AccountGrid({ data = [], onDelete, onRowClick }) {
+export default function AccessAllowIpGrid({ data = [], onDelete, onRowClick }) {
   const gridColumns = defaultAccessAllowIpColumns;
   const apiRef = useRef(null);
   const dataRef = useRef(data);
@@ -48,7 +47,6 @@ export default function AccountGrid({ data = [], onDelete, onRowClick }) {
         ...col,
         cell: (props) => {
           const row = props.row;
-          // console.log(row);
           if (row.useYn === 'N') {
             return <span>-</span>;
           }
@@ -88,7 +86,7 @@ export default function AccountGrid({ data = [], onDelete, onRowClick }) {
   );
 }
 
-AccountGrid.propTypes = {
+AccessAllowIpGrid.propTypes = {
   data: PropTypes.array,
   onDelete: PropTypes.func,
   onRowClick: PropTypes.func,
