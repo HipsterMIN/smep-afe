@@ -3,7 +3,7 @@ import { lazy } from 'react';
 
 // Lazy import (필요할 때 로드)
 const CommonCode = lazy(() => import('@pages/CommonCode'));
-const AccountView = lazy(() => import('@pages/account/AccountView'));
+const AccessAllowIp = lazy(() => import('@pages/access/AccessAllowIp'));
 const BbsList = lazy(() => import('@pages/board/BbsList'));
 const BbsForm = lazy(() => import('@pages/board/BbsForm'));
 const BbsInfoList = lazy(() => import('@pages/board/BbsInfoList'));
@@ -51,6 +51,9 @@ const PolicyFinanceList = lazy(
 const PolicyFinanceDetail = lazy(
   () => import('@pages/business/policyFinanceDetail.jsx')
 );
+const PolicyFinanceCreate = lazy(
+  () => import('@pages/business/policyFinanceCreate.jsx')
+);
 const PolicyFinanceUpdate = lazy(
   () => import('@pages/business/policyFinanceUpdate.jsx')
 );
@@ -68,6 +71,9 @@ const CertificateIssuanceList = lazy(
   () => import('@pages/certificate/CertificateIssuanceList')
 );
 const PopupManagement = lazy(() => import('@pages/popup/PopupManagement.jsx'));
+const BannerManagement = lazy(
+  () => import('@pages/banner/BannerManagement.jsx')
+);
 
 /**
  * =============================================================================
@@ -187,12 +193,12 @@ export const componentMap = {
   },
   // 보안설정
   M_PIIO_00061: {
-    component: AccountView,
+    component: AccessAllowIp,
     layout: AdminLayoutWithAuth,
   },
   // 접속허용IP 관리
   M_PIIO_00135: {
-    component: AccountView,
+    component: AccessAllowIp,
     layout: AdminLayoutWithAuth,
   },
   // API 연계 관리
@@ -282,10 +288,10 @@ export const componentMap = {
     layout: AdminLayoutWithAuth,
   },
   // 배너관리
-  // 'M_PIIO_00036': {
-  //   component: TODO_M_PIIO_00036,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00036: {
+    component: BannerManagement,
+    layout: AdminLayoutWithAuth,
+  },
   // SMS 발송
   // 'M_PIIO_00130': {
   //   component: TODO_M_PIIO_00130,
@@ -467,7 +473,7 @@ export const componentMap = {
       },
       {
         path: 'create',
-        component: PolicyFinanceDetail,
+        component: PolicyFinanceCreate,
       },
       {
         path: ':policyNo/update',

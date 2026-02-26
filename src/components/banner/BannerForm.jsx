@@ -1,4 +1,5 @@
 import Button from '@components/ui/Button.jsx';
+import CheckBox from '@components/ui/CheckBox.jsx';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import FileUpload from '@components/ui/FileUpload.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
@@ -6,60 +7,73 @@ import RadioButton from '@components/ui/RadioButton.jsx';
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 
+const BNR_PSTN_OPTIONS = [
+  { value: 'UEBN', label: '상단배너' },
+  { value: 'MDBN', label: '중단배너' },
+  { value: 'LPBN', label: '하단배너' },
+];
+
+// 상시사용 시 게시종료일자
+const PERMANENT_END_DATE = '99991231';
+
 const INITIAL_FORM = {
-  popupKndCd: 'NWND',
-  popupTtl: '',
-  upendPstnNvl: 0,
-  lfsdPstnNvl: 0,
-  popupShpSeCd: 'SQRE',
-  wdthLen: 0,
-  vrtcLen: 0,
+  bnrTtl: '',
+  bnrPstnSeCd: '',
   imgAtchFileId: '',
-  imgSbstTxtCn: '',
+  imgFileSbstPhrsCn: '',
+  moblImgAtchFileId: '',
+  moblImgSbstPhrsCn: '',
   imgLnkgUrlAddr: '',
   imgLnkgNpagYn: 'N',
   pstgBgngYmd: '',
   pstgEndYmd: '',
-  vwngStopUseYn: 'Y',
   useYn: 'Y',
 };
 
-export default function PopupForm({ data, isEdit, onSave, onDelete }) {
+/**
+ * 파일 상세 배열을 FileUpload 컴포넌트용 포맷으로 변환
+ */
+function toFileList(atFiles = []) {
+  return atFiles.map((f) => ({
+    id: f.atchFileId + '_' + f.atchFileSn,
+    atchFileId: f.atchFileId,
+    atchFileSn: f.atchFileSn,
+    fileName: f.orgnlFileNm,
+    fileSize: f.fileSz,
+    status: 'existing',
+  }));
+}
+
+export default function BannerForm({ data, isEdit, onSave, onDelete }) {
   const [form, setForm] = useState(INITIAL_FORM);
-  const [files, setFiles] = useState([]);
+  const [isPermanent, setIsPermanent] = useState(false);
+  const [pcFiles, setPcFiles] = useState([]);
+  const [moblFiles, setMoblFiles] = useState([]);
 
   useEffect(() => {
     if (data && isEdit) {
+      const permanent = data.pstgEndYmd === PERMANENT_END_DATE;
+      setIsPermanent(permanent);
       setForm({
-        popupKndCd: data.popupKndCd || 'NWND',
-        popupTtl: data.popupTtl || '',
-        upendPstnNvl: data.upendPstnNvl ?? 0,
-        lfsdPstnNvl: data.lfsdPstnNvl ?? 0,
-        popupShpSeCd: data.popupShpSeCd || 'SQRE',
-        wdthLen: data.wdthLen ?? 0,
-        vrtcLen: data.vrtcLen ?? 0,
+        bnrTtl: data.bnrTtl || '',
+        bnrPstnSeCd: data.bnrPstnSeCd || '',
         imgAtchFileId: data.imgAtchFileId || '',
-        imgSbstTxtCn: data.imgSbstTxtCn || '',
+        imgFileSbstPhrsCn: data.imgFileSbstPhrsCn || '',
+        moblImgAtchFileId: data.moblImgAtchFileId || '',
+        moblImgSbstPhrsCn: data.moblImgSbstPhrsCn || '',
         imgLnkgUrlAddr: data.imgLnkgUrlAddr || '',
         imgLnkgNpagYn: data.imgLnkgNpagYn || 'N',
         pstgBgngYmd: data.pstgBgngYmd || '',
-        pstgEndYmd: data.pstgEndYmd || '',
-        vwngStopUseYn: data.vwngStopUseYn || 'Y',
+        pstgEndYmd: permanent ? '' : data.pstgEndYmd || '',
         useYn: data.useYn || 'Y',
       });
-      setFiles(
-        (data.imgAtchFiles || []).map((f) => ({
-          id: f.atchFileId + '_' + f.atchFileSn,
-          atchFileId: f.atchFileId,
-          atchFileSn: f.atchFileSn,
-          fileName: f.orgnlFileNm,
-          fileSize: f.fileSz,
-          status: 'existing',
-        }))
-      );
+      setPcFiles(toFileList(data.imgAtchFiles || []));
+      setMoblFiles(toFileList(data.moblImgAtchFiles || []));
     } else {
       setForm(INITIAL_FORM);
-      setFiles([]);
+      setIsPermanent(false);
+      setPcFiles([]);
+      setMoblFiles([]);
     }
   }, [data, isEdit]);
 
@@ -67,40 +81,62 @@ export default function PopupForm({ data, isEdit, onSave, onDelete }) {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handlePermanentChange = (checked) => {
+    setIsPermanent(checked);
+    if (checked) {
+      setForm((prev) => ({ ...prev, pstgEndYmd: '' }));
+    }
+  };
+
   const handleSubmit = () => {
-    if (!form.popupTtl.trim()) {
+    if (!form.bnrTtl.trim()) {
       alert('제목을 입력해주세요.');
       return;
     }
-    if (!form.pstgBgngYmd || !form.pstgEndYmd) {
-      alert('게시기간을 입력해주세요.');
+    if (!form.bnrPstnSeCd) {
+      alert('배너구분을 선택해주세요.');
+      return;
+    }
+    if (!form.pstgBgngYmd) {
+      alert('게시 시작일자를 입력해주세요.');
+      return;
+    }
+    if (!isPermanent && !form.pstgEndYmd) {
+      alert('게시 종료일자를 입력하거나 상시사용을 체크해주세요.');
       return;
     }
 
-    const newFile = files.find((f) => f.status === 'new')?.file || null;
-    const deletedSns = files
+    // PC 신규/삭제 파일
+    const newImgFile = pcFiles.find((f) => f.status === 'new')?.file || null;
+    const deletedPcSns = pcFiles
+      .filter((f) => f.status === 'deleted' && f.atchFileSn !== undefined)
+      .map((f) => f.atchFileSn);
+
+    // 모바일 신규/삭제 파일
+    const newMoblFile = moblFiles.find((f) => f.status === 'new')?.file || null;
+    const deletedMoblSns = moblFiles
       .filter((f) => f.status === 'deleted' && f.atchFileSn !== undefined)
       .map((f) => f.atchFileSn);
 
     const fileStatusInfoJson =
-      deletedSns.length > 0
-        ? JSON.stringify({ deletedImgAtchFileSns: deletedSns })
+      deletedPcSns.length > 0 || deletedMoblSns.length > 0
+        ? JSON.stringify({
+            deletedImgAtchFileSns: deletedPcSns,
+            deletedMoblImgAtchFileSns: deletedMoblSns,
+          })
         : null;
 
     const submitData = {
       ...form,
-      upendPstnNvl: Number(form.upendPstnNvl),
-      lfsdPstnNvl: Number(form.lfsdPstnNvl),
-      wdthLen: Number(form.wdthLen),
-      vrtcLen: Number(form.vrtcLen),
+      pstgEndYmd: isPermanent ? PERMANENT_END_DATE : form.pstgEndYmd,
     };
 
-    onSave(submitData, newFile, fileStatusInfoJson);
+    onSave(submitData, newImgFile, newMoblFile, fileStatusInfoJson);
   };
 
   return (
     <div className="oncontent ontable-form">
-      <h4>{isEdit ? '팝업 수정' : '팝업 등록'}</h4>
+      <h4>{isEdit ? '배너 수정' : '배너 등록'}</h4>
       <div className="ontableBox">
         <table>
           <colgroup>
@@ -109,34 +145,16 @@ export default function PopupForm({ data, isEdit, onSave, onDelete }) {
           </colgroup>
           <tbody>
             <tr>
-              <td>팝업종류</td>
+              <td>배너구분</td>
               <td>
-                <div className="onradioBox">
-                  <RadioButton
-                    groupId="knd_nwnd"
-                    radioGroup="popupKndCd"
-                    radioValue="NWND"
-                    radioName="새창"
-                    selectedValue={form.popupKndCd}
-                    onChange={(v) => handleChange('popupKndCd', v)}
-                  />
-                  <RadioButton
-                    groupId="knd_layr"
-                    radioGroup="popupKndCd"
-                    radioValue="LAYR"
-                    radioName="레이어"
-                    selectedValue={form.popupKndCd}
-                    onChange={(v) => handleChange('popupKndCd', v)}
-                  />
-                  <RadioButton
-                    groupId="knd_bndb"
-                    radioGroup="popupKndCd"
-                    radioValue="BNDB"
-                    radioName="띠배너"
-                    selectedValue={form.popupKndCd}
-                    onChange={(v) => handleChange('popupKndCd', v)}
-                  />
-                </div>
+                <MenuInputBox
+                  menuType="select"
+                  menuSize="150px"
+                  options={BNR_PSTN_OPTIONS}
+                  showAllOption={false}
+                  value={form.bnrPstnSeCd}
+                  onChange={(e) => handleChange('bnrPstnSeCd', e.target.value)}
+                />
               </td>
             </tr>
             <tr>
@@ -144,92 +162,77 @@ export default function PopupForm({ data, isEdit, onSave, onDelete }) {
               <td>
                 <MenuInputBox
                   menuType="input"
-                  menuSize="100%"
-                  value={form.popupTtl}
-                  onChange={(e) => handleChange('popupTtl', e.target.value)}
+                  menuSize="300px"
+                  value={form.bnrTtl}
+                  onChange={(e) => handleChange('bnrTtl', e.target.value)}
                 />
               </td>
             </tr>
             <tr>
-              <td>팝업창 위치</td>
-              <td>
-                <div className="onflexrow">
-                  <MenuInputBox
-                    menuType="input"
-                    menuName="TOP"
-                    menuSize="120px"
-                    value={String(form.upendPstnNvl)}
-                    onChange={(e) =>
-                      handleChange('upendPstnNvl', e.target.value)
-                    }
-                  />
-                  <MenuInputBox
-                    menuType="input"
-                    menuName="LEFT"
-                    menuSize="120px"
-                    value={String(form.lfsdPstnNvl)}
-                    onChange={(e) =>
-                      handleChange('lfsdPstnNvl', e.target.value)
-                    }
-                  />
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>팝업창 사이즈</td>
-              <td>
-                <div className="onflexrow">
-                  <MenuInputBox
-                    menuType="input"
-                    menuName="가로"
-                    menuSize="120px"
-                    value={String(form.wdthLen)}
-                    onChange={(e) => handleChange('wdthLen', e.target.value)}
-                  />
-                  <MenuInputBox
-                    menuType="input"
-                    menuName="세로"
-                    menuSize="120px"
-                    value={String(form.vrtcLen)}
-                    onChange={(e) => handleChange('vrtcLen', e.target.value)}
-                  />
-                  <RadioButton
-                    groupId="shp_sqre"
-                    radioGroup="popupShpSeCd"
-                    radioValue="SQRE"
-                    radioName="정사각형"
-                    selectedValue={form.popupShpSeCd}
-                    onChange={(v) => handleChange('popupShpSeCd', v)}
-                  />
-                  <RadioButton
-                    groupId="shp_rect"
-                    radioGroup="popupShpSeCd"
-                    radioValue="RECT"
-                    radioName="직사각형"
-                    selectedValue={form.popupShpSeCd}
-                    onChange={(v) => handleChange('popupShpSeCd', v)}
-                  />
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>이미지 파일</td>
+              <td>이미지 파일(PC)</td>
               <td>
                 <div className="onflexcolumn">
                   <FileUpload
                     mode="edit"
                     maxFiles={1}
                     fileType="attachment"
-                    files={files}
-                    onFilesChange={setFiles}
+                    files={pcFiles}
+                    onFilesChange={setPcFiles}
                   />
                   <MenuInputBox
                     menuType="input"
                     menuName="대체문구"
                     menuSize="300px"
-                    value={form.imgSbstTxtCn}
+                    value={form.imgFileSbstPhrsCn}
                     onChange={(e) =>
-                      handleChange('imgSbstTxtCn', e.target.value)
+                      handleChange('imgFileSbstPhrsCn', e.target.value)
+                    }
+                  />
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>이미지 파일(태블릿)</td>
+              <td>
+                <div className="onflexcolumn">
+                  {/* 태블릿은 모바일과 동일 파일 필드 공유 */}
+                  <FileUpload
+                    mode="edit"
+                    maxFiles={1}
+                    fileType="attachment"
+                    files={moblFiles}
+                    onFilesChange={setMoblFiles}
+                  />
+                  <MenuInputBox
+                    menuType="input"
+                    menuName="대체문구"
+                    menuSize="300px"
+                    value={form.moblImgSbstPhrsCn}
+                    onChange={(e) =>
+                      handleChange('moblImgSbstPhrsCn', e.target.value)
+                    }
+                  />
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>이미지 파일(모바일)</td>
+              <td>
+                <div className="onflexcolumn">
+                  <FileUpload
+                    mode="edit"
+                    maxFiles={1}
+                    fileType="attachment"
+                    files={moblFiles}
+                    onFilesChange={setMoblFiles}
+                  />
+                  <MenuInputBox
+                    menuType="input"
+                    menuName="대체문구"
+                    menuSize="300px"
+                    value={form.moblImgSbstPhrsCn}
+                    onChange={(e) =>
+                      handleChange('moblImgSbstPhrsCn', e.target.value)
                     }
                   />
                 </div>
@@ -240,7 +243,7 @@ export default function PopupForm({ data, isEdit, onSave, onDelete }) {
               <td>
                 <MenuInputBox
                   menuType="input"
-                  menuSize="100%"
+                  menuSize="300px"
                   value={form.imgLnkgUrlAddr}
                   onChange={(e) =>
                     handleChange('imgLnkgUrlAddr', e.target.value)
@@ -286,31 +289,15 @@ export default function PopupForm({ data, isEdit, onSave, onDelete }) {
                       outputFormat="ymd"
                       value={form.pstgEndYmd}
                       onChange={(val) => handleChange('pstgEndYmd', val)}
+                      disabled={isPermanent}
+                    />
+                    <CheckBox
+                      chkId="permanent"
+                      chkName="상시사용"
+                      checked={isPermanent}
+                      onChange={({ checked }) => handlePermanentChange(checked)}
                     />
                   </div>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>그만보기 여부</td>
-              <td>
-                <div className="onflexrow">
-                  <RadioButton
-                    groupId="vwng_y"
-                    radioGroup="vwngStopUseYn"
-                    radioValue="Y"
-                    radioName="사용"
-                    selectedValue={form.vwngStopUseYn}
-                    onChange={(v) => handleChange('vwngStopUseYn', v)}
-                  />
-                  <RadioButton
-                    groupId="vwng_n"
-                    radioGroup="vwngStopUseYn"
-                    radioValue="N"
-                    radioName="사용안함"
-                    selectedValue={form.vwngStopUseYn}
-                    onChange={(v) => handleChange('vwngStopUseYn', v)}
-                  />
                 </div>
               </td>
             </tr>
@@ -349,7 +336,7 @@ export default function PopupForm({ data, isEdit, onSave, onDelete }) {
   );
 }
 
-PopupForm.propTypes = {
+BannerForm.propTypes = {
   data: PropTypes.object,
   isEdit: PropTypes.bool,
   onSave: PropTypes.func,
