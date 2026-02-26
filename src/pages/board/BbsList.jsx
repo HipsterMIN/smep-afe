@@ -136,11 +136,11 @@ export default function BbsList() {
 
   const bbsColumns = [
     { id: 'no', width: 40, header: 'No', headerAlign: 'center', dataAlign: 'center' },
-    { id: 'bbsNo', width: 107, header: '게시판 ID' },
+    { id: 'bbsNo', width: 90, header: '게시판 ID' },
     { id: 'bbsNm', width: 300, header: '게시판 명', dataAlign: 'left' },
     {
       id: 'bbsTypeCd',
-      width: 200,
+      width: 120,
       header: '게시판 유형',
       template: (value) => getBbsTypeLabel(value),
     },
