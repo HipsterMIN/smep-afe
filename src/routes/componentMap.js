@@ -207,20 +207,16 @@ export const componentMap = {
   //   layout: AdminLayoutWithAuth,
   // },
 
-  // 설문 목록
-  'survey-list': {
+  // 설문 관리
+  M_PIIO_00140: {
     component: SurveyList,
     layout: AdminLayoutWithAuth,
-  },
-  // 설문지 관리
-  'survey-manage': {
-    component: SurveyManage,
-    layout: AdminLayoutWithAuth,
-  },
-  // 설문 결과 보기
-  'survey-result': {
-    component: SurveyResult,
-    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: ':surveyNo',
+        component: SurveyManage,
+      },
+    ],
   },
   // ---------- 회원/권한 관리 ----------
   // 회원관리
@@ -243,6 +239,7 @@ export const componentMap = {
   //   component: TODO_M_PIIO_00055,
   //   layout: AdminLayoutWithAuth,
   // },
+  // 통합로그인 사이트 관리
   M_PIIO_00056: {
     component: IntegrationLoginSiteList,
     layout: AdminLayoutWithAuth,
@@ -355,10 +352,10 @@ export const componentMap = {
   // },
   // ---------- 활용정보 관리 ----------
   // 행사정보
-  // 'M_PIIO_00023': {
-  //   component: TODO_M_PIIO_00023,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00023: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+  },
   // 정책뉴스
   // 'M_PIIO_00024': {
   //   component: TODO_M_PIIO_00024,
