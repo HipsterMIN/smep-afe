@@ -6,64 +6,19 @@ import Popup from '@components/ui/Popup.jsx';
 import RadioButton from '@components/ui/RadioButton.jsx';
 import RichEditor from '@components/ui/RichEditor.jsx';
 import http from '@lib/http.js';
+import { SUPPORT_BUSINESS_RELATED_ANNOUNCEMENT_TYPES } from '@pages/public-announcement/publicAnnouncementType.js';
+import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const LIST_PATH = '/sprtBiz/bizPbanc/bizInfo';
 const CANDIDATE_PAGE_SIZE = 20;
 
-const BIZ_TYPE_OPTIONS = [
-  { value: 'PC10', label: '금융' },
-  { value: 'PC20', label: '기술' },
-  { value: 'PC30', label: '인력' },
-  { value: 'PC40', label: '수출' },
-  { value: 'PC50', label: '내수' },
-  { value: 'PC60', label: '창업' },
-  { value: 'PC70', label: '경영' },
-  { value: 'PC80', label: '소상공인' },
-  { value: 'PC12', label: '중견' },
-  { value: 'PC99', label: '기타' },
-];
-
-const SUPPORT_INST_OPTIONS = [
-  { value: 'SP16', label: '중소벤처기업부' },
-  { value: 'SP01', label: '중소벤처기업진흥공단' },
-  { value: 'SP02', label: '중소기업기술정보진흥원' },
-  { value: 'SP03', label: '한국중소벤처기업유통원' },
-  { value: 'SP04', label: '창업진흥원' },
-  { value: 'SP05', label: '소상공인시장진흥공단' },
-  { value: 'SP06', label: '기술보증기금' },
-  { value: 'SP15', label: '지역신용보증재단' },
-  { value: 'SP10', label: '대.중소기업.농어업협력재단' },
-  { value: 'SP12', label: '여성기업종합지원포털' },
-  { value: 'SP13', label: '장애인기업종합지원센터' },
-  { value: 'SP14', label: '한국산업기술진흥원' },
-  { value: 'SP17', label: '중소기업중앙회' },
-  { value: 'SP18', label: '중소기업융합중앙회' },
-  { value: 'SP19', label: '한국창업보육협회' },
-  { value: 'SP20', label: '이노비즈협회' },
-  { value: 'SP21', label: '한국경영혁신중소기업협회' },
-  { value: 'SP22', label: '대한무역투자진흥공사' },
-  { value: 'SP23', label: '기업은행' },
-  { value: 'SP24', label: '대한상공회의소' },
-  { value: 'SP25', label: '신용보증기금' },
-  { value: 'SP26', label: '신용보증재단중앙회' },
-  { value: 'SP27', label: '한국경제인협회중소기업협력센터' },
-  { value: 'SP28', label: '한국무역보험공사' },
-  { value: 'SP29', label: '한국무역협회' },
-  { value: 'SP30', label: '한국산업은행' },
-  { value: 'SP31', label: '한국수출입은행' },
-];
-
-const ENTERPRISE_TYPE_OPTIONS = [
-  { value: 'LC01', label: '창업' },
-  { value: 'LC02', label: '성장' },
-  { value: 'LC03', label: '폐업·재기' },
-];
-
-const TARGET_ENT_OPTIONS = [
-  { value: 'SB01', label: '중소벤처기업' },
-  { value: 'SB02', label: '소상공인' },
+const COMMON_CODE_GROUPS = [
+  'BIZ_PBANC_CLSF_CD',
+  'BIZ_PBANC_SPRT_INST_CD',
+  'ENT_LFCY_SE_CD',
+  'LFCY_TRGT_ENT_SE_CD',
 ];
 
 const createInitialForm = () => ({
@@ -80,10 +35,10 @@ const createInitialForm = () => ({
   aplyPrcsCrsCn: null,
   bizAplySbmsnDcmntCn: null,
   sprtBizInqplCn: null,
-  bizPbancClsfCd: 'PC10',
-  bizPbancSprtInstCd: 'SP16',
+  bizPbancClsfCd: '',
+  bizPbancSprtInstCd: '',
   entLfcySeCd: null,
-  lfcyTrgtEntSeCd: 'SB01',
+  lfcyTrgtEntSeCd: '',
   bfrSprtBizId: null,
   rlsYn: 'Y',
   refMttr: null,
@@ -113,6 +68,7 @@ export default function SupportBusinessForm() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(createInitialForm);
+  const [commonCodeOptions, setCommonCodeOptions] = useState({});
 
   const [relationLoading, setRelationLoading] = useState(false);
   const [relations, setRelations] = useState([]);
@@ -137,6 +93,10 @@ export default function SupportBusinessForm() {
     () => new Set(originalRelationIds),
     [originalRelationIds]
   );
+  const bizTypeOptions = commonCodeOptions.BIZ_PBANC_CLSF_CD || [];
+  const supportInstOptions = commonCodeOptions.BIZ_PBANC_SPRT_INST_CD || [];
+  const enterpriseTypeOptions = commonCodeOptions.ENT_LFCY_SE_CD || [];
+  const targetEntOptions = commonCodeOptions.LFCY_TRGT_ENT_SE_CD || [];
 
   const mapRelationRows = (list) =>
     list.map((item, idx) => ({ ...item, _rowIndex: idx + 1 }));
@@ -310,6 +270,7 @@ export default function SupportBusinessForm() {
       const params = {
         size: CANDIDATE_PAGE_SIZE,
         bizPbancNm: candidateKeyword.trim(),
+        bizPbancTypeCd: SUPPORT_BUSINESS_RELATED_ANNOUNCEMENT_TYPES,
       };
       if (!reset && candidateCursor) {
         params.cursor = candidateCursor;
@@ -440,10 +401,6 @@ export default function SupportBusinessForm() {
     });
   };
 
-  const handleAutoRelationSearch = () => {
-    alert('개발중입니다.');
-  };
-
   const handleDeleteSelectedRelations = () => {
     if (selectedRelationIds.length === 0) {
       alert('삭제할 연관 사업공고를 선택하세요.');
@@ -515,6 +472,38 @@ export default function SupportBusinessForm() {
       setSaving(false);
     }
   };
+
+  useEffect(() => {
+    const loadCommonCodes = async () => {
+      try {
+        const codes = await fetchAndConvertCommonCodes(COMMON_CODE_GROUPS);
+        setCommonCodeOptions(codes || {});
+      } catch (error) {
+        console.error('공통코드 조회 실패:', error);
+        setCommonCodeOptions({});
+      }
+    };
+
+    loadCommonCodes();
+  }, []);
+
+  useEffect(() => {
+    if (isEdit) return;
+    setForm((prev) => ({
+      ...prev,
+      bizPbancClsfCd: prev.bizPbancClsfCd || bizTypeOptions[0]?.value || '',
+      bizPbancSprtInstCd:
+        prev.bizPbancSprtInstCd || supportInstOptions[0]?.value || '',
+      entLfcySeCd: prev.entLfcySeCd || enterpriseTypeOptions[0]?.value || '',
+      lfcyTrgtEntSeCd: prev.lfcyTrgtEntSeCd || targetEntOptions[0]?.value || '',
+    }));
+  }, [
+    bizTypeOptions,
+    enterpriseTypeOptions,
+    isEdit,
+    supportInstOptions,
+    targetEntOptions,
+  ]);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -616,7 +605,7 @@ export default function SupportBusinessForm() {
                       inputId="bizPbancClsfCd"
                       menuSize="180px"
                       showAllOption={false}
-                      options={BIZ_TYPE_OPTIONS}
+                      options={bizTypeOptions}
                       value={form.bizPbancClsfCd}
                       onChange={(e) => handleInputChange('bizPbancClsfCd', e)}
                     />
@@ -628,7 +617,7 @@ export default function SupportBusinessForm() {
                       inputId="bizPbancSprtInstCd"
                       menuSize="220px"
                       showAllOption={false}
-                      options={SUPPORT_INST_OPTIONS}
+                      options={supportInstOptions}
                       value={form.bizPbancSprtInstCd}
                       onChange={(e) =>
                         handleInputChange('bizPbancSprtInstCd', e)
@@ -643,7 +632,7 @@ export default function SupportBusinessForm() {
                       menuType="select"
                       inputId="entLfcySeCd"
                       menuSize="180px"
-                      options={ENTERPRISE_TYPE_OPTIONS}
+                      options={enterpriseTypeOptions}
                       value={form.entLfcySeCd}
                       onChange={(e) => handleInputChange('entLfcySeCd', e)}
                     />
@@ -655,7 +644,7 @@ export default function SupportBusinessForm() {
                       inputId="lfcyTrgtEntSeCd"
                       menuSize="180px"
                       showAllOption={false}
-                      options={TARGET_ENT_OPTIONS}
+                      options={targetEntOptions}
                       value={form.lfcyTrgtEntSeCd}
                       onChange={(e) => handleInputChange('lfcyTrgtEntSeCd', e)}
                     />
@@ -883,11 +872,6 @@ export default function SupportBusinessForm() {
               style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}
             >
               <Button
-                btnType="search"
-                btnNames="자동검색"
-                onClick={handleAutoRelationSearch}
-              />
-              <Button
                 btnType="add"
                 btnNames="직접추가"
                 onClick={handleOpenCandidatePopup}
@@ -1007,3 +991,4 @@ export default function SupportBusinessForm() {
     </div>
   );
 }
+
