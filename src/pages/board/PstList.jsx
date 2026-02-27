@@ -3,10 +3,11 @@ import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
+import { useMenuStore } from '@store/useMenuStore';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMatches, useNavigate, useParams } from 'react-router-dom';
 
 const formatYmd = (date) => {
   const year = date.getFullYear();
@@ -45,7 +46,30 @@ const toNullableNumber = (value) => {
 
 export default function PstList() {
   const navigate = useNavigate();
-  const { bbsNo } = useParams();
+  const matches = useMatches();
+  const flatMenuMap = useMenuStore((state) => state.flatMenuMap);
+  const { bbsNo: bbsNoFromParams } = useParams();
+
+  const currentMenuId = useMemo(() => {
+    const matchWithHandle = [...matches]
+      .reverse()
+      .find((match) => match.handle?.menuId);
+    return matchWithHandle?.handle?.menuId || null;
+  }, [matches]);
+
+  const bbsNo = useMemo(() => {
+    if (bbsNoFromParams) return bbsNoFromParams;
+
+    if (!currentMenuId) return '';
+
+    const mappedBbsNo = flatMenuMap?.[currentMenuId]?.bbsNo;
+
+    if (mappedBbsNo === null || mappedBbsNo === undefined || mappedBbsNo === '') {
+      return '';
+    }
+
+    return String(mappedBbsNo);
+  }, [bbsNoFromParams, currentMenuId, flatMenuMap]);
 
   const [bbsInfo, setBbsInfo] = useState(null);
   const [pstData, setPstData] = useState([]);
@@ -58,6 +82,17 @@ export default function PstList() {
   const [categoryOptions, setCategoryOptions] = useState([]);
   const observerRef = useRef(null);
   const appliedSearchParamsRef = useRef(createDefaultSearchParams());
+  const clearBoardState = useCallback(() => {
+    const resetSearchParams = createDefaultSearchParams();
+    setBbsInfo(null);
+    setCategoryOptions([]);
+    setPstData([]);
+    setCursor(null);
+    setHasNext(false);
+    setTotalCount(0);
+    setSearchParams(resetSearchParams);
+    appliedSearchParamsRef.current = resetSearchParams;
+  }, []);
 
   const categoryLabelMap = useMemo(() => {
     return categoryOptions.reduce((acc, option) => {
@@ -252,7 +287,10 @@ export default function PstList() {
 
   useEffect(() => {
     const loadBoardInfo = async () => {
-      if (!bbsNo) return;
+      if (!bbsNo) {
+        clearBoardState();
+        return;
+      }
 
       try {
         const response = await http.get(`/api/v1/board/bbs/${bbsNo}`);
@@ -274,10 +312,13 @@ export default function PstList() {
     };
 
     loadBoardInfo();
-  }, [bbsNo]);
+  }, [bbsNo, clearBoardState]);
 
   useEffect(() => {
-    if (!bbsNo) return;
+    if (!bbsNo) {
+      clearBoardState();
+      return;
+    }
     const resetSearchParams = createDefaultSearchParams();
     setPstData([]);
     setCursor(null);
@@ -287,7 +328,7 @@ export default function PstList() {
     appliedSearchParamsRef.current = resetSearchParams;
     fetchPstList(null, true, resetSearchParams);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bbsNo]);
+  }, [bbsNo, clearBoardState]);
 
   useEffect(() => {
     if (!observerRef.current) return;

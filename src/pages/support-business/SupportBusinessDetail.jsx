@@ -1,66 +1,20 @@
-﻿import Button from '@components/ui/Button.jsx';
+import Button from '@components/ui/Button.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import http from '@lib/http.js';
+import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { createElement, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const LIST_PATH = '/sprtBiz/bizPbanc/bizInfo';
 
-const BIZ_TYPE_LABEL = {
-  PC10: '금융',
-  PC20: '기술',
-  PC30: '인력',
-  PC40: '수출',
-  PC50: '내수',
-  PC60: '창업',
-  PC70: '경영',
-  PC80: '소상공인',
-  PC12: '중견',
-  PC99: '기타',
-};
+const COMMON_CODE_GROUPS = [
+  'BIZ_PBANC_CLSF_CD',
+  'BIZ_PBANC_SPRT_INST_CD',
+  'ENT_LFCY_SE_CD',
+  'LFCY_TRGT_ENT_SE_CD',
+];
 
-const SUPPORT_INST_LABEL = {
-  SP16: '중소벤처기업부',
-  SP01: '중소벤처기업진흥공단',
-  SP02: '중소기업기술정보진흥원',
-  SP03: '한국중소벤처기업유통원',
-  SP04: '창업진흥원',
-  SP05: '소상공인시장진흥공단',
-  SP06: '기술보증기금',
-  SP15: '지역신용보증재단',
-  SP10: '대.중소기업.농어업협력재단',
-  SP12: '여성기업종합지원포털',
-  SP13: '장애인기업종합지원센터',
-  SP14: '한국산업기술진흥원',
-  SP17: '중소기업중앙회',
-  SP18: '중소기업융합중앙회',
-  SP19: '한국창업보육협회',
-  SP20: '이노비즈협회',
-  SP21: '한국경영혁신중소기업협회',
-  SP22: '대한무역투자진흥공사',
-  SP23: '기업은행',
-  SP24: '대한상공회의소',
-  SP25: '신용보증기금',
-  SP26: '신용보증재단중앙회',
-  SP27: '한국경제인협회중소기업협력센터',
-  SP28: '한국무역보험공사',
-  SP29: '한국무역협회',
-  SP30: '한국산업은행',
-  SP31: '한국수출입은행',
-};
-
-const ENTERPRISE_TYPE_LABEL = {
-  LC01: '창업',
-  LC02: '성장',
-  LC03: '폐업·재기',
-};
-
-const TARGET_ENT_LABEL = {
-  SB01: '중소벤처기업',
-  SB02: '소상공인',
-};
-
-const labelOrValue = (map, value) => map[value] || value || '-';
+const labelOrValue = (map, value) => map?.[value] || value || '-';
 
 const sanitizeHtml = (value) => {
   const raw = String(value || '').trim();
@@ -191,6 +145,7 @@ export default function SupportBusinessDetail() {
 
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState(null);
+  const [commonCodeMap, setCommonCodeMap] = useState({});
 
   const [relationLoading, setRelationLoading] = useState(false);
   const [relations, setRelations] = useState([]);
@@ -251,6 +206,29 @@ export default function SupportBusinessDetail() {
   };
 
   useEffect(() => {
+    const loadCommonCodes = async () => {
+      try {
+        const codes = await fetchAndConvertCommonCodes(COMMON_CODE_GROUPS);
+        const mapped = {};
+        COMMON_CODE_GROUPS.forEach((group) => {
+          mapped[group] = (codes?.[group] || []).reduce((acc, item) => {
+            if (item?.value) {
+              acc[item.value] = item.label;
+            }
+            return acc;
+          }, {});
+        });
+        setCommonCodeMap(mapped);
+      } catch (error) {
+        console.error('공통코드 조회 실패:', error);
+        setCommonCodeMap({});
+      }
+    };
+
+    loadCommonCodes();
+  }, []);
+
+  useEffect(() => {
     fetchDetail();
     fetchRelations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -307,11 +285,16 @@ export default function SupportBusinessDetail() {
                 </tr>
                 <tr>
                   <td>사업유형</td>
-                  <td>{labelOrValue(BIZ_TYPE_LABEL, detail.bizPbancClsfCd)}</td>
+                  <td>
+                    {labelOrValue(
+                      commonCodeMap.BIZ_PBANC_CLSF_CD,
+                      detail.bizPbancClsfCd
+                    )}
+                  </td>
                   <td>지원기관</td>
                   <td>
                     {labelOrValue(
-                      SUPPORT_INST_LABEL,
+                      commonCodeMap.BIZ_PBANC_SPRT_INST_CD,
                       detail.bizPbancSprtInstCd
                     )}
                   </td>
@@ -319,11 +302,14 @@ export default function SupportBusinessDetail() {
                 <tr>
                   <td>기업유형</td>
                   <td>
-                    {labelOrValue(ENTERPRISE_TYPE_LABEL, detail.entLfcySeCd)}
+                    {labelOrValue(commonCodeMap.ENT_LFCY_SE_CD, detail.entLfcySeCd)}
                   </td>
                   <td>기업구분</td>
                   <td>
-                    {labelOrValue(TARGET_ENT_LABEL, detail.lfcyTrgtEntSeCd)}
+                    {labelOrValue(
+                      commonCodeMap.LFCY_TRGT_ENT_SE_CD,
+                      detail.lfcyTrgtEntSeCd
+                    )}
                   </td>
                 </tr>
                 <tr>

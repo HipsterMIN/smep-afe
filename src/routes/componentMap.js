@@ -27,6 +27,14 @@ const PublicAnnouncement = lazy(
 const PublicAnnouncementDetail = lazy(
   () => import('@pages/public-announcement/PublicAnnouncementDetail.jsx')
 );
+const HousingSpecialSupplyAnnouncement = lazy(
+  () =>
+    import('@pages/public-announcement/HousingSpecialSupplyAnnouncement.jsx')
+);
+const HousingSpecialSupplyAnnouncementDetail = lazy(
+  () =>
+    import('@pages/public-announcement/HousingSpecialSupplyAnnouncementDetail.jsx')
+);
 const SurveyList = lazy(() => import('@pages/survey/SurveyList'));
 const SurveyManage = lazy(() => import('@pages/survey/SurveyManage'));
 const SurveyResult = lazy(() => import('@pages/survey/SurveyResult'));
@@ -174,14 +182,10 @@ export const componentMap = {
       {
         path: ':bbsNo',
         component: PstList,
-      },
-      {
-        path: ':bbsNo/create', //
-        component: PstForm, // 게시물 등록
-      },
-      {
-        path: ':bbsNo/:pstNo',
-        component: PstForm,
+        children: [
+          { path: 'create', component: PstForm },
+          { path: ':pstNo', component: PstForm },
+        ],
       },
     ],
   },
@@ -255,20 +259,50 @@ export const componentMap = {
   // ==========================================
   // ---------- 고객지원 관리 ----------
   // 공지사항
-  // 'M_PIIO_00030': {
-  //   component: TODO_M_PIIO_00030,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00030: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
   // FAQ
-  // 'M_PIIO_00031': {
-  //   component: TODO_M_PIIO_00031,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00031: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
   // Q&A
-  // 'M_PIIO_00032': {
-  //   component: TODO_M_PIIO_00032,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00032: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
   // 고객 만족도조사
   // 'M_PIIO_00033': {
   //   component: TODO_M_PIIO_00033,
@@ -346,46 +380,156 @@ export const componentMap = {
   //   layout: AdminLayoutWithAuth,
   // },
   // 포털이미지관리
-  // 'M_PIIO_00045': {
-  //   component: TODO_M_PIIO_00045,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00045: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
   // ---------- 활용정보 관리 ----------
   // 행사정보
   M_PIIO_00023: {
     component: PstList,
     layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
   },
-  // 정책뉴스
-  // 'M_PIIO_00024': {
-  //   component: TODO_M_PIIO_00024,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  //보도자료(구 정책뉴스 하위 4뎁스메뉴 3뎁스로 구현)
+  M_PIIO_00141: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
+  //카드뉴스(구 정책뉴스 하위 4뎁스메뉴 3뎁스로 구현)
+  M_PIIO_00142: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
+  //영상뉴스(구 정책뉴스 하위 4뎁스메뉴 3뎁스로 구현)
+  M_PIIO_00143: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
   // 입법·행정예고/고시
-  // 'M_PIIO_00025': {
-  //   component: TODO_M_PIIO_00025,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00025: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
   // 입주기업 모집공고
-  // 'M_PIIO_00026': {
-  //   component: TODO_M_PIIO_00026,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00026: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
   // 월간 중기누리
-  // 'M_PIIO_00027': {
-  //   component: TODO_M_PIIO_00027,
+  // M_PIIO_00027: {
+  //   component: PstList,
   //   layout: AdminLayoutWithAuth,
+  //   children: [
+  //     {
+  //       path: 'create', //
+  //       component: PstForm, // 게시물 등록
+  //     },
+  //     {
+  //       path: ':pstNo',
+  //       component: PstForm,
+  //     },
+  //   ],
   // },
   // 월간 중기누리 구독자
-  // 'M_PIIO_00028': {
-  //   component: TODO_M_PIIO_00028,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00028: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
   // 기업업무용 서식
-  // 'M_PIIO_00029': {
-  //   component: TODO_M_PIIO_00029,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00029: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
   // ==========================================
   // 증명서 발급 관리
   // ==========================================
@@ -479,10 +623,20 @@ export const componentMap = {
     ],
   },
   // 주택특별공급 사업공고
-  // 'M_PIIO_00014': {
-  //   component: TODO_M_PIIO_00014,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00014: {
+    component: HousingSpecialSupplyAnnouncement,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create',
+        component: HousingSpecialSupplyAnnouncementDetail,
+      },
+      {
+        path: ':bizPbancNo',
+        component: HousingSpecialSupplyAnnouncementDetail,
+      },
+    ],
+  },
   // ---------- 신청 관리 ----------
   // 신청기업정보
   // 'M_PIIO_00015': {

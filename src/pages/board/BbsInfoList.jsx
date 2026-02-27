@@ -1,6 +1,7 @@
 import Button from '@components/ui/Button.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import { useUserMenu } from '@context/UserMenuContext';
 import http from '@lib/http.js';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
@@ -9,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function BbsList() {
   const navigate = useNavigate();
+  const { getFullPath } = useUserMenu();
   const [bbsData, setBbsData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
@@ -84,6 +86,7 @@ export default function BbsList() {
         no: 0,
         bbsNo: item?.bbsNo || '',
         bbsNm: item?.bbsNm || '',
+        menuId: item?.menuId || '',
         bbsTypeCd: item?.bbsTypeCd || '',
         bbsExplnCn: stripHtmlTags(item?.bbsExplnCn || ''),
         rgtrId: item?.rgtrId,
@@ -135,6 +138,18 @@ export default function BbsList() {
       return;
     }
     navigate(`${bbsNo}`);
+  };
+
+  const handleSelect = (row) => {
+    const menuId = row?.menuId;
+    const routePath = menuId ? getFullPath(menuId) : null;
+
+    if (routePath) {
+      navigate(routePath);
+      return;
+    }
+
+    handleMoveToEdit(row?.bbsNo);
   };
 
   const bbsColumns = [
@@ -197,7 +212,7 @@ export default function BbsList() {
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
-            handleMoveToEdit(row?.bbsNo);
+            handleSelect(row);
           }}
         >
           선택
