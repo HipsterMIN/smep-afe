@@ -1,7 +1,7 @@
 import TabPageWrapper from '@components/TabPageWrapper.jsx';
 import Contentbox from '@components/ui/Contentbox.jsx';
 import { Suspense } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
 import { buildFullPath } from '../utils/menuUtils.js';
 import { componentMap } from './componentMap.js';
@@ -84,28 +84,10 @@ const createRouteFromNode = (menuNode, flatMenuMap) => {
           // index route: 기본 컴포넌트 (목록 화면)
           {
             index: true,
-            element: (
-              <Suspense fallback={<div>로딩중...</div>}>
-                <TabPageWrapper>
-                  <Component />
-                </TabPageWrapper>
-              </Suspense>
-            ),
+            element: renderRouteElement(Component),
           },
-          // componentMap의 children 추가 (상세, 수정 등)
-          ...(children || []).map((child) => {
-            const ChildComponent = child.component;
-            return {
-              path: child.path,
-              element: (
-                <Suspense fallback={<div>로딩중...</div>}>
-                  <TabPageWrapper>
-                    <ChildComponent />
-                  </TabPageWrapper>
-                </Suspense>
-              ),
-            };
-          }),
+          // componentMap의 children 추가 (상세, 수정, 중첩 라우트)
+          ...mapComponentChildrenToRoutes(children || []),
         ];
       } else {
         // ✅ Layout이 없는 경우
@@ -115,22 +97,10 @@ const createRouteFromNode = (menuNode, flatMenuMap) => {
             `menuId ${menuNode.menuId}: Layout 없이 children이 정의되었습니다. Layout을 추가하거나 구조를 확인하세요.`
           );
           // 일단 Component만 렌더링
-          routeConfig.element = (
-            <Suspense fallback={<div>로딩중...</div>}>
-              <TabPageWrapper>
-                <Component />
-              </TabPageWrapper>
-            </Suspense>
-          );
+          routeConfig.element = renderRouteElement(Component);
         } else {
           // Layout 없고 children도 없음: 단독 페이지
-          routeConfig.element = (
-            <Suspense fallback={<div>로딩중...</div>}>
-              <TabPageWrapper>
-                <Component />
-              </TabPageWrapper>
-            </Suspense>
-          );
+          routeConfig.element = renderRouteElement(Component);
         }
       }
     } else {
@@ -161,6 +131,38 @@ const createRouteFromNode = (menuNode, flatMenuMap) => {
   }
 
   return routeConfig;
+};
+
+const renderRouteElement = (Component) => (
+  <Suspense fallback={<div>로딩중...</div>}>
+    <TabPageWrapper>
+      <Component />
+    </TabPageWrapper>
+  </Suspense>
+);
+
+const mapComponentChildrenToRoutes = (children = []) => {
+  return children.map((child) => {
+    const ChildComponent = child.component;
+
+    if (child.children && child.children.length > 0) {
+      return {
+        path: child.path,
+        children: [
+          {
+            index: true,
+            element: renderRouteElement(ChildComponent),
+          },
+          ...mapComponentChildrenToRoutes(child.children),
+        ],
+      };
+    }
+
+    return {
+      path: child.path,
+      element: renderRouteElement(ChildComponent),
+    };
+  });
 };
 
 /**

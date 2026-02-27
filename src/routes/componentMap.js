@@ -186,14 +186,10 @@ export const componentMap = {
       {
         path: ':bbsNo',
         component: PstList,
-      },
-      {
-        path: ':bbsNo/create', //
-        component: PstForm, // 게시물 등록
-      },
-      {
-        path: ':bbsNo/:pstNo',
-        component: PstForm,
+        children: [
+          { path: 'create', component: PstForm },
+          { path: ':pstNo', component: PstForm },
+        ],
       },
     ],
   },
@@ -367,6 +363,16 @@ export const componentMap = {
   M_PIIO_00023: {
     component: PstList,
     layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
   },
   // 정책뉴스
   // 'M_PIIO_00024': {
