@@ -26,6 +26,18 @@ const PublicAnnouncement = lazy(
 const PublicAnnouncementDetail = lazy(
   () => import('@pages/public-announcement/PublicAnnouncementDetail.jsx')
 );
+const HousingSpecialSupplyAnnouncement = lazy(
+  () =>
+    import(
+      '@pages/public-announcement/HousingSpecialSupplyAnnouncement.jsx'
+    )
+);
+const HousingSpecialSupplyAnnouncementDetail = lazy(
+  () =>
+    import(
+      '@pages/public-announcement/HousingSpecialSupplyAnnouncementDetail.jsx'
+    )
+);
 const SurveyList = lazy(() => import('@pages/survey/SurveyList'));
 const SurveyManage = lazy(() => import('@pages/survey/SurveyManage'));
 const SurveyResult = lazy(() => import('@pages/survey/SurveyResult'));
@@ -470,10 +482,20 @@ export const componentMap = {
     ],
   },
   // 주택특별공급 사업공고
-  // 'M_PIIO_00014': {
-  //   component: TODO_M_PIIO_00014,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00014: {
+    component: HousingSpecialSupplyAnnouncement,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create',
+        component: HousingSpecialSupplyAnnouncementDetail,
+      },
+      {
+        path: ':bizPbancNo',
+        component: HousingSpecialSupplyAnnouncementDetail,
+      },
+    ],
+  },
   // ---------- 신청 관리 ----------
   // 신청기업정보
   // 'M_PIIO_00015': {

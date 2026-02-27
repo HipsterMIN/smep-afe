@@ -3,58 +3,17 @@ import CheckBox from '@components/ui/CheckBox.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
+import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const LIST_PATH = '/sprtBiz/bizPbanc/bizInfo';
 
-const BIZ_TYPE_OPTIONS = [
-  { value: 'PC10', label: '금융' },
-  { value: 'PC20', label: '기술' },
-  { value: 'PC30', label: '인력' },
-  { value: 'PC40', label: '수출' },
-  { value: 'PC50', label: '내수' },
-  { value: 'PC60', label: '창업' },
-  { value: 'PC70', label: '경영' },
-  { value: 'PC80', label: '소상공인' },
-  { value: 'PC12', label: '중견' },
-  { value: 'PC99', label: '기타' },
-];
-
-const SUPPORT_INST_OPTIONS = [
-  { value: 'SP16', label: '중소벤처기업부' },
-  { value: 'SP01', label: '중소벤처기업진흥공단' },
-  { value: 'SP02', label: '중소기업기술정보진흥원' },
-  { value: 'SP03', label: '한국중소벤처기업유통원' },
-  { value: 'SP04', label: '창업진흥원' },
-  { value: 'SP05', label: '소상공인시장진흥공단' },
-  { value: 'SP06', label: '기술보증기금' },
-  { value: 'SP15', label: '지역신용보증재단' },
-  { value: 'SP10', label: '대.중소기업.농어업협력재단' },
-  { value: 'SP12', label: '여성기업종합지원포털' },
-  { value: 'SP13', label: '장애인기업종합지원센터' },
-  { value: 'SP14', label: '한국산업기술진흥원' },
-  { value: 'SP17', label: '중소기업중앙회' },
-  { value: 'SP18', label: '중소기업융합중앙회' },
-  { value: 'SP19', label: '한국창업보육협회' },
-  { value: 'SP20', label: '이노비즈협회' },
-  { value: 'SP21', label: '한국경영혁신중소기업협회' },
-  { value: 'SP22', label: '대한무역투자진흥공사' },
-  { value: 'SP23', label: '기업은행' },
-  { value: 'SP24', label: '대한상공회의소' },
-  { value: 'SP25', label: '신용보증기금' },
-  { value: 'SP26', label: '신용보증재단중앙회' },
-  { value: 'SP27', label: '한국경제인협회중소기업협력센터' },
-  { value: 'SP28', label: '한국무역보험공사' },
-  { value: 'SP29', label: '한국무역협회' },
-  { value: 'SP30', label: '한국산업은행' },
-  { value: 'SP31', label: '한국수출입은행' },
-];
-
-const TARGET_ENT_OPTIONS = [
-  { value: 'SB01', label: '중소벤처기업' },
-  { value: 'SB02', label: '소상공인' },
+const COMMON_CODE_GROUPS = [
+  'BIZ_PBANC_CLSF_CD',
+  'BIZ_PBANC_SPRT_INST_CD',
+  'LFCY_TRGT_ENT_SE_CD',
 ];
 
 const createSearchParams = () => ({
@@ -93,6 +52,11 @@ export default function SupportBusiness() {
   const [cursor, setCursor] = useState(null);
   const [hasNext, setHasNext] = useState(true);
   const [searchParams, setSearchParams] = useState(createSearchParams);
+  const [commonCodeOptions, setCommonCodeOptions] = useState({});
+
+  const bizTypeOptions = commonCodeOptions.BIZ_PBANC_CLSF_CD || [];
+  const supportInstOptions = commonCodeOptions.BIZ_PBANC_SPRT_INST_CD || [];
+  const targetEntOptions = commonCodeOptions.LFCY_TRGT_ENT_SE_CD || [];
 
   const columns = [
     {
@@ -140,19 +104,19 @@ export default function SupportBusiness() {
       id: 'bizPbancClsfCd',
       header: '사업유형',
       width: 120,
-      template: (value) => getLabel(BIZ_TYPE_OPTIONS, value),
+      template: (value) => getLabel(bizTypeOptions, value),
     },
     {
       id: 'bizPbancSprtInstCd',
       header: '지원기관',
       width: 170,
-      template: (value) => getLabel(SUPPORT_INST_OPTIONS, value),
+      template: (value) => getLabel(supportInstOptions, value),
     },
     {
       id: 'lfcyTrgtEntSeCd',
       header: '기업구분',
       width: 120,
-      template: (value) => getLabel(TARGET_ENT_OPTIONS, value),
+      template: (value) => getLabel(targetEntOptions, value),
     },
     { id: 'announcementCount', header: '공고수', width: 80 },
     {
@@ -315,6 +279,20 @@ export default function SupportBusiness() {
   };
 
   useEffect(() => {
+    const loadCommonCodes = async () => {
+      try {
+        const codes = await fetchAndConvertCommonCodes(COMMON_CODE_GROUPS);
+        setCommonCodeOptions(codes || {});
+      } catch (error) {
+        console.error('공통코드 조회 실패:', error);
+        setCommonCodeOptions({});
+      }
+    };
+
+    loadCommonCodes();
+  }, []);
+
+  useEffect(() => {
     fetchList(null, true);
     fetchCount(searchParams);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -391,13 +369,15 @@ export default function SupportBusiness() {
             <div className="onparagraph column">
               <dl>
                 <dt>사업유형</dt>
-                {BIZ_TYPE_OPTIONS.map((option) => (
+                {bizTypeOptions.map((option) => (
                   <dd key={option.value}>
                     <CheckBox
                       chkId={`search-biz-type-${option.value}`}
                       chkName={option.label}
                       value={option.value}
-                      checked={searchParams.bizPbancClsfCd.includes(option.value)}
+                      checked={searchParams.bizPbancClsfCd.includes(
+                        option.value
+                      )}
                       onChange={({ value, checked }) =>
                         handleMultiCheck('bizPbancClsfCd', value, checked)
                       }
@@ -408,7 +388,7 @@ export default function SupportBusiness() {
 
               <dl>
                 <dt>지원기관</dt>
-                {SUPPORT_INST_OPTIONS.map((option) => (
+                {supportInstOptions.map((option) => (
                   <dd key={option.value}>
                     <CheckBox
                       chkId={`search-support-inst-${option.value}`}
@@ -427,13 +407,15 @@ export default function SupportBusiness() {
 
               <dl>
                 <dt>기업구분</dt>
-                {TARGET_ENT_OPTIONS.map((option) => (
+                {targetEntOptions.map((option) => (
                   <dd key={option.value}>
                     <CheckBox
                       chkId={`search-target-ent-${option.value}`}
                       chkName={option.label}
                       value={option.value}
-                      checked={searchParams.lfcyTrgtEntSeCd.includes(option.value)}
+                      checked={searchParams.lfcyTrgtEntSeCd.includes(
+                        option.value
+                      )}
                       onChange={({ value, checked }) =>
                         handleMultiCheck('lfcyTrgtEntSeCd', value, checked)
                       }
