@@ -3,6 +3,7 @@ import { lazy } from 'react';
 
 // Lazy import (필요할 때 로드)
 const CommonCode = lazy(() => import('@pages/CommonCode'));
+const AccessAllowIp = lazy(() => import('@pages/access/AccessAllowIp'));
 const BbsList = lazy(() => import('@pages/board/BbsList'));
 const BbsForm = lazy(() => import('@pages/board/BbsForm'));
 const BbsInfoList = lazy(() => import('@pages/board/BbsInfoList'));
@@ -62,6 +63,9 @@ const PolicyFinanceList = lazy(
 const PolicyFinanceDetail = lazy(
   () => import('@pages/business/policyFinanceDetail.jsx')
 );
+const PolicyFinanceCreate = lazy(
+  () => import('@pages/business/policyFinanceCreate.jsx')
+);
 const PolicyFinanceUpdate = lazy(
   () => import('@pages/business/policyFinanceUpdate.jsx')
 );
@@ -79,6 +83,9 @@ const CertificateIssuanceList = lazy(
   () => import('@pages/certificate/CertificateIssuanceList')
 );
 const PopupManagement = lazy(() => import('@pages/popup/PopupManagement.jsx'));
+const BannerManagement = lazy(
+  () => import('@pages/banner/BannerManagement.jsx')
+);
 
 /**
  * =============================================================================
@@ -197,30 +204,31 @@ export const componentMap = {
     layout: AdminLayoutWithAuth,
   },
   // 보안설정
-  // 'M_PIIO_00061': {
-  //   component: TODO_M_PIIO_00061,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00061: {
+    component: AccessAllowIp,
+    layout: AdminLayoutWithAuth,
+  },
+  // 접속허용IP 관리
+  M_PIIO_00135: {
+    component: AccessAllowIp,
+    layout: AdminLayoutWithAuth,
+  },
   // API 연계 관리
   // 'M_PIIO_00062': {
   //   component: TODO_M_PIIO_00062,
   //   layout: AdminLayoutWithAuth,
   // },
 
-  // 설문 목록
-  'survey-list': {
+  // 설문 관리
+  M_PIIO_00140: {
     component: SurveyList,
     layout: AdminLayoutWithAuth,
-  },
-  // 설문지 관리
-  'survey-manage': {
-    component: SurveyManage,
-    layout: AdminLayoutWithAuth,
-  },
-  // 설문 결과 보기
-  'survey-result': {
-    component: SurveyResult,
-    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: ':surveyNo',
+        component: SurveyManage,
+      },
+    ],
   },
   // ---------- 회원/권한 관리 ----------
   // 회원관리
@@ -243,6 +251,7 @@ export const componentMap = {
   //   component: TODO_M_PIIO_00055,
   //   layout: AdminLayoutWithAuth,
   // },
+  // 통합로그인 사이트 관리
   M_PIIO_00056: {
     component: IntegrationLoginSiteList,
     layout: AdminLayoutWithAuth,
@@ -288,10 +297,10 @@ export const componentMap = {
     layout: AdminLayoutWithAuth,
   },
   // 배너관리
-  // 'M_PIIO_00036': {
-  //   component: TODO_M_PIIO_00036,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00036: {
+    component: BannerManagement,
+    layout: AdminLayoutWithAuth,
+  },
   // SMS 발송
   // 'M_PIIO_00130': {
   //   component: TODO_M_PIIO_00130,
@@ -355,10 +364,10 @@ export const componentMap = {
   // },
   // ---------- 활용정보 관리 ----------
   // 행사정보
-  // 'M_PIIO_00023': {
-  //   component: TODO_M_PIIO_00023,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00023: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+  },
   // 정책뉴스
   // 'M_PIIO_00024': {
   //   component: TODO_M_PIIO_00024,
@@ -473,7 +482,7 @@ export const componentMap = {
       },
       {
         path: 'create',
-        component: PolicyFinanceDetail,
+        component: PolicyFinanceCreate,
       },
       {
         path: ':policyNo/update',

@@ -21,17 +21,16 @@ export default function BbsForm() {
     bbsTypeCd: 'BSC',
     useYn: 'Y',
     ctgryUseYn: 'N',
-    atchFileUseYn: 'N',
-    regPsbltyYn: 'N',
-    answerPsbltyYn: 'N',
+    fileAtchPsbltyYn: 'N',
+    edtrUseYn: 'N',
+    cmntPsbltyYn: 'N',
     atchFilePsblCnt: 0,
-    atchFileSizeLimit: 0,
+    maxAtchFileSz: 0,
     scrnId: '',
   });
 
   const [categoryInput, setCategoryInput] = useState('');
   const [categories, setCategories] = useState([]);
-  const [, setEditingIndex] = useState(null);
   const visibleCategories = categories
     .map((category, index) => ({ category, index }))
     .filter(({ category }) => (category?.useYn || 'Y') !== 'N');
@@ -47,10 +46,10 @@ export default function BbsForm() {
       bbsTypeCd: data.bbsTypeCd || prev.bbsTypeCd,
       useYn: data.useYn || 'Y',
       ctgryUseYn: data.ctgryUseYn || 'N',
-      atchFileUseYn: data.fileAtchPsbltyYn || 'N',
-      regPsbltyYn: data.edtrUseYn || 'N',
-      answerPsbltyYn: data.cmntPsbltyYn || 'N',
-      atchFileSizeLimit: data.maxAtchFileSz
+      fileAtchPsbltyYn: data.fileAtchPsbltyYn || 'N',
+      edtrUseYn: data.edtrUseYn || 'N',
+      cmntPsbltyYn: data.cmntPsbltyYn || 'N',
+      maxAtchFileSz: data.maxAtchFileSz
         ? String(Math.floor(Number(data.maxAtchFileSz) / (1024 * 1024)))
         : 0,
       scrnId: data.scrnId || '',
@@ -112,7 +111,6 @@ export default function BbsForm() {
   };
 
   const handleEditCategory = (index) => {
-    setEditingIndex(index);
     setCategories(categories.map((cat, i) => (i === index ? { ...cat, isEditing: true } : cat)));
   };
 
@@ -127,7 +125,6 @@ export default function BbsForm() {
         i === index ? { ...cat, name: categoryName, useYn: 'Y', isEditing: false } : cat
       )
     );
-    setEditingIndex(null);
   };
 
   const handleDeleteCategory = (index) => {
@@ -218,12 +215,12 @@ export default function BbsForm() {
       bbsTypeCd: formData.bbsTypeCd,
       mngMbrNo: memberNo,
       scrnId: formData.scrnId.trim(),
-      fileAtchPsbltyYn: formData.atchFileUseYn,
-      maxAtchFileSz: Number(formData.atchFileSizeLimit || 0) * 1024 * 1024,
+      fileAtchPsbltyYn: formData.fileAtchPsbltyYn,
+      maxAtchFileSz: Number(formData.maxAtchFileSz || 0) * 1024 * 1024,
       atchFileExtnCn: '',
-      edtrUseYn: formData.regPsbltyYn,
+      edtrUseYn: formData.edtrUseYn,
       ctgryUseYn: formData.ctgryUseYn,
-      cmntPsbltyYn: formData.answerPsbltyYn,
+      cmntPsbltyYn: formData.cmntPsbltyYn,
       bbsRegMbrNo: memberNo,
       bbsMdfcnMbrNo: memberNo,
       useYn: formData.useYn,
@@ -371,20 +368,20 @@ export default function BbsForm() {
                   <td>
                     <div className="onradioBox">
                       <RadioButton
-                        groupId="atchFileUseYn_y"
-                        radioGroup="atchFileUseYn"
+                        groupId="fileAtchPsbltyYn_y"
+                        radioGroup="fileAtchPsbltyYn"
                         radioValue="Y"
                         radioName="사용"
-                        selectedValue={formData.atchFileUseYn}
-                        onChange={(value) => handleChange('atchFileUseYn', value)}
+                        selectedValue={formData.fileAtchPsbltyYn}
+                        onChange={(value) => handleChange('fileAtchPsbltyYn', value)}
                       />
                       <RadioButton
-                        groupId="atchFileUseYn_n"
-                        radioGroup="atchFileUseYn"
+                        groupId="fileAtchPsbltyYn_n"
+                        radioGroup="fileAtchPsbltyYn"
                         radioValue="N"
                         radioName="미사용"
-                        selectedValue={formData.atchFileUseYn}
-                        onChange={(value) => handleChange('atchFileUseYn', value)}
+                        selectedValue={formData.fileAtchPsbltyYn}
+                        onChange={(value) => handleChange('fileAtchPsbltyYn', value)}
                       />
                     </div>
                   </td>
@@ -485,20 +482,20 @@ export default function BbsForm() {
                   <td>
                     <div className="onradioBox">
                       <RadioButton
-                        groupId="regPsbltyYn_y"
-                        radioGroup="regPsbltyYn"
+                        groupId="edtrUseYn_y"
+                        radioGroup="edtrUseYn"
                         radioValue="Y"
                         radioName="사용"
-                        selectedValue={formData.regPsbltyYn}
-                        onChange={(value) => handleChange('regPsbltyYn', value)}
+                        selectedValue={formData.edtrUseYn}
+                        onChange={(value) => handleChange('edtrUseYn', value)}
                       />
                       <RadioButton
-                        groupId="regPsbltyYn_n"
-                        radioGroup="regPsbltyYn"
+                        groupId="edtrUseYn_n"
+                        radioGroup="edtrUseYn"
                         radioValue="N"
                         radioName="미사용"
-                        selectedValue={formData.regPsbltyYn}
-                        onChange={(value) => handleChange('regPsbltyYn', value)}
+                        selectedValue={formData.edtrUseYn}
+                        onChange={(value) => handleChange('edtrUseYn', value)}
                       />
                     </div>
                   </td>
@@ -509,20 +506,20 @@ export default function BbsForm() {
                   <td>
                     <div className="onradioBox">
                       <RadioButton
-                        groupId="answerPsbltyYn_y"
-                        radioGroup="answerPsbltyYn"
+                        groupId="cmntPsbltyYn_y"
+                        radioGroup="cmntPsbltyYn"
                         radioValue="Y"
                         radioName="사용"
-                        selectedValue={formData.answerPsbltyYn}
-                        onChange={(value) => handleChange('answerPsbltyYn', value)}
+                        selectedValue={formData.cmntPsbltyYn}
+                        onChange={(value) => handleChange('cmntPsbltyYn', value)}
                       />
                       <RadioButton
-                        groupId="answerPsbltyYn_n"
-                        radioGroup="answerPsbltyYn"
+                        groupId="cmntPsbltyYn_n"
+                        radioGroup="cmntPsbltyYn"
                         radioValue="N"
                         radioName="미사용"
-                        selectedValue={formData.answerPsbltyYn}
-                        onChange={(value) => handleChange('answerPsbltyYn', value)}
+                        selectedValue={formData.cmntPsbltyYn}
+                        onChange={(value) => handleChange('cmntPsbltyYn', value)}
                       />
                     </div>
                   </td>
@@ -542,8 +539,8 @@ export default function BbsForm() {
                       <MenuInputBox
                         menuType="input"
                         menuSize="80px"
-                        value={formData.atchFileSizeLimit}
-                        onChange={(e) => handleChange('atchFileSizeLimit', e.target.value)}
+                        value={formData.maxAtchFileSz}
+                        onChange={(e) => handleChange('maxAtchFileSz', e.target.value)}
                       />
                       <span>MB (0인 경우 제한 없음)</span>
                     </div>

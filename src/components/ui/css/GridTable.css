@@ -1,0 +1,32 @@
+.gridtable-header-align-left.wx-RsQD74qC .wx-text,
+.gridtable-header-align-center.wx-RsQD74qC .wx-text,
+.gridtable-header-align-right.wx-RsQD74qC .wx-text {
+  flex: 1;
+}
+
+.gridtable-header-align-left.wx-RsQD74qC .wx-text {
+  text-align: left;
+}
+
+.gridtable-header-align-center.wx-RsQD74qC .wx-text {
+  text-align: center;
+}
+
+.gridtable-header-align-right.wx-RsQD74qC .wx-text {
+  text-align: right;
+}
+
+.gridtable-data-align-left.wx-TSCaXsGV,
+.gridtable-data-align-left.wx-TSCaXsGV .wx-text {
+  text-align: left;
+}
+
+.gridtable-data-align-center.wx-TSCaXsGV,
+.gridtable-data-align-center.wx-TSCaXsGV .wx-text {
+  text-align: center;
+}
+
+.gridtable-data-align-right.wx-TSCaXsGV,
+.gridtable-data-align-right.wx-TSCaXsGV .wx-text {
+  text-align: right;
+}

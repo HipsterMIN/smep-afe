@@ -78,7 +78,7 @@ export default function SurveyList() {
       cell: ({ row }) => (
         <span 
           style={{ cursor: 'pointer', color: '#007bff', textDecoration: 'underline' }}
-          onClick={() => navigate(`/survey-manage?srvyNo=${row.srvyNo}`)}
+          onClick={() => navigate(`${row.srvyNo}`)}
         >
           {row.srvyTtl}
         </span>
@@ -136,7 +136,7 @@ export default function SurveyList() {
               결과
             </button>
             <button 
-              onClick={(e) => { e.stopPropagation(); navigate(`/survey-manage?srvyNo=${row.srvyNo}`); }}
+              onClick={(e) => { e.stopPropagation(); navigate(`${row.srvyNo}`); }}
               style={{ padding: '2px 4px', fontSize: '11px', cursor: 'pointer' }}
             >
               수정
