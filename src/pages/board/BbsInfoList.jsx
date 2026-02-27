@@ -168,7 +168,7 @@ export default function BbsList() {
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
-            handleMoveToEdit(row?.bbsNo);
+            handleSelect(row);
           }}
           style={{
             background: 'none',
