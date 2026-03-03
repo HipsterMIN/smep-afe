@@ -1,6 +1,7 @@
 import Button from '@components/ui/Button.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import { useUserMenu } from '@context/UserMenuContext';
 import http from '@lib/http.js';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
@@ -9,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function BbsList() {
   const navigate = useNavigate();
+  const { getFullPath } = useUserMenu();
   const [bbsData, setBbsData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
@@ -84,11 +86,15 @@ export default function BbsList() {
         no: 0,
         bbsNo: item?.bbsNo || '',
         bbsNm: item?.bbsNm || '',
+        menuId: item?.menuId || '',
         bbsTypeCd: item?.bbsTypeCd || '',
         bbsExplnCn: stripHtmlTags(item?.bbsExplnCn || ''),
+        rgtrId: item?.rgtrId,
         useYn: item?.useYn === 'Y' ? '사용' : '미사용',
+        ctgryUseYn: item?.ctgryUseYn === 'Y' ? '사용' : '미사용',
         regDt: item?.regDt || '',
-        management: '선택',
+        bbsManagement: '수정',
+        pstManagement: '선택',
       }));
 
       setBbsData((prev) => {
@@ -134,27 +140,68 @@ export default function BbsList() {
     navigate(`${bbsNo}`);
   };
 
+  const handleSelect = (row) => {
+    const menuId = row?.menuId;
+    const routePath = menuId ? getFullPath(menuId) : null;
+
+    if (routePath) {
+      navigate(routePath);
+      return;
+    }
+
+    handleMoveToEdit(row?.bbsNo);
+  };
+
   const bbsColumns = [
-    { id: 'no', width: 40, header: 'No' },
+    { id: 'no', width: 40, header: 'No', headerAlign: 'center', dataAlign: 'center' },
     { id: 'bbsNo', width: 90, header: '게시판 ID' },
-    { id: 'bbsNm', width: 300, header: '게시판 명', dataAlign: 'left' },
+    {
+      id: 'bbsNm',
+      width: 300,
+      header: '게시판 명',
+      dataAlign: 'left',
+      cell: ({ row }) => (
+        <button
+          type="button"
+          data-action="ignore-click"
+          onMouseDown={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSelect(row);
+          }}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            color: '#004EA2',
+            cursor: 'pointer',
+            textDecoration: 'underline',
+          }}
+        >
+          {row?.bbsNm || '-'}
+        </button>
+      ),
+    },
     {
       id: 'bbsTypeCd',
-      width: 120,
+      width: 110,
       header: '게시판 유형',
       template: (value) => getBbsTypeLabel(value),
     },
     { id: 'bbsExplnCn', flexgrow: 1, header: '게시판 소개글', dataAlign: 'left' },
+    { id: 'ctgryUseYn', width: 120, header: '카테고리 사용여부' },
     { id: 'useYn', width: 80, header: '사용여부' },
+    { id: 'rgtrId', width: 120, header: '등록자 ID' },
     {
       id: 'regDt',
       width: 180,
       header: '등록일',
       template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm:ss'),
     },
-    {
-      id: 'management',
-      header: '선택',
+    /*{
+      id: 'pstManagement',
+      header: '게시물 선택',
       width: 89,
       cell: ({ row }) => (
         <button
@@ -165,13 +212,13 @@ export default function BbsList() {
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
-            handleMoveToEdit(row?.bbsNo);
+            handleSelect(row);
           }}
         >
           선택
         </button>
       ),
-    },
+    }*/
   ];
 
   useEffect(() => {
@@ -291,10 +338,6 @@ export default function BbsList() {
             <GridTable
               data={bbsData}
               columns={bbsColumns}
-              gridProps={{
-                selection: true,
-                autoHeight: true,
-              }}
             />
             <div ref={observerRef} style={{ height: 40 }} />
             <div
