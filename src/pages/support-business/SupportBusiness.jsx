@@ -74,6 +74,7 @@ export default function SupportBusiness() {
       id: 'sprtBizNm',
       header: '사업명',
       width: 450,
+      dataAlign: 'left',
       cell: ({ row }) => (
         <button
           type="button"

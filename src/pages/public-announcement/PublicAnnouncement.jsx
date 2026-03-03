@@ -60,7 +60,13 @@ export default function PublicAnnouncement({
           ? totalCount - (row._rowIndex - 1)
           : '',
     },
-    { id: 'bizPbancNm', header: '공고명', resize: true, width: 540 },
+    {
+      id: 'bizPbancNm',
+      header: '공고명',
+      dataAlign: 'left',
+      resize: true,
+      width: 540,
+    },
     { id: 'bizPbancClsfCdNm', header: '사업유형', resize: true, width: 100 },
     {
       id: 'bizPbancSprtTypeCdNm',
@@ -149,7 +155,9 @@ export default function PublicAnnouncement({
 
   const fetchCount = async () => {
     try {
-      const res = await http.get('/api/v1/public-announcement/count', { params });
+      const res = await http.get('/api/v1/public-announcement/count', {
+        params,
+      });
       setTotalCount(res?.data ?? 0);
     } catch (err) {
       setTotalCount(0);
@@ -261,7 +269,9 @@ export default function PublicAnnouncement({
                 menuName="연계시스템"
                 menuSize="150px"
                 value={params.bizPbancLinkInstCd}
-                onChange={(e) => handleParamInputChange('bizPbancLinkInstCd', e)}
+                onChange={(e) =>
+                  handleParamInputChange('bizPbancLinkInstCd', e)
+                }
                 options={linkInstOptions}
               />
               <MenuInputBox
@@ -379,7 +389,11 @@ export default function PublicAnnouncement({
             <span>
               총 <b>{totalCount.toLocaleString()}</b>건
             </span>
-            <Button btnType="add" btnNames="등록" onClick={() => navigate('create')} />
+            <Button
+              btnType="add"
+              btnNames="등록"
+              onClick={() => navigate('create')}
+            />
           </div>
 
           <div className="ongrid-tableform">
