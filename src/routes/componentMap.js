@@ -21,6 +21,9 @@ const SupportBusinessDetail = lazy(
 const SupportBusinessForm = lazy(
   () => import('@pages/support-business/SupportBusinessForm.jsx')
 );
+const ApplicationCompanyInfoList = lazy(
+  () => import('@pages/application/ApplicationCompanyInfoList.jsx')
+);
 const PublicAnnouncement = lazy(
   () => import('@pages/public-announcement/PublicAnnouncement.jsx')
 );
@@ -507,10 +510,10 @@ export const componentMap = {
   },
   // ---------- 신청 관리 ----------
   // 신청기업정보
-  // 'M_PIIO_00015': {
-  //   component: TODO_M_PIIO_00015,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00015: {
+    component: ApplicationCompanyInfoList,
+    layout: AdminLayoutWithAuth,
+  },
   // 지원사업 신청관리
   // 'M_PIIO_00016': {
   //   component: TODO_M_PIIO_00016,
