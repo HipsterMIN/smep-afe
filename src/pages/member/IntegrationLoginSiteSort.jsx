@@ -53,34 +53,6 @@ export default function IntegrationLoginSiteSort() {
     loadSortData();
   }, [loadSortData]);
 
-  const moveByDirection = (rows, rowId, direction) => {
-    const currentIndex = rows.findIndex((row) => row.id === rowId);
-    if (currentIndex < 0) return rows;
-
-    const targetIndex = currentIndex + direction;
-    if (targetIndex < 0 || targetIndex >= rows.length) return rows;
-
-    const nextRows = [...rows];
-    [nextRows[currentIndex], nextRows[targetIndex]] = [
-      nextRows[targetIndex],
-      nextRows[currentIndex],
-    ];
-
-    return nextRows.map((row, index) => ({
-      ...row,
-      no: index + 1,
-      scrnIndctSeq: index + 1,
-    }));
-  };
-
-  const handleMoveRow = (type, rowId, direction) => {
-    if (type === 'IND') {
-      setIndRows((prev) => moveByDirection(prev, rowId, direction));
-      return;
-    }
-    setEntRows((prev) => moveByDirection(prev, rowId, direction));
-  };
-
   const saveTargetType = async (type, rows) => {
     if (!rows.length) return;
 
@@ -114,62 +86,71 @@ export default function IntegrationLoginSiteSort() {
     }
   };
 
-  const createColumns = (type, rows) => [
+  const handleSequenceChange = useCallback((type, rowId, value) => {
+    const nextSequence = Number(value) || 1;
+    const updateRows = (prevRows) =>
+      prevRows.map((row) =>
+        row.id === rowId ? { ...row, scrnIndctSeq: nextSequence } : row
+      );
+
+    if (type === 'IND') {
+      setIndRows(updateRows);
+      return;
+    }
+
+    setEntRows(updateRows);
+  }, []);
+
+  const createSequenceOptions = (rows) => {
+    const maxCurrentSequence = rows.reduce(
+      (maxValue, row) => Math.max(maxValue, Number(row.scrnIndctSeq) || 0),
+      0
+    );
+    const maxSequence = Math.max(rows.length + 20, maxCurrentSequence, 1);
+
+    return Array.from({ length: maxSequence }, (_, index) => {
+      const sequence = index + 1;
+      return { id: sequence, label: String(sequence) };
+    });
+  };
+
+  const createColumns = (rows) => [
     { id: 'no', header: '순번', width: 52 },
     { id: 'linkSiteCd', header: '사이트코드', width: 150 },
-    { id: 'siteNm', header: '사이트명', flexgrow: 1 },
+    { id: 'siteNm', header: '사이트명', flexgrow: 2 },
     { id: 'useYnNm', header: '사용여부', width: 90 },
-    { id: 'scrnIndctSeq', header: '화면표시순서', width: 110 },
     {
-      id: 'move',
-      header: '이동',
-      width: 120,
-      cell: ({ row }) => {
-        const currentIndex = rows.findIndex((item) => item.id === row?.id);
-        const isFirst = currentIndex <= 0;
-        const isLast = currentIndex === rows.length - 1;
-
-        return (
-          <div
-            style={{ display: 'flex', gap: '4px' }}
-            data-action="ignore-click"
-          >
-            <button
-              type="button"
-              className="defaultbutton edit small"
-              onMouseDown={(e) => e.stopPropagation()}
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (isFirst) return;
-                handleMoveRow(type, row.id, -1);
-              }}
-              style={isFirst ? { opacity: 0.4, cursor: 'default' } : {}}
-            >
-              ▲
-            </button>
-            <button
-              type="button"
-              className="defaultbutton edit small"
-              onMouseDown={(e) => e.stopPropagation()}
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (isLast) return;
-                handleMoveRow(type, row.id, 1);
-              }}
-              style={isLast ? { opacity: 0.4, cursor: 'default' } : {}}
-            >
-              ▼
-            </button>
-          </div>
-        );
-      },
+      id: 'scrnIndctSeq',
+      header: '화면표시순서',
+      width: 110,
+      editor: 'richselect',
+      css: 'onmenu-select',
+      options: createSequenceOptions(rows),
     },
   ];
 
-  const indColumns = createColumns('IND', indRows);
-  const entColumns = createColumns('ENT', entRows);
+  const initIndGrid = useCallback(
+    (api) => {
+      api.on('update-cell', (event) => {
+        if (event.column !== 'scrnIndctSeq') return;
+        handleSequenceChange('IND', event.id, event.value);
+      });
+    },
+    [handleSequenceChange]
+  );
+
+  const initEntGrid = useCallback(
+    (api) => {
+      api.on('update-cell', (event) => {
+        if (event.column !== 'scrnIndctSeq') return;
+        handleSequenceChange('ENT', event.id, event.value);
+      });
+    },
+    [handleSequenceChange]
+  );
+
+  const indColumns = createColumns(indRows);
+  const entColumns = createColumns(entRows);
   const matches = useMatches();
   const routeMenuName =
     [...matches]
@@ -201,7 +182,11 @@ export default function IntegrationLoginSiteSort() {
           </div>
           <h4>개인</h4>
           <div className="ongrid-tableform">
-            <GridTable data={indRows} columns={indColumns} />
+            <GridTable
+              data={indRows}
+              columns={indColumns}
+              gridProps={{ init: initIndGrid }}
+            />
           </div>
         </div>
 
@@ -218,7 +203,11 @@ export default function IntegrationLoginSiteSort() {
           <h4>기업</h4>
 
           <div className="ongrid-tableform">
-            <GridTable data={entRows} columns={entColumns} />
+            <GridTable
+              data={entRows}
+              columns={entColumns}
+              gridProps={{ init: initEntGrid }}
+            />
             {loading && (
               <div
                 style={{
