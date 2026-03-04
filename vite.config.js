@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [react()],
   server: {
     proxy: {
-      // 백엔드 context path(/main-dev) 제거 대응: /home-admin-dev/api 및 주요 경로 프록시
+      // 백엔드 context path(/home-dev) 제거 대응: /home-admin-dev/api 및 주요 경로 프록시
       '/home-admin-dev/api/': {
         target: 'http://localhost:8082',
         changeOrigin: true,
