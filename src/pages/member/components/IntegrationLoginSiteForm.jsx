@@ -1,3 +1,4 @@
+import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import RadioButton from '@components/ui/RadioButton.jsx';
@@ -5,13 +6,20 @@ import http from '@lib/http.js';
 import { formatDate } from '@utils/stringUtils.js';
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useMatches, useNavigate, useParams } from 'react-router-dom';
 
 function IntegrationLoginSiteForm({ mode }) {
+  const matches = useMatches();
   const navigate = useNavigate();
   const { id: linkSiteCd } = useParams();
 
   const isUpdateMode = mode === 'update';
+  const routeMenuName =
+    [...matches]
+      .reverse()
+      .map((match) => match?.handle?.menuNm)
+      .find((menuNm) => typeof menuNm === 'string' && menuNm.trim()) || '';
+  const pageTitle = '통합로그인 사이트 등록/수정' || routeMenuName;
   const defaultRadioValues = {
     prtlSysExpsrYn: 'Y',
     useYn: 'Y',
@@ -108,7 +116,7 @@ function IntegrationLoginSiteForm({ mode }) {
   const [siteMngInstNm, setSiteMngInstNm] = useState('');
   const [sitePicNm, setSitePicNm] = useState('');
   const [siteCodeValidation, setSiteCodeValidation] = useState(
-    defaultSiteCodeValidation,
+    defaultSiteCodeValidation
   );
 
   // 읽기 전용 데이터
@@ -189,7 +197,9 @@ function IntegrationLoginSiteForm({ mode }) {
     }));
 
     try {
-      const response = await http.get(`/api/v1/linksite/validate/${trimmedCode}`);
+      const response = await http.get(
+        `/api/v1/linksite/validate/${trimmedCode}`
+      );
       const available = Boolean(response?.data?.available);
       setSiteCodeValidation({
         checkedCode: trimmedCode,
@@ -283,14 +293,8 @@ function IntegrationLoginSiteForm({ mode }) {
   return (
     <div className="oncontentbox full">
       <div className="oncontentTitle">
-        <h2>통합로그인 사이트 등록/수정</h2>
-        <ul className="onbreadcrumb">
-          <li>시스템 관리</li>
-          <li>회원/권한 관리</li>
-          <li>통합로그인 사이트 관리</li>
-          <li>통합로그인 사이트 목록</li>
-          <li className="on">통합로그인 사이트 등록/수정</li>
-        </ul>
+        <h2>{pageTitle}</h2>
+        <Breadcrumb pageTitle={pageTitle} />
       </div>
       <div className="oncontents">
         <div className="oncontent ontable-form">

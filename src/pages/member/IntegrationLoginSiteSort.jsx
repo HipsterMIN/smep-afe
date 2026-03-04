@@ -1,8 +1,9 @@
+import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import http from '@lib/http.js';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMatches, useNavigate } from 'react-router-dom';
 
 export default function IntegrationLoginSiteSort() {
   const navigate = useNavigate();
@@ -129,7 +130,10 @@ export default function IntegrationLoginSiteSort() {
         const isLast = currentIndex === rows.length - 1;
 
         return (
-          <div style={{ display: 'flex', gap: '4px' }} data-action="ignore-click">
+          <div
+            style={{ display: 'flex', gap: '4px' }}
+            data-action="ignore-click"
+          >
             <button
               type="button"
               className="defaultbutton edit small"
@@ -166,18 +170,19 @@ export default function IntegrationLoginSiteSort() {
 
   const indColumns = createColumns('IND', indRows);
   const entColumns = createColumns('ENT', entRows);
+  const matches = useMatches();
+  const routeMenuName =
+    [...matches]
+      .reverse()
+      .map((match) => match?.handle?.menuNm)
+      .find((menuNm) => typeof menuNm === 'string' && menuNm.trim()) || '';
+  const pageTitle = '통합로그인 사이트 순서변경' || routeMenuName;
 
   return (
     <div className="oncontentbox">
       <div className="oncontentTitle">
-        <h2>통합로그인 사이트 순서변경</h2>
-        <ul className="onbreadcrumb">
-          <li>시스템 관리</li>
-          <li>회원/권한 관리</li>
-          <li>통합로그인 사이트 관리</li>
-          <li>통합로그인 사이트 목록</li>
-          <li className="on">통합로그인 사이트 순서변경</li>
-        </ul>
+        <h2>{pageTitle}</h2>
+        <Breadcrumb pageTitle={pageTitle} />
       </div>
 
       <div
@@ -187,7 +192,11 @@ export default function IntegrationLoginSiteSort() {
         <div className="oncontent ontable-form">
           <div className="ontable-legend">
             <div>
-              <Button btnType="list" btnNames="목록" onClick={() => navigate('..')} />
+              <Button
+                btnType="list"
+                btnNames="목록"
+                onClick={() => navigate('..')}
+              />
             </div>
           </div>
           <h4>개인</h4>
@@ -211,7 +220,13 @@ export default function IntegrationLoginSiteSort() {
           <div className="ongrid-tableform">
             <GridTable data={entRows} columns={entColumns} />
             {loading && (
-              <div style={{ padding: '12px 0', textAlign: 'center', color: '#666' }}>
+              <div
+                style={{
+                  padding: '12px 0',
+                  textAlign: 'center',
+                  color: '#666',
+                }}
+              >
                 조회 중입니다...
               </div>
             )}

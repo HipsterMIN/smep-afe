@@ -2,6 +2,7 @@
 import { componentMap } from '@routes/componentMap';
 import { useMenuStore } from '@store/useMenuStore';
 import { buildFullPath } from '@utils/menuUtils';
+import { hasMatchingDynamicChildPath } from '@utils/routeMatchUtils';
 import React, {
   createContext,
   useCallback,
@@ -136,21 +137,6 @@ export function UserMenuProvider({ children }) {
   }, []);
 
   /**
-   * 동적 라우트 패턴 매칭
-   */
-  const matchDynamicRoute = useCallback((pattern, pathname) => {
-    const patternParts = pattern.split('/').filter(Boolean);
-    const pathParts = pathname.split('/').filter(Boolean);
-
-    if (patternParts.length !== pathParts.length) return false;
-
-    return patternParts.every((part, i) => {
-      if (part.startsWith(':')) return true;
-      return part === pathParts[i];
-    });
-  }, []);
-
-  /**
    * ---------------------------------------------------------------------------
    * findMenuByPath: URL 경로로 메뉴 찾기
    * ---------------------------------------------------------------------------
@@ -201,20 +187,17 @@ export function UserMenuProvider({ children }) {
         const nodePath = buildFullPath(node, flatMenuMap);
         const componentConfig = componentMap[menuId];
 
-        if (componentConfig?.children) {
-          for (const child of componentConfig.children) {
-            const childPath = `${nodePath}/${child.path}`;
-
-            if (matchDynamicRoute(childPath, pathname)) {
-              return node;
-            }
-          }
+        if (
+          componentConfig?.children &&
+          hasMatchingDynamicChildPath(nodePath, componentConfig.children, pathname)
+        ) {
+          return node;
         }
       }
 
       return null;
     },
-    [menuTree, flatMenuMap, matchDynamicRoute]
+    [menuTree, flatMenuMap]
   );
 
   /**

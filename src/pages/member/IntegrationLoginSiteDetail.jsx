@@ -1,20 +1,21 @@
+import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button.jsx';
-import React, { useState } from 'react';
+import { useMatches } from 'react-router-dom';
 
 export default function IntegrationLoginSiteDetail() {
-  const [selectedValue, setSelectedValue] = useState(null); // radio button 분기변수
+  const matches = useMatches();
+  const routeMenuName =
+    [...matches]
+      .reverse()
+      .map((match) => match?.handle?.menuNm)
+      .find((menuNm) => typeof menuNm === 'string' && menuNm.trim()) || '';
+  const pageTitle = '통합로그인 사이트 상세조회' || routeMenuName;
 
   return (
     <div className="oncontentbox full">
       <div className="oncontentTitle">
-        <h2>통합로그인 사이트 상세조회</h2>
-        <ul className="onbreadcrumb">
-          <li>시스템 관리</li>
-          <li>회원/권한 관리</li>
-          <li>통합로그인 사이트 관리</li>
-          <li>통합로그인 사이트 목록</li>
-          <li className="on">통합로그인 사이트 상세조회</li>
-        </ul>
+        <h2>{pageTitle}</h2>
+        <Breadcrumb pageTitle={pageTitle} />
       </div>
       <div className="oncontents">
         <div className="oncontent ontable-form">
