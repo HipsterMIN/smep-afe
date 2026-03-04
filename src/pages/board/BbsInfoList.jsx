@@ -1,5 +1,5 @@
 import Button from '@components/ui/Button.jsx';
-import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.js';
+import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import { useUserMenu } from '@context/UserMenuContext';
@@ -164,7 +164,13 @@ export default function BbsList() {
   });
 
   const bbsColumns = [
-    { id: 'no', width: 40, header: 'No', headerAlign: 'center', dataAlign: 'center' },
+    {
+      id: 'no',
+      width: 40,
+      header: 'No',
+      headerAlign: 'center',
+      dataAlign: 'center',
+    },
     { id: 'bbsNo', width: 90, header: '게시판 ID' },
     {
       id: 'bbsNm',
@@ -180,7 +186,12 @@ export default function BbsList() {
       header: '게시판 유형',
       template: (value) => getBbsTypeLabel(value),
     },
-    { id: 'bbsExplnCn', flexgrow: 1, header: '게시판 소개글', dataAlign: 'left' },
+    {
+      id: 'bbsExplnCn',
+      flexgrow: 1,
+      header: '게시판 소개글',
+      dataAlign: 'left',
+    },
     { id: 'ctgryUseYn', width: 120, header: '카테고리 사용여부' },
     { id: 'useYn', width: 80, header: '사용여부' },
     { id: 'rgtrId', width: 120, header: '등록자 ID' },
@@ -293,7 +304,9 @@ export default function BbsList() {
                 menuName="게시판 소개글"
                 menuSize="300px"
                 value={searchParams.bbsExplnCn}
-                onChange={(e) => handleInputChange('bbsExplnCn', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange('bbsExplnCn', e.target.value)
+                }
                 onKeyDown={handleSearchKeyDown}
               />
               <MenuInputBox
@@ -325,15 +338,18 @@ export default function BbsList() {
             </span>
           </div>
 
-          <div className="ongrid-tableform" style={{ scrollbarGutter: 'stable' }}>
-            <GridTable
-              data={bbsData}
-              columns={bbsColumns}
-            />
+          <div
+            className="ongrid-tableform"
+            style={{ scrollbarGutter: 'stable' }}
+          >
+            <GridTable data={bbsData} columns={bbsColumns} />
             <div ref={observerRef} style={{ height: 40 }} />
             <div
               className="loading"
-              style={{ minHeight: 20, visibility: loading ? 'visible' : 'hidden' }}
+              style={{
+                minHeight: 20,
+                visibility: loading ? 'visible' : 'hidden',
+              }}
             >
               데이터를 불러오는 중...
             </div>

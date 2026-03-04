@@ -1,4 +1,5 @@
 import Button from '@components/ui/Button';
+import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.jsx';
 import GridTable from '@components/ui/GridTable';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
@@ -70,17 +71,6 @@ const parseHasNext = (data, rows, nextCursorValue) => {
   if (raw === 'N') return false;
 
   return rows.length >= PAGE_SIZE && Boolean(nextCursorValue);
-};
-
-const linkLikeButtonStyle = {
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  color: '#0000EE',
-  cursor: 'pointer',
-  textAlign: 'left',
-  textDecoration: 'underline',
-  font: 'inherit',
 };
 
 export default function PolicyFinanceList() {
@@ -268,37 +258,12 @@ export default function PolicyFinanceList() {
     navigate(`${plcyFnncNo}/update`);
   };
 
-  const renderProductNameCell = ({ row }) => {
-    const productName = row?.plcyFnncNm || '-';
-    const hasPolicyNo = Boolean(row?.plcyFnncNo);
-
-    return (
-      <button
-        type="button"
-        className="onlinkbtn"
-        data-action="ignore-click"
-        disabled={!hasPolicyNo}
-        onMouseDown={(e) => e.stopPropagation()}
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (!hasPolicyNo) return;
-          handleMoveToDetail(row.plcyFnncNo);
-        }}
-        style={{
-          ...linkLikeButtonStyle,
-          color: hasPolicyNo ? linkLikeButtonStyle.color : '#666',
-          cursor: hasPolicyNo ? linkLikeButtonStyle.cursor : 'default',
-          textDecoration: hasPolicyNo
-            ? linkLikeButtonStyle.textDecoration
-            : 'none',
-        }}
-        title={productName}
-      >
-        {productName}
-      </button>
-    );
-  };
+  const policyFinanceNameActionCell = createGridValueActionCell({
+    valueKey: 'plcyFnncNm',
+    fallback: '-',
+    onClick: (row) => handleMoveToDetail(row?.plcyFnncNo),
+    variant: 'link',
+  });
 
   const columns = [
     { id: 'index', header: '순번', width: 44 },
@@ -308,7 +273,8 @@ export default function PolicyFinanceList() {
       id: 'plcyFnncNm',
       header: '상품명',
       width: 230,
-      cell: renderProductNameCell,
+      dataAlign: 'left',
+      cell: policyFinanceNameActionCell,
     },
     { id: 'plcyFnncAplyMthCdNm', header: '신청 방식', width: 90 },
     { id: 'plcyFnncGdsSttsCdNm', header: '승인여부', width: 80 },
