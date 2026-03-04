@@ -74,8 +74,43 @@ export default function IntegrationLoginSiteSort() {
     });
   };
 
+  const getDuplicateSequences = (rows = []) => {
+    const sequenceCountMap = rows.reduce((accumulator, row) => {
+      const sequence = Number(row.scrnIndctSeq);
+      if (!sequence) return accumulator;
+      accumulator[sequence] = (accumulator[sequence] || 0) + 1;
+      return accumulator;
+    }, {});
+
+    return Object.entries(sequenceCountMap)
+      .filter(([, count]) => count > 1)
+      .map(([sequence]) => Number(sequence))
+      .sort((a, b) => a - b);
+  };
+
   const handleSave = async () => {
     if (saving) return;
+
+    const indDuplicateSequences = getDuplicateSequences(indRows);
+    const entDuplicateSequences = getDuplicateSequences(entRows);
+
+    if (indDuplicateSequences.length || entDuplicateSequences.length) {
+      const duplicateMessages = [];
+
+      if (indDuplicateSequences.length) {
+        duplicateMessages.push(`개인: ${indDuplicateSequences.join(', ')}`);
+      }
+
+      if (entDuplicateSequences.length) {
+        duplicateMessages.push(`기업: ${entDuplicateSequences.join(', ')}`);
+      }
+
+      alert(
+        `화면표시순서가 중복되었습니다.\n중복 번호를 확인하세요.\n${duplicateMessages.join('\n')}`
+      );
+      return;
+    }
+
     if (!window.confirm('저장하시겠습니까?')) return;
 
     setSaving(true);
