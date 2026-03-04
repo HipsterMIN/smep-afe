@@ -11,7 +11,7 @@
 
 ## 추가된 공통 파일
 - `src/components/ui/GridCellActionButton.jsx`
-- `src/components/ui/createGridValueActionCell.js`
+- `src/components/ui/createGridValueActionCell.jsx`
 
 ## 왜 2개로 분리했나
 - `GridCellActionButton`: 버튼 UI/이벤트 규칙 전담
@@ -22,7 +22,7 @@
 
 ## 빠른 시작 (복붙용)
 ```jsx
-import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.js';
+import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.jsx';
 
 const nameCell = createGridValueActionCell({
   valueKey: 'bbsNm',
