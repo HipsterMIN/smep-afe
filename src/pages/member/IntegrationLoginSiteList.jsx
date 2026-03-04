@@ -1,3 +1,4 @@
+import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button.jsx';
 import GridTable from '@components/ui/GridTable';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
@@ -5,9 +6,16 @@ import http from '@lib/http.js';
 import { fetchCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMatches, useNavigate } from 'react-router-dom';
 
 export default function IntegrationLoginSiteList() {
+  const matches = useMatches();
+  const routeMenuName =
+    [...matches]
+      .reverse()
+      .map((match) => match?.handle?.menuNm)
+      .find((menuNm) => typeof menuNm === 'string' && menuNm.trim()) || '';
+  const pageTitle = routeMenuName || '통합로그인 사이트 목록';
   const navigate = useNavigate();
   const [gridMemberList, setGridMemberList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -230,13 +238,8 @@ export default function IntegrationLoginSiteList() {
   return (
     <div className="oncontentbox full">
       <div className="oncontentTitle">
-        <h2>통합로그인 사이트 목록</h2>
-        <ul className="onbreadcrumb">
-          <li>시스템 관리</li>
-          <li>회원/권한 관리</li>
-          <li>통합로그인 사이트 관리</li>
-          <li className="on">통합로그인 사이트 목록</li>
-        </ul>
+        <h2>{pageTitle}</h2>
+        <Breadcrumb pageTitle={pageTitle} />
       </div>
 
       <div className="oncontents">

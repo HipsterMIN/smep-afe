@@ -1,4 +1,5 @@
 import ButtonCell from '@components/custom/ButtonCell.jsx';
+import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
@@ -7,6 +8,7 @@ import http from '@lib/http.js';
 import { fetchCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useRef, useState } from 'react';
+import { useMatches } from 'react-router-dom';
 
 export default function MemberList() {
   const PAGE_SIZE = 20;
@@ -54,9 +56,7 @@ export default function MemberList() {
 
   const parseHasNext = (data, rows, nextCursorValue) => {
     const raw =
-      data?.hasNext ??
-      data?.cursorPageResponse?.hasNext ??
-      data?.page?.hasNext;
+      data?.hasNext ?? data?.cursorPageResponse?.hasNext ?? data?.page?.hasNext;
 
     if (typeof raw === 'boolean') return raw;
     if (raw === 'Y') return true;
@@ -175,7 +175,8 @@ export default function MemberList() {
     const bottomOffset =
       target.scrollHeight - target.scrollTop - target.clientHeight;
     if (bottomOffset <= 24) {
-      const fallbackCursor = cursor ?? getFallbackCursorFromRows(gridMemberList);
+      const fallbackCursor =
+        cursor ?? getFallbackCursorFromRows(gridMemberList);
       fetchMemberList(fallbackCursor, false);
     }
   };
@@ -212,7 +213,9 @@ export default function MemberList() {
     if (!gridScrollElement) return;
 
     const onGridScroll = () => handleScrollLoadMore(gridScrollElement);
-    gridScrollElement.addEventListener('scroll', onGridScroll, { passive: true });
+    gridScrollElement.addEventListener('scroll', onGridScroll, {
+      passive: true,
+    });
 
     return () => {
       gridScrollElement.removeEventListener('scroll', onGridScroll);
@@ -237,16 +240,19 @@ export default function MemberList() {
     },
     { cell: ButtonCell, id: 'management', header: '관리', width: 76 },
   ];
+  const matches = useMatches();
+  const routeMenuName =
+    [...matches]
+      .reverse()
+      .map((match) => match?.handle?.menuNm)
+      .find((menuNm) => typeof menuNm === 'string' && menuNm.trim()) || '';
+  const pageTitle = routeMenuName || '회원 관리';
 
   return (
     <div className="oncontentbox">
       <div className="oncontentTitle">
-        <h2>회원 관리</h2>
-        <ul className="onbreadcrumb">
-          <li>시스템 관리</li>
-          <li>회원/권한 관리</li>
-          <li className="on">회원 목록</li>
-        </ul>
+        <h2>{pageTitle}</h2>
+        <Breadcrumb pageTitle={pageTitle} />
       </div>
 
       <div
