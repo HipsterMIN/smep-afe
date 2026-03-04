@@ -413,6 +413,21 @@ export const componentMap = {
       },
     ],
   },
+  //정책뉴스 (하위 메뉴(보도자료, 카드뉴스, 영상뉴스 카테고리로 구분 )
+  M_PIIO_00144: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
   //보도자료(구 정책뉴스 하위 4뎁스메뉴 3뎁스로 구현)
   M_PIIO_00141: {
     component: PstList,
