@@ -6,6 +6,14 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useMatches, useNavigate } from 'react-router-dom';
 
 export default function IntegrationLoginSiteSort() {
+  const panelScrollStyle = {
+    height: 'auto',
+    maxHeight: 'calc(100vh - 247px)',
+    minHeight: 0,
+    overflowY: 'auto',
+    overflowX: 'hidden',
+  };
+
   const navigate = useNavigate();
   const [indRows, setIndRows] = useState([]);
   const [entRows, setEntRows] = useState([]);
@@ -170,7 +178,7 @@ export default function IntegrationLoginSiteSort() {
         className="oncontents space ondivide"
         style={{ alignItems: 'flex-start' }}
       >
-        <div className="oncontent ontable-form">
+        <div className="oncontent ontable-form" style={panelScrollStyle}>
           <div className="ontable-legend">
             <div>
               <Button
@@ -190,7 +198,7 @@ export default function IntegrationLoginSiteSort() {
           </div>
         </div>
 
-        <div className="oncontent ontable-form">
+        <div className="oncontent ontable-form" style={panelScrollStyle}>
           <div className="ontable-legend">
             <div style={{ marginLeft: 'auto' }}>
               <Button
