@@ -1,4 +1,5 @@
 import Button from '@components/ui/Button.jsx';
+import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.js';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import { useUserMenu } from '@context/UserMenuContext';
@@ -152,6 +153,16 @@ export default function BbsList() {
     handleMoveToEdit(row?.bbsNo);
   };
 
+  // 게시판명 컬럼 전용 셀 렌더러.
+  // 기존에 column 내부에서 직접 작성하던 버튼 JSX를 팩토리로 대체하여
+  // "표시 값 + 클릭 시 row 전달" 패턴을 선언형으로 단순화한다.
+  const bbsNameActionCell = createGridValueActionCell({
+    valueKey: 'bbsNm',
+    fallback: '-',
+    onClick: (row) => handleSelect(row),
+    variant: 'link',
+  });
+
   const bbsColumns = [
     { id: 'no', width: 40, header: 'No', headerAlign: 'center', dataAlign: 'center' },
     { id: 'bbsNo', width: 90, header: '게시판 ID' },
@@ -160,28 +171,8 @@ export default function BbsList() {
       width: 300,
       header: '게시판 명',
       dataAlign: 'left',
-      cell: ({ row }) => (
-        <button
-          type="button"
-          data-action="ignore-click"
-          onMouseDown={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleSelect(row);
-          }}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: 0,
-            color: '#004EA2',
-            cursor: 'pointer',
-            textDecoration: 'underline',
-          }}
-        >
-          {row?.bbsNm || '-'}
-        </button>
-      ),
+      // 작업자 관점: cell 구현부를 길게 적지 않고, 미리 만든 렌더러를 바로 연결한다.
+      cell: bbsNameActionCell,
     },
     {
       id: 'bbsTypeCd',
