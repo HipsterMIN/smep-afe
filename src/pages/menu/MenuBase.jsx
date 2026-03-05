@@ -26,7 +26,7 @@ export default function MenuBase({
     upMenuId: '',
     scrnUrlAddr: '',
     scrnTypeCd: '',
-    useYn: '',
+    scrnUseYn: '',
   });
 
   const [form, setForm] = useState({
@@ -190,8 +190,8 @@ export default function MenuBase({
       sortSeq: row.sortSeq,
       scrnUrlAddr: row.scrnUrlAddr,
       scrnTypeCd: row.scrnTypeCd,
-      useYn: row.useYn,
-      scrnUseYn: row.useYn,
+      useYn: row.scrnUseYn,
+      scrnUseYn: row.scrnUseYn,
       upMenuId: row.upMenuId,
       upScrnId: row.upScrnId,
       intgSysSeCd: 'PIIO',
@@ -359,7 +359,7 @@ export default function MenuBase({
       width: 80,
       cell: (props) => <TypeCell {...props} />,
     },
-    { id: 'useYn', header: '사용여부', resize: true, width: 66 },
+    { id: 'scrnUseYn', header: '사용여부', resize: true, width: 66 },
     {
       id: 'management',
       header: '관리',
@@ -443,8 +443,8 @@ export default function MenuBase({
                   menuType="select"
                   menuName="사용여부"
                   options={useYnOptions}
-                  value={params.useYn}
-                  onChange={(v) => handleParamInputChange('useYn', v)}
+                  value={params.scrnUseYn}
+                  onChange={(v) => handleParamInputChange('scrnUseYn', v)}
                 />
               </div>
             </div>
@@ -566,7 +566,9 @@ export default function MenuBase({
                 <tr>
                   <td>화면ID</td>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div
+                      style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                    >
                       <span>{SCRN_ID_PREFIX}</span>
                       <MenuInputBox
                         menuType="input"
@@ -645,16 +647,16 @@ export default function MenuBase({
                         radioGroup="group4"
                         radioValue="Y"
                         radioName="사용"
-                        selectedValue={form.useYn}
-                        onChange={(v) => handleInputChange('useYn', v)}
+                        selectedValue={form.scrnUseYn}
+                        onChange={(v) => handleInputChange('scrnUseYn', v)}
                       />
                       <RadioButton
                         groupId="9"
                         radioGroup="group4"
                         radioValue="N"
                         radioName="사용안함"
-                        selectedValue={form.useYn}
-                        onChange={(v) => handleInputChange('useYn', v)}
+                        selectedValue={form.scrnUseYn}
+                        onChange={(v) => handleInputChange('scrnUseYn', v)}
                       />
                     </div>
                   </td>
