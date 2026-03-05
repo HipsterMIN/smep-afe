@@ -1,5 +1,4 @@
 import TabPageWrapper from '@components/TabPageWrapper.jsx';
-import Contentbox from '@components/ui/Contentbox.jsx';
 import { Suspense } from 'react';
 import { Navigate } from 'react-router-dom';
 
@@ -47,7 +46,7 @@ export const findFirstTComponentBySide = (menuNode) => {
  *
  * @param {Object} menuNode - 메뉴 노드
  * @param {Object} flatMenuMap - menuId를 key로 하는 flat map
- * @returns {Object|null} React Router 라우트 객체
+ * @returns {{route: Object, layout: Object|null}|null} 라우트 + 레이아웃 정보
  */
 const createRouteFromNode = (menuNode, flatMenuMap) => {
   if (menuNode.depth === 0) {
@@ -75,69 +74,77 @@ const createRouteFromNode = (menuNode, flatMenuMap) => {
         children,
       } = componentConfig;
 
-      // ✅ Layout이 있는 경우
-      if (Layout) {
-        routeConfig.element = <Layout />;
+      const hasChildren = children && children.length > 0;
 
-        // children 배열 구성
+      // layout은 상위 그룹에서 주입하고, 여기서는 컨텐츠 라우트만 구성합니다.
+      if (hasChildren) {
         routeConfig.children = [
-          // index route: 기본 컴포넌트 (목록 화면)
           {
             index: true,
             element: renderRouteElement(Component),
           },
-          // componentMap의 children 추가 (상세, 수정, 중첩 라우트)
           ...mapComponentChildrenToRoutes(children || []),
         ];
       } else {
-        // ✅ Layout이 없는 경우
-        if (children && children.length > 0) {
-          // Layout 없이 children이 있으면 경고 (보통 이런 경우는 없어야 함)
-          console.warn(
-            `menuId ${menuNode.menuId}: Layout 없이 children이 정의되었습니다. Layout을 추가하거나 구조를 확인하세요.`
-          );
-          // 일단 Component만 렌더링
-          routeConfig.element = renderRouteElement(Component);
-        } else {
-          // Layout 없고 children도 없음: 단독 페이지
-          routeConfig.element = renderRouteElement(Component);
-        }
+        routeConfig.element = renderRouteElement(Component);
       }
+
+      return {
+        route: routeConfig,
+        layout: Layout || null,
+      };
     } else {
       // 컴포넌트가 등록되지 않은 경우
-      routeConfig.element = (
-        <div style={{ padding: '2rem' }}>
-          <h3>준비중입니다.</h3>
-          <p>
-            컴포넌트가 아직 등록되지 않았습니다. (menuId: {menuNode.menuId})
-          </p>
-        </div>
-      );
+      return {
+        route: {
+          ...routeConfig,
+          element: (
+            <div style={{ padding: '2rem' }}>
+              <h3>준비중입니다.</h3>
+              <p>
+                컴포넌트가 아직 등록되지 않았습니다. (menuId: {menuNode.menuId})
+              </p>
+            </div>
+          ),
+        },
+        layout: null,
+      };
     }
   } else if (menuNode.scrnTypeCd === 'M') {
     // M 타입: 메뉴 그룹
     const firstTNode = findFirstTComponentBySide(menuNode);
     if (firstTNode) {
       const targetPath = buildFullPath(firstTNode, flatMenuMap);
-      routeConfig.element = <Navigate to={targetPath} replace />;
+      return {
+        route: {
+          ...routeConfig,
+          element: <Navigate to={targetPath} replace />,
+        },
+        // 그룹 메뉴는 첫 번째 T 메뉴의 layout을 상속
+        layout: componentMap[firstTNode.menuId]?.layout || null,
+      };
     } else {
-      routeConfig.element = (
-        <div style={{ padding: '2rem' }}>
-          <h3>준비중입니다.</h3>
-          <p>하위 메뉴를 선택해주세요.</p>
-        </div>
-      );
+      return {
+        route: {
+          ...routeConfig,
+          element: (
+            <div style={{ padding: '2rem' }}>
+              <h3>준비중입니다.</h3>
+              <p>하위 메뉴를 선택해주세요.</p>
+            </div>
+          ),
+        },
+        layout: null,
+      };
     }
   }
 
-  return routeConfig;
+  return null;
 };
 
 const renderRouteElement = (Component) => (
   <Suspense fallback={<div>로딩중...</div>}>
-    <TabPageWrapper>
-      <Component />
-    </TabPageWrapper>
+    <Component />
   </Suspense>
 );
 
@@ -165,6 +172,37 @@ const mapComponentChildrenToRoutes = (children = []) => {
   });
 };
 
+// 같은 layout을 사용하는 동적 라우트를 한 부모 라우트로 묶고,
+// TabPageWrapper를 1회만 마운트하여 탭 전환 시 wrapper 언마운트를 방지합니다.
+const groupRoutesByLayout = (routeEntries) => {
+  const layoutBuckets = new Map();
+  const nonLayoutRoutes = [];
+
+  routeEntries.forEach(({ route, layout }) => {
+    if (!layout) {
+      nonLayoutRoutes.push(route);
+      return;
+    }
+
+    if (!layoutBuckets.has(layout)) {
+      layoutBuckets.set(layout, []);
+    }
+    layoutBuckets.get(layout).push(route);
+  });
+
+  const grouped = [...layoutBuckets.entries()].map(([Layout, routes]) => ({
+    element: <Layout />,
+    children: [
+      {
+        element: <TabPageWrapper />,
+        children: routes,
+      },
+    ],
+  }));
+
+  return [...grouped, ...nonLayoutRoutes];
+};
+
 /**
  * 메뉴 트리 전체를 순회하며 동적 라우트 배열 생성
  *
@@ -177,11 +215,11 @@ export const generateDynamicRoutes = (menuTree, flatMenuMap) => {
     return [];
   }
 
-  const routes = [];
+  const routeEntries = [];
   const processNode = (node) => {
-    const route = createRouteFromNode(node, flatMenuMap);
-    if (route) {
-      routes.push(route);
+    const routeEntry = createRouteFromNode(node, flatMenuMap);
+    if (routeEntry) {
+      routeEntries.push(routeEntry);
     }
 
     // 자식 노드들도 재귀적으로 처리
@@ -191,5 +229,5 @@ export const generateDynamicRoutes = (menuTree, flatMenuMap) => {
   };
 
   processNode(menuTree);
-  return routes;
+  return groupRoutesByLayout(routeEntries);
 };
