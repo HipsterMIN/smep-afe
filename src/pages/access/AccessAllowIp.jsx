@@ -1,10 +1,12 @@
+import '@svar-ui/react-grid/all.css';
+
 import Button from '@components/ui/Button.jsx';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
 import AccessAllowIpAddModal from '@pages/access/AccessAllowIpAddModal.jsx';
-import AccessAllowIpGrid from '@pages/access/AccessAllowIpGrid.jsx';
-import { useEffect, useRef, useState } from 'react';
+import { Grid, Willow } from '@svar-ui/react-grid';
+import React, { useEffect, useRef, useState } from 'react';
 
 const createSearchParams = () => ({
   ipAddr: '',
@@ -29,7 +31,25 @@ const toApiValue = (value) => {
   return String(value).trim();
 };
 
+function StatusToggleButton({ row, onStatusChange }) {
+  const isUsing = row.useYn === 'Y';
+  const btnLabel = isUsing ? '사용안함' : '사용함';
+  const btnType = isUsing ? 'del' : 'edit';
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    const confirmMsg = `[${row.ipAddr}] IP의 상태를 [${btnLabel}]으로 변경하시겠습니까?`;
+    if (window.confirm(confirmMsg)) {
+      onStatusChange(row);
+    }
+  };
+
+  return <Button btnType={btnType} btnNames={btnLabel} onClick={handleClick} />;
+}
 export default function AccessAllowIp() {
+  const apiRef = useRef(null);
+  const formatDateTime = (iso) =>
+    iso ? iso.replace('T', ' ').substring(0, 16) : '';
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -93,6 +113,17 @@ export default function AccessAllowIp() {
     observer.observe(observerRef.current);
     return () => observer.disconnect();
   }, [cursor, hasNext, loading]);
+
+  const handleStatusChange = async (row) => {
+    const action = row.useYn === 'Y' ? 'disable' : 'enable';
+    try {
+      await http.patch(`/api/v1/access-allowIp/${row.mngrPrmIpNo}/${action}`);
+      alert(`상태가 변경되었습니다.`);
+      fetchAccessAllowIps(null, true);
+    } catch (error) {
+      alert('오류가 발생했습니다.');
+    }
+  };
 
   //접속허용 IP 목록 조회
   const fetchAccessAllowIps = async (nextCursor = null, reset = false) => {
@@ -160,17 +191,6 @@ export default function AccessAllowIp() {
     fetchCount(searchParams);
   };
 
-  const handleAccessAllowIpDelete = async (row) => {
-    try {
-      await http.patch(`/api/v1/access-allowIp/${row.mngrPrmIpNo}`);
-
-      fetchAccessAllowIps(null, true);
-      fetchCount(searchParams);
-    } catch (error) {
-      console.error('접속 허용 IP 조회 실패:', error);
-    }
-  };
-
   const handleSave = async (formData) => {
     try {
       await http.post(
@@ -201,6 +221,40 @@ export default function AccessAllowIp() {
     }));
   };
 
+  const accessAllowIpColumns = [
+    { id: 'mngrPrmIpNo', width: 86, header: '번호' },
+    { id: 'ipAddr', flexgrow: 1, header: 'IP' },
+    { id: 'memoCn', flexgrow: 2, header: '메모' },
+    { id: 'useYn', width: 80, header: '사용여부' },
+    { id: 'rgtrId', width: 76, header: '등록자' },
+    {
+      id: 'regDt',
+      width: 140,
+      header: '등록일시',
+      cell: (props) => formatDateTime(props.row.regDt),
+    },
+    { id: 'mdfrId', width: 76, header: '수정자' },
+    {
+      id: 'mdfcnDt',
+      width: 140,
+      header: '수정일시',
+      cell: (props) => formatDateTime(props.row.mdfcnDt),
+    },
+    {
+      id: 'edit',
+      width: 100,
+      header: '관리',
+      headerAlign: 'center',
+      dataAlign: 'center',
+      cell: (props) => (
+        <StatusToggleButton
+          row={props.row}
+          onStatusChange={handleStatusChange}
+        />
+      ),
+    },
+  ];
+
   const handleAdd = () => {
     setIsAddOpen(true);
   };
@@ -222,38 +276,18 @@ export default function AccessAllowIp() {
               <MenuInputBox
                 menuType="input"
                 menuName="IP"
-                menuSize="150px"
+                menuSize="100px"
                 value={searchParams.ipAddr}
                 onChange={(e) => handleInputChange('ipAddr', e.target.value)}
               />
               <MenuInputBox
                 menuType="input"
                 menuName="메모"
-                menuSize="300px"
+                menuSize="150px"
                 value={searchParams.memoCn}
                 onChange={(e) => handleInputChange('memoCn', e.target.value)}
               />
-              <MenuInputBox
-                menuType="select"
-                menuName="사용여부"
-                menuSize="100px"
-                value={searchParams.useYn}
-                onChange={(e) => handleInputChange('useYn', e.target.value)}
-                options={[
-                  { value: 'Y', label: '사용' },
-                  { value: 'N', label: '미사용' },
-                ]}
-              />
 
-              <div style={{ marginLeft: 'auto' }}>
-                <Button
-                  btnType="menuSearch"
-                  btnNames="검색"
-                  onClick={handleAccessAllowIpSearch}
-                />
-              </div>
-            </div>
-            <div className="onparagraph middle">
               <MenuInputBox
                 menuType="input"
                 menuName="등록자"
@@ -276,24 +310,21 @@ export default function AccessAllowIp() {
                 />
               </div>
               <MenuInputBox
-                menuType="input"
-                menuName="삭제자"
-                menuSize="100px"
-                value={searchParams.mdfrId}
-                onChange={(e) => handleInputChange('mdfrId', e.target.value)}
+                menuType="select"
+                menuName="사용여부"
+                menuSize="80px"
+                value={searchParams.useYn}
+                onChange={(e) => handleInputChange('useYn', e.target.value)}
+                options={[
+                  { value: 'Y', label: '사용' },
+                  { value: 'N', label: '미사용' },
+                ]}
               />
-              <div className="ondatepickerbox">
-                <DatepickerBox
-                  menuName="삭제일"
-                  value={searchParams.startMdfcnDt}
-                  outputFormat="datetime"
-                  onChange={(date) => handleInputChange('startMdfcnDt', date)}
-                />
-                <span className="onunit">~</span>
-                <DatepickerBox
-                  value={searchParams.endMdfcnDt}
-                  outputFormat="datetime"
-                  onChange={(date) => handleInputChange('endMdfcnDt', date)}
+              <div style={{ marginLeft: 'auto' }}>
+                <Button
+                  btnType="menuSearch"
+                  btnNames="검색"
+                  onClick={handleAccessAllowIpSearch}
                 />
               </div>
             </div>
@@ -318,10 +349,15 @@ export default function AccessAllowIp() {
             />
           )}
           <div className="ongrid-tableform">
-            <AccessAllowIpGrid
-              data={rows}
-              onDelete={handleAccessAllowIpDelete}
-            />
+            <Willow>
+              <Grid
+                data={rows}
+                columns={accessAllowIpColumns}
+                init={(api) => {
+                  apiRef.current = api;
+                }}
+              />
+            </Willow>
             <div ref={observerRef} style={{ height: '20px' }} />
           </div>
         </div>
