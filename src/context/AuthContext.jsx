@@ -62,6 +62,9 @@ export function AuthProvider({ children }) {
       // 타이머 정지는 useEffect에서 token 변경 감지로 처리됨
       removeActivityListeners(); // 이벤트 리스너 제거
       alert('세션이 만료되어 로그아웃되었습니다.'); // 만료 알림
+      const base = import.meta.env.BASE_URL || '/';
+      const normalizedBase = base.endsWith('/') ? base : `${base}/`;
+      window.location.replace(`${normalizedBase}login`);
     }
   }, []); 
 
