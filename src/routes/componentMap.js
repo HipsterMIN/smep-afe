@@ -504,20 +504,20 @@ export const componentMap = {
     ],
   },
   // 월간 중기누리
-  // M_PIIO_00027: {
-  //   component: PstList,
-  //   layout: AdminLayoutWithAuth,
-  //   children: [
-  //     {
-  //       path: 'create', //
-  //       component: PstForm, // 게시물 등록
-  //     },
-  //     {
-  //       path: ':pstNo',
-  //       component: PstForm,
-  //     },
-  //   ],
-  // },
+  M_PIIO_00027: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
   // 월간 중기누리 구독자
   M_PIIO_00028: {
     component: PstList,
