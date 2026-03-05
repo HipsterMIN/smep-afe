@@ -19,6 +19,7 @@ const menuStoreImpl = (set, get) => ({
   flatMenuMap: {}, // menuId를 key로 하는 flat map (빠른 조회용)
   isLoading: false, // 로딩 상태
   error: null, // 에러
+  lastFetchedAuthState: null, // 마지막 메뉴 조회 시점의 인증 상태 ('ANON' | 'AUTH')
 
   /**
    * 메뉴 트리를 평탄화하여 menuId 맵 생성
@@ -45,9 +46,24 @@ const menuStoreImpl = (set, get) => ({
   },
 
   /**
+   * 현재 인증 상태 반환
+   * - ANON: 비로그인
+   * - AUTH: 로그인
+   */
+  _getAuthState: () => {
+    const token = localStorage.getItem('access_token');
+    return token ? 'AUTH' : 'ANON';
+  },
+
+  /**
    * 메뉴 데이터 API 호출 및 상태 업데이트
    */
-  fetchMenuData: async () => {
+  fetchMenuData: async (authStateArg) => {
+    // 중복 호출 방지
+    if (get().isLoading) return get().menuTree;
+
+    const authState = authStateArg || get()._getAuthState();
+
     // 로딩 상태 설정
     set({ isLoading: true, error: null });
 
@@ -69,6 +85,7 @@ const menuStoreImpl = (set, get) => ({
         menuTree: menuData,
         flatMenuMap: flatMap,
         isLoading: false,
+        lastFetchedAuthState: authState,
       });
 
       return menuData;
@@ -92,6 +109,7 @@ const menuStoreImpl = (set, get) => ({
           flatMenuMap: flatMap,
           isLoading: false,
           error: isDev ? null : errorMsg,
+          lastFetchedAuthState: authState,
         });
         return mockMenuData;
       } catch (innerError) {
@@ -108,7 +126,12 @@ const menuStoreImpl = (set, get) => ({
 
   // 메뉴 데이터 초기화
   resetMenu: () => {
-    set({ menuTree: null, flatMenuMap: {}, error: null });
+    set({
+      menuTree: null,
+      flatMenuMap: {},
+      error: null,
+      lastFetchedAuthState: null,
+    });
   },
 });
 

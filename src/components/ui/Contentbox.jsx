@@ -4,7 +4,8 @@
 // - 탭 클릭, 닫기, 전체 닫기 이벤트 처리
 // - 선택된 탭 닫기 시 다음 탭으로 자동 이동
 // ============================================
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import useTabStore from '../../store/useTabStore';
 import Button from './Button';
@@ -14,6 +15,8 @@ import Contents from './Contents';
 export default function Contentbox({ children }) {
   // React Router의 navigate 함수 (페이지 이동용)
   const navigate = useNavigate();
+  const location = useLocation();
+  const lastVisitedPathByTabRef = useRef(new Map());
 
   // Zustand store에서 탭 관련 상태와 함수들 가져오기
   const {
@@ -59,6 +62,92 @@ export default function Contentbox({ children }) {
   // ==========================================
   // 탭 클릭 핸들러
   // ==========================================
+  // basename(/home-admin-dev) 차이를 제거해 경로 비교를 안정적으로 처리합니다.
+  const normalizePath = useCallback((path = '') => {
+    if (!path) return '';
+    const withLeadingSlash = path.startsWith('/') ? path : `/${path}`;
+    return withLeadingSlash.length > 1 && withLeadingSlash.endsWith('/')
+      ? withLeadingSlash.slice(0, -1)
+      : withLeadingSlash;
+  }, []);
+
+  const basePath = useMemo(
+    () => normalizePath(import.meta.env.BASE_URL || '/'),
+    [normalizePath]
+  );
+
+  const toCanonicalPath = useCallback((path = '') => {
+    const normalized = normalizePath(path);
+    if (!normalized) return '';
+    if (basePath && basePath !== '/' && normalized.startsWith(basePath)) {
+      const stripped = normalized.slice(basePath.length) || '/';
+      return normalizePath(stripped);
+    }
+    return normalized;
+  }, [basePath, normalizePath]);
+
+  // 현재 URL이 해당 탭의 하위 경로를 포함하면 같은 탭 범위로 간주합니다.
+  const isCurrentWithinTab = (tabPath) => {
+    const currentPath = toCanonicalPath(location.pathname);
+    const canonicalTabPath = toCanonicalPath(tabPath);
+
+    if (!currentPath || !canonicalTabPath) return false;
+    return (
+      currentPath === canonicalTabPath ||
+      currentPath.startsWith(`${canonicalTabPath}/`)
+    );
+  };
+
+  // 현재 경로가 어느 탭 범위(기본/하위경로)에 속하는지 찾습니다.
+  // prefix가 가장 긴 탭을 우선하여 정확도를 높입니다.
+  const findMatchedTabPath = useCallback((pathname) => {
+    const currentPath = toCanonicalPath(pathname);
+    if (!currentPath) return null;
+
+    let matchedPath = null;
+    let matchedLength = -1;
+
+    openTabs.forEach((tab) => {
+      const tabPath = toCanonicalPath(tab.path);
+      if (!tabPath) return;
+
+      const isMatch =
+        currentPath === tabPath || currentPath.startsWith(`${tabPath}/`);
+
+      if (isMatch && tabPath.length > matchedLength) {
+        matchedPath = tabPath;
+        matchedLength = tabPath.length;
+      }
+    });
+
+    return matchedPath;
+  }, [openTabs, toCanonicalPath]);
+
+  const resolveTabNavigatePath = useCallback((tabPath) => {
+    const canonicalTabPath = toCanonicalPath(tabPath);
+    const rememberedPath =
+      lastVisitedPathByTabRef.current.get(canonicalTabPath);
+    return rememberedPath || tabPath;
+  }, [toCanonicalPath]);
+
+  // 탭별 마지막 방문 경로를 기억합니다.
+  useEffect(() => {
+    const matchedTabPath = findMatchedTabPath(location.pathname);
+    const currentPath = toCanonicalPath(location.pathname);
+
+    if (matchedTabPath && currentPath) {
+      lastVisitedPathByTabRef.current.set(matchedTabPath, currentPath);
+    }
+
+    // 닫힌 탭의 기록은 정리합니다.
+    const openTabPathSet = new Set(openTabs.map((tab) => toCanonicalPath(tab.path)));
+    for (const tabPath of lastVisitedPathByTabRef.current.keys()) {
+      if (!openTabPathSet.has(tabPath)) {
+        lastVisitedPathByTabRef.current.delete(tabPath);
+      }
+    }
+  }, [location.pathname, openTabs, findMatchedTabPath, toCanonicalPath]);
+
   /**
    * 탭을 클릭했을 때 해당 탭으로 전환
    * - 선택한 탭을 활성화
@@ -68,7 +157,14 @@ export default function Contentbox({ children }) {
    */
   const handleTabClick = (tabPath) => {
     setActiveTab(tabPath); // Zustand store의 활성 탭 변경
-    navigate(tabPath); // 해당 경로로 이동
+
+    // 같은 탭(상세/수정 포함) 내부라면 URL 이동을 강제하지 않습니다.
+    // 예: /intgLgnSite/0050/update 상태에서 같은 탭 클릭 시 현재 경로 유지
+    if (isCurrentWithinTab(tabPath)) {
+      return;
+    }
+
+    navigate(resolveTabNavigatePath(tabPath)); // 마지막 방문 경로 우선 이동
   };
 
   // ==========================================
@@ -124,7 +220,7 @@ export default function Contentbox({ children }) {
         // 순서 중요: 탭 제거 -> 활성 탭 변경 -> 페이지 이동
         removeTab(tabPath); // 1. 탭 목록에서 제거
         setActiveTab(nextTab.path); // 2. 다음 탭을 활성화
-        navigate(nextTab.path); // 3. 다음 탭의 페이지로 이동
+        navigate(resolveTabNavigatePath(nextTab.path)); // 3. 다음 탭의 페이지로 이동
       } else {
         // ========================================
         // 마지막 남은 탭을 닫는 경우: 홈으로 이동
@@ -156,16 +252,30 @@ export default function Contentbox({ children }) {
               // 현재 활성 탭이면 'active' 클래스 추가
               className={activeTabPath === tab.path ? 'active' : ''}
               key={tab.path}
-              // 탭 클릭 시 해당 탭으로 전환
-              onClick={() => handleTabClick(tab.path)}
             >
               {/* 탭 이름 표시 */}
-              <a href="#">{tab.name}</a>
+              <a
+                href={tab.path}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleTabClick(tab.path);
+                }}
+              >
+                {tab.name}
+              </a>
 
               {/* 탭 닫기 버튼 (X 아이콘) */}
               <i
                 className="close"
                 onClick={(e) => handleTabClose(e, tab.path)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleTabClose(e, tab.path);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               />
             </li>
           ))}
