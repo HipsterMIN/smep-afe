@@ -1,4 +1,5 @@
 // context/UserMenuContext.jsx
+import { useAuth } from '@context/AuthContext';
 import { componentMap } from '@routes/componentMap';
 import { useMenuStore } from '@store/useMenuStore';
 import { buildFullPath } from '@utils/menuUtils';
@@ -43,6 +44,9 @@ const UserMenuContext = createContext();
  * </UserMenuProvider>
  */
 export function UserMenuProvider({ children }) {
+  const { token } = useAuth();
+  const authState = token ? 'AUTH' : 'ANON';
+
   // --------------------------------------------------------------------------
   // 1. React Router의 현재 위치 정보
   // --------------------------------------------------------------------------
@@ -67,8 +71,14 @@ export function UserMenuProvider({ children }) {
    * error: API 호출 실패 시 에러 메시지
    * fetchMenuData: 메뉴 데이터 가져오기 함수
    */
-  const { menuTree, flatMenuMap, isLoading, error, fetchMenuData } =
-    useMenuStore();
+  const {
+    menuTree,
+    flatMenuMap,
+    isLoading,
+    error,
+    fetchMenuData,
+    lastFetchedAuthState,
+  } = useMenuStore();
 
   // --------------------------------------------------------------------------
   // 3. 초기화: 컴포넌트 마운트 시 메뉴 데이터 로드
@@ -79,10 +89,22 @@ export function UserMenuProvider({ children }) {
    * - 실질적으로 컴포넌트 마운트 시 1회만 실행
    */
   useEffect(() => {
-    if (!menuTree) {
-      fetchMenuData();
+    if (isLoading) return;
+
+    const shouldFetchInitially = !menuTree;
+    const shouldRefetchByAuthChange =
+      lastFetchedAuthState !== null && lastFetchedAuthState !== authState;
+
+    if (shouldFetchInitially || shouldRefetchByAuthChange) {
+      fetchMenuData(authState);
     }
-  }, [menuTree, fetchMenuData]);
+  }, [
+    menuTree,
+    isLoading,
+    fetchMenuData,
+    authState,
+    lastFetchedAuthState,
+  ]);
 
   // ==========================================================================
   // 핵심 함수들
