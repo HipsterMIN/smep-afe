@@ -4,7 +4,7 @@ import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import RadioButton from '@components/ui/RadioButton.jsx';
 import http from '@lib/http.js';
 import PropTypes from 'prop-types';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 export default function MenuBase({
   pageTitle,
@@ -13,6 +13,8 @@ export default function MenuBase({
   maxDepth,
   showBoardOption,
 }) {
+  const SCRN_ID_PREFIX = 'S_PIIO_';
+
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
   const apiRef = useRef(null);
@@ -42,7 +44,94 @@ export default function MenuBase({
     mbrTypeCd,
     upendMenuExpsrYn: '',
     lfsdMenuExpsrYn: '',
+    mdfrId: '',
+    mdfcnDt: '',
   });
+
+  const scrnTypeOptions = useMemo(
+    () => [
+      { value: 'M', label: '그룹메뉴' },
+      { value: 'L', label: '게시판' },
+      { value: 'T', label: '화면' },
+    ],
+    []
+  );
+
+  const useYnOptions = useMemo(
+    () => [
+      { value: 'Y', label: '사용' },
+      { value: 'N', label: '사용안함' },
+    ],
+    []
+  );
+
+  const getScrnTypeLabel = (code) => {
+    if (code === 'M') return '그룹메뉴';
+    if (code === 'T') return '화면';
+    if (code === 'L') return '게시판';
+    return code ?? '';
+  };
+
+  const findMenuById = (menuId, list) => {
+    for (const item of list ?? []) {
+      if (item.menuId === menuId) return item;
+      const found = findMenuById(menuId, item.data);
+      if (found) return found;
+    }
+    return null;
+  };
+
+  const getMenuPath = (menuId) => {
+    if (!menuId) return '-';
+    const node = findMenuById(menuId, rows);
+    if (!node) return menuId;
+
+    const path = [];
+    let current = node;
+    while (current) {
+      path.unshift(current.menuNm || current.menuId);
+      current = current.upMenuId ? findMenuById(current.upMenuId, rows) : null;
+    }
+    return path.join(' > ');
+  };
+
+  const formatDateTime = (dateTimeValue) => {
+    if (!dateTimeValue) return '-';
+    if (Array.isArray(dateTimeValue) && dateTimeValue.length >= 5) {
+      const [y, m, d, hh, mm] = dateTimeValue;
+      const pad = (num) => String(num).padStart(2, '0');
+      return `${y}-${pad(m)}-${pad(d)} ${pad(hh)}:${pad(mm)}`;
+    }
+    if (typeof dateTimeValue === 'string') {
+      return dateTimeValue.replace('T', ' ').slice(0, 16);
+    }
+    return String(dateTimeValue);
+  };
+
+  const normalizeUrlSegment = (segment) =>
+    String(segment ?? '')
+      .trim()
+      .replace(/^\/+|\/+$/g, '');
+
+  const buildFinalUrl = () => {
+    const segments = [];
+    let currentUpMenuId = form.upMenuId;
+
+    while (currentUpMenuId) {
+      const parent = findMenuById(currentUpMenuId, rows);
+      if (!parent) break;
+
+      const parentSeg = normalizeUrlSegment(parent.scrnUrlAddr);
+      if (parentSeg) segments.unshift(parentSeg);
+      currentUpMenuId = parent.upMenuId;
+    }
+
+    const currentSeg = normalizeUrlSegment(form.scrnUrlAddr);
+    if (currentSeg) segments.push(currentSeg);
+
+    if (segments.length === 0) return '-';
+    return `/${segments.join('/')}`;
+  };
 
   useEffect(() => {
     fetchMenus();
@@ -62,6 +151,24 @@ export default function MenuBase({
   };
 
   const extractVal = (v) => (v && v.target !== undefined ? v.target.value : v);
+
+  const getScrnIdSuffix = (scrnId) => {
+    const value = String(scrnId ?? '').trim();
+    if (!value) return '';
+    if (value.startsWith(SCRN_ID_PREFIX)) {
+      return value.slice(SCRN_ID_PREFIX.length);
+    }
+    return value;
+  };
+
+  const handleScrnIdChange = (value) => {
+    const raw = String(extractVal(value) ?? '');
+    const suffix = raw.replace(/\D/g, '').slice(0, 5);
+    setForm((prev) => ({
+      ...prev,
+      scrnId: suffix ? `${SCRN_ID_PREFIX}${suffix}` : '',
+    }));
+  };
 
   const handleInputChange = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: extractVal(value) }));
@@ -91,6 +198,8 @@ export default function MenuBase({
       mbrTypeCd,
       upendMenuExpsrYn: row.upendMenuExpsrYn,
       lfsdMenuExpsrYn: row.lfsdMenuExpsrYn,
+      mdfrId: row.mdfrId ?? '',
+      mdfcnDt: row.mdfcnDt ?? '',
     });
   };
 
@@ -110,6 +219,8 @@ export default function MenuBase({
       mbrTypeCd,
       upendMenuExpsrYn: 'Y',
       lfsdMenuExpsrYn: 'Y',
+      mdfrId: '',
+      mdfcnDt: '',
     });
   };
 
@@ -172,6 +283,8 @@ export default function MenuBase({
       mbrTypeCd,
       upendMenuExpsrYn: '',
       lfsdMenuExpsrYn: '',
+      mdfrId: '',
+      mdfcnDt: '',
     });
   };
 
@@ -218,6 +331,16 @@ export default function MenuBase({
     data: PropTypes.object,
   };
 
+  const TypeCell = ({ row, data }) => {
+    const item = row || data || {};
+    return getScrnTypeLabel(item.scrnTypeCd);
+  };
+
+  TypeCell.propTypes = {
+    row: PropTypes.object,
+    data: PropTypes.object,
+  };
+
   const columns = [
     {
       id: 'menuNm',
@@ -229,7 +352,13 @@ export default function MenuBase({
     { id: 'menuId', header: '메뉴ID', resize: true, width: 110 },
     { id: 'sortSeq', header: '순서', resize: true, width: 43 },
     { id: 'scrnUrlAddr', header: 'URL', resize: true, width: 124 },
-    { id: 'scrnTypeCd', header: '유형', resize: true, width: 42 },
+    {
+      id: 'scrnTypeCd',
+      header: '유형',
+      resize: true,
+      width: 80,
+      cell: (props) => <TypeCell {...props} />,
+    },
     { id: 'useYn', header: '사용여부', resize: true, width: 66 },
     {
       id: 'management',
@@ -300,16 +429,22 @@ export default function MenuBase({
                   menuType="input"
                   menuSize="300px"
                   menuName="URL"
+                  value={params.scrnUrlAddr}
+                  onChange={(v) => handleParamInputChange('scrnUrlAddr', v)}
                 />
                 <MenuInputBox
                   menuType="select"
                   menuName="유형"
-                  selectOption="Y"
+                  options={scrnTypeOptions}
+                  value={params.scrnTypeCd}
+                  onChange={(v) => handleParamInputChange('scrnTypeCd', v)}
                 />
                 <MenuInputBox
                   menuType="select"
                   menuName="사용여부"
-                  selectOption="전체"
+                  options={useYnOptions}
+                  value={params.useYn}
+                  onChange={(v) => handleParamInputChange('useYn', v)}
                 />
               </div>
             </div>
@@ -368,9 +503,7 @@ export default function MenuBase({
                 </tr>
                 <tr>
                   <td>상위메뉴</td>
-                  <td>
-                    시스템 관리 {'>'} 시스템 설정 {'>'} 게시판 관리
-                  </td>
+                  <td>{getMenuPath(form.upMenuId)}</td>
                 </tr>
                 <tr>
                   <td>유형</td>
@@ -384,7 +517,7 @@ export default function MenuBase({
                         selectedValue={form.scrnTypeCd}
                         onChange={(v) => handleInputChange('scrnTypeCd', v)}
                       />
-                      {mbrTypeCd === 'USR' && (
+                      {showBoardOption && (
                         <RadioButton
                           groupId="2"
                           radioGroup="group1"
@@ -425,11 +558,25 @@ export default function MenuBase({
                       value={form.scrnUrlAddr}
                       onChange={(v) => handleInputChange('scrnUrlAddr', v)}
                     />
+                    <div style={{ marginTop: 6, color: '#666', fontSize: 12 }}>
+                      최종 URL: {buildFinalUrl()}
+                    </div>
                   </td>
                 </tr>
                 <tr>
                   <td>화면ID</td>
-                  <td>{form.scrnId}</td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span>{SCRN_ID_PREFIX}</span>
+                      <MenuInputBox
+                        menuType="input"
+                        menuSize="200px"
+                        placeholder="5자리 숫자 (미입력 시 자동채번)"
+                        value={getScrnIdSuffix(form.scrnId)}
+                        onChange={handleScrnIdChange}
+                      />
+                    </div>
+                  </td>
                 </tr>
                 {mbrTypeCd === 'USR' && (
                   <>
@@ -514,11 +661,11 @@ export default function MenuBase({
                 </tr>
                 <tr>
                   <td>수정자</td>
-                  <td>홍길동</td>
+                  <td>{form.mdfrId || '-'}</td>
                 </tr>
                 <tr>
                   <td>최종수정일시</td>
-                  <td>YYYY-MM-DD HH:MM</td>
+                  <td>{formatDateTime(form.mdfcnDt)}</td>
                 </tr>
               </tbody>
             </table>
