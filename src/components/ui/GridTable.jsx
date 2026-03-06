@@ -6,6 +6,7 @@ import React from 'react';
 import ButtonCell from '../custom/ButtonCell';
 import CheckBox from './CheckBox';
 import PropTypes from "prop-types";
+import TextAlign from '@tiptap/extension-text-align';
 
 // 그리드 컬럼 정의
 export const defaultColumns = [
@@ -133,7 +134,7 @@ export default function GridTable({
                                   }) {
   return (
     <Willow>
-      <Grid data={data} columns={columns} {...gridProps} />
+      <Grid data={data} columns={columns} {...gridProps} style={{ textAlign : 'center' }}/>
     </Willow>
   );
 }

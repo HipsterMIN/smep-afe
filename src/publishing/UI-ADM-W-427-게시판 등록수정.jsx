@@ -258,7 +258,7 @@ export default function CommonCode() {
                                             <span className="statusTxt">{category.name}</span>
                                           )}
                                         </td>
-                                        <td>
+                                        <td className="ontableFlex">
                                           {category.isEditing ? (
                                             <Button
                                               btnType="add"
@@ -275,7 +275,7 @@ export default function CommonCode() {
                                             />
                                           )}
                                         </td>
-                                        <td>
+                                        <td className="ontableFlex">
                                           <Button
                                             btnType="del"
                                             size="small"

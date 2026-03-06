@@ -780,6 +780,7 @@ caption {
 .onselect-form .onparagraph dl {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 20px;
 }
 .onselect-form .onparagraph dl dt {
@@ -1130,8 +1131,13 @@ button.defaultbutton.del {
   background-color: #DC3545;
 }
 button.defaultbutton.edit {
-  background-color: #707070;
+  min-width: 52px;
+  height: 24px;
+  font-size: 13px;
   line-height: 0;
+  padding: 0;
+  margin-left: 4px;
+  background-color: #707070;
 }
 button.defaultbutton.reset {
   background-color: #707070;
@@ -1434,6 +1440,10 @@ input.searchBox::placeholder {
   border-left: 1px solid #e1e1e1;
   padding: 6px 12px;
   text-align: left;
+}
+.ontableFlex > button, .ontableFlex > button.defaultbutton.edit {
+  display: inline-block;
+  margin: 0;
 }
 /* grid table, custom css */
 .name.wx-wzokGf21 {
