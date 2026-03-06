@@ -7,7 +7,7 @@ import { useMenuStore } from '@store/useMenuStore';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useMatches, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useMatches, useNavigate, useParams } from 'react-router-dom';
 
 const formatYmd = (date) => {
   const year = date.getFullYear();
@@ -45,10 +45,12 @@ const toNullableNumber = (value) => {
 };
 
 export default function PstList() {
+  const location = useLocation();
   const navigate = useNavigate();
   const matches = useMatches();
   const flatMenuMap = useMenuStore((state) => state.flatMenuMap);
   const { bbsNo: bbsNoFromParams } = useParams();
+  const refreshListAt = location.state?.refreshListAt;
 
   const currentMenuId = useMemo(() => {
     const matchWithHandle = [...matches]
@@ -64,7 +66,11 @@ export default function PstList() {
 
     const mappedBbsNo = flatMenuMap?.[currentMenuId]?.bbsNo;
 
-    if (mappedBbsNo === null || mappedBbsNo === undefined || mappedBbsNo === '') {
+    if (
+      mappedBbsNo === null ||
+      mappedBbsNo === undefined ||
+      mappedBbsNo === ''
+    ) {
       return '';
     }
 
@@ -78,7 +84,9 @@ export default function PstList() {
   const [totalCount, setTotalCount] = useState(0);
   const [cursor, setCursor] = useState(null);
   const [hasNext, setHasNext] = useState(true);
-  const [searchParams, setSearchParams] = useState(() => createDefaultSearchParams());
+  const [searchParams, setSearchParams] = useState(() =>
+    createDefaultSearchParams()
+  );
   const [bbsTypeCdList, setBbsTypeCdList] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const observerRef = useRef(null);
@@ -128,7 +136,11 @@ export default function PstList() {
     fetchPstList(null, true);
   };
 
-  const fetchPstList = async (nextCursor = null, reset = false, forcedSearchParams = null) => {
+  const fetchPstList = async (
+    nextCursor = null,
+    reset = false,
+    forcedSearchParams = null
+  ) => {
     if (!bbsNo) return;
     if (loading) return;
     if (!hasNext && !reset) return;
@@ -140,7 +152,9 @@ export default function PstList() {
     }
 
     try {
-      const params = reset ? currentSearchParams : appliedSearchParamsRef.current;
+      const params = reset
+        ? currentSearchParams
+        : appliedSearchParamsRef.current;
       const parsedBbsNo = toNullableNumber(bbsNo);
       if (parsedBbsNo === null) {
         throw new Error('Invalid bbsNo');
@@ -212,7 +226,7 @@ export default function PstList() {
   };
 
   const handleMoveToCreate = () => {
-    navigate('create');
+    navigate(`create?bbsNo=${encodeURIComponent(bbsNo)}`);
   };
 
   const handleMoveToEdit = (pstNoValue) => {
@@ -224,7 +238,7 @@ export default function PstList() {
   };
 
   const handleGoToList = () => {
-      navigate(-1);
+    navigate(-1);
   };
 
   const pstColumns = [
@@ -329,7 +343,7 @@ export default function PstList() {
     appliedSearchParamsRef.current = resetSearchParams;
     fetchPstList(null, true, resetSearchParams);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bbsNo, clearBoardState]);
+  }, [bbsNo, clearBoardState, refreshListAt]);
 
   useEffect(() => {
     if (!observerRef.current) return;
@@ -379,10 +393,16 @@ export default function PstList() {
                   <td className="ontxtbold">게시판 소개글</td>
                 </tr>
                 <tr>
-                  <td className="ontxtcenter ontxtnormal">{bbsInfo?.bbsNo || bbsNo || '-'}</td>
-                  <td className="br-right ontxtnormal">{bbsInfo?.bbsNm || '-'}</td>
+                  <td className="ontxtcenter ontxtnormal">
+                    {bbsInfo?.bbsNo || bbsNo || '-'}
+                  </td>
+                  <td className="br-right ontxtnormal">
+                    {bbsInfo?.bbsNm || '-'}
+                  </td>
                   <td className="ontxtcenter ontxtnormal">{bbsTypeLabel}</td>
-                  <td className="ontxtnormal">{stripHtmlTags(bbsInfo?.bbsExplnCn || '') || '-'}</td>
+                  <td className="ontxtnormal">
+                    {stripHtmlTags(bbsInfo?.bbsExplnCn || '') || '-'}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -390,7 +410,11 @@ export default function PstList() {
           <div className="onflexbtns">
             {canShowBackToBoardListButton && (
               <div style={{ marginRight: 'auto' }}>
-                <Button btnType="list" btnNames="목록" onClick={handleGoToList} />
+                <Button
+                  btnType="list"
+                  btnNames="목록"
+                  onClick={handleGoToList}
+                />
               </div>
             )}
           </div>
@@ -451,7 +475,11 @@ export default function PstList() {
               </div>
 
               <div className="onbtn" style={{ marginLeft: 'auto' }}>
-                <Button btnType="menuSearch" btnNames="검색" onClick={() => fetchPstList(null, true)} />
+                <Button
+                  btnType="menuSearch"
+                  btnNames="검색"
+                  onClick={() => fetchPstList(null, true)}
+                />
               </div>
             </div>
           </div>
@@ -460,10 +488,17 @@ export default function PstList() {
             <span>
               총 <b>{totalCount}</b>건
             </span>
-            <Button btnType="add" btnNames="등록" onClick={handleMoveToCreate} />
+            <Button
+              btnType="add"
+              btnNames="등록"
+              onClick={handleMoveToCreate}
+            />
           </div>
 
-          <div className="ongrid-tableform" style={{ scrollbarGutter: 'stable' }}>
+          <div
+            className="ongrid-tableform"
+            style={{ scrollbarGutter: 'stable' }}
+          >
             <GridTable
               data={pstData}
               columns={pstColumns}
@@ -475,7 +510,10 @@ export default function PstList() {
             <div ref={observerRef} style={{ height: 40 }} />
             <div
               className="loading"
-              style={{ minHeight: 20, visibility: loading ? 'visible' : 'hidden' }}
+              style={{
+                minHeight: 20,
+                visibility: loading ? 'visible' : 'hidden',
+              }}
             >
               데이터를 불러오는 중...
             </div>
