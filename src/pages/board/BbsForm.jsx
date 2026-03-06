@@ -76,7 +76,9 @@ export default function BbsForm() {
         applyDetailToForm(response?.data);
       } catch (error) {
         console.error('게시판 상세 조회 실패:', error);
-        alert(error?.response?.data?.message || '게시판 상세 조회에 실패했습니다.');
+        alert(
+          error?.response?.data?.message || '게시판 상세 조회에 실패했습니다.'
+        );
       } finally {
         setLoading(false);
       }
@@ -106,12 +108,19 @@ export default function BbsForm() {
       alert('카테고리 내용을 입력해 주세요.');
       return;
     }
-    setCategories([...categories, { name: categoryName, useYn: 'Y', isEditing: false }]);
+    setCategories([
+      ...categories,
+      { name: categoryName, useYn: 'Y', isEditing: false },
+    ]);
     setCategoryInput('');
   };
 
   const handleEditCategory = (index) => {
-    setCategories(categories.map((cat, i) => (i === index ? { ...cat, isEditing: true } : cat)));
+    setCategories(
+      categories.map((cat, i) =>
+        i === index ? { ...cat, isEditing: true } : cat
+      )
+    );
   };
 
   const handleSaveCategory = (index, newName) => {
@@ -122,7 +131,9 @@ export default function BbsForm() {
     }
     setCategories(
       categories.map((cat, i) =>
-        i === index ? { ...cat, name: categoryName, useYn: 'Y', isEditing: false } : cat
+        i === index
+          ? { ...cat, name: categoryName, useYn: 'Y', isEditing: false }
+          : cat
       )
     );
   };
@@ -155,7 +166,10 @@ export default function BbsForm() {
       const params = { scrnId: trimmedScrnId };
       if (isEdit && bbsNo) params.bbsNo = bbsNo;
 
-      const response = await http.get('/api/v1/board/bbs/scrn-id/duplicate-check', { params });
+      const response = await http.get(
+        '/api/v1/board/bbs/scrn-id/duplicate-check',
+        { params }
+      );
       const duplicated = Boolean(response?.data?.duplicated);
       if (duplicated) {
         alert('이미 사용 중인 화면 ID 입니다.');
@@ -164,13 +178,19 @@ export default function BbsForm() {
       alert('사용 가능한 화면 ID 입니다.');
     } catch (error) {
       console.error('화면 ID 중복 체크 실패:', error);
-      alert(error?.response?.data?.message || '화면 ID 중복 체크에 실패했습니다.');
+      alert(
+        error?.response?.data?.message || '화면 ID 중복 체크에 실패했습니다.'
+      );
     }
   };
 
   const handleGoToList = () => {
-    if (window.confirm('작성 중인 내용은 저장되지 않습니다. 목록으로 이동하시겠습니까?')) {
-      navigate(-1);
+    if (
+      window.confirm(
+        '작성 중인 내용은 저장되지 않습니다. 목록으로 이동하시겠습니까?'
+      )
+    ) {
+      navigate('..');
     }
   };
 
@@ -187,7 +207,8 @@ export default function BbsForm() {
     if (formData.ctgryUseYn === 'Y') {
       const hasCategory = categories.some(
         (category) =>
-          (category?.useYn || 'Y') !== 'N' && (category?.name || '').trim() !== ''
+          (category?.useYn || 'Y') !== 'N' &&
+          (category?.name || '').trim() !== ''
       );
       if (!hasCategory) {
         alert('카테고리를 1개 이상 등록해 주세요.');
@@ -290,7 +311,9 @@ export default function BbsForm() {
                     />
                   </td>
                   <td>게시판 ID</td>
-                  <td>{isEdit ? formData.bbsNo || bbsNo || '-' : '자동생성'}</td>
+                  <td>
+                    {isEdit ? formData.bbsNo || bbsNo || '-' : '자동생성'}
+                  </td>
                 </tr>
 
                 <tr>
@@ -373,7 +396,9 @@ export default function BbsForm() {
                         radioValue="Y"
                         radioName="사용"
                         selectedValue={formData.fileAtchPsbltyYn}
-                        onChange={(value) => handleChange('fileAtchPsbltyYn', value)}
+                        onChange={(value) =>
+                          handleChange('fileAtchPsbltyYn', value)
+                        }
                       />
                       <RadioButton
                         groupId="fileAtchPsbltyYn_n"
@@ -381,7 +406,9 @@ export default function BbsForm() {
                         radioValue="N"
                         radioName="미사용"
                         selectedValue={formData.fileAtchPsbltyYn}
-                        onChange={(value) => handleChange('fileAtchPsbltyYn', value)}
+                        onChange={(value) =>
+                          handleChange('fileAtchPsbltyYn', value)
+                        }
                       />
                     </div>
                   </td>
@@ -401,7 +428,11 @@ export default function BbsForm() {
                             }
                           }}
                         />
-                        <Button btnType="add" btnNames="추가" onClick={handleAddCategory} />
+                        <Button
+                          btnType="add"
+                          btnNames="추가"
+                          onClick={handleAddCategory}
+                        />
                       </div>
                       <div className="ontableBox categoryEdit">
                         <table>
@@ -413,13 +444,18 @@ export default function BbsForm() {
                           <tbody>
                             {visibleCategories.length === 0 ? (
                               <tr>
-                                <td colSpan={3} style={{ textAlign: 'center', color: '#999' }}>
+                                <td
+                                  colSpan={3}
+                                  style={{ textAlign: 'center', color: '#999' }}
+                                >
                                   등록된 카테고리가 없습니다.
                                 </td>
                               </tr>
                             ) : (
                               visibleCategories.map(({ category, index }) => (
-                                <tr key={`${category.ctgryNo ?? 'new'}-${index}`}>
+                                <tr
+                                  key={`${category.ctgryNo ?? 'new'}-${index}`}
+                                >
                                   <td>
                                     {category.isEditing ? (
                                       <MenuInputBox
@@ -428,18 +464,24 @@ export default function BbsForm() {
                                         value={category.name}
                                         onChange={(e) => {
                                           const newCategories = [...categories];
-                                          newCategories[index].name = e.target.value;
+                                          newCategories[index].name =
+                                            e.target.value;
                                           setCategories(newCategories);
                                         }}
                                         onKeyDown={(e) => {
                                           if (e.key === 'Enter') {
                                             e.preventDefault();
-                                            handleSaveCategory(index, category.name);
+                                            handleSaveCategory(
+                                              index,
+                                              category.name
+                                            );
                                           }
                                         }}
                                       />
                                     ) : (
-                                      <span className="statusTxt">{category.name}</span>
+                                      <span className="statusTxt">
+                                        {category.name}
+                                      </span>
                                     )}
                                   </td>
                                   <td>
@@ -448,14 +490,21 @@ export default function BbsForm() {
                                         btnType="add"
                                         btnNames="저장"
                                         size="small"
-                                        onClick={() => handleSaveCategory(index, category.name)}
+                                        onClick={() =>
+                                          handleSaveCategory(
+                                            index,
+                                            category.name
+                                          )
+                                        }
                                       />
                                     ) : (
                                       <Button
                                         btnType="edit"
                                         size="small"
                                         btnNames="수정"
-                                        onClick={() => handleEditCategory(index)}
+                                        onClick={() =>
+                                          handleEditCategory(index)
+                                        }
                                       />
                                     )}
                                   </td>
@@ -464,7 +513,9 @@ export default function BbsForm() {
                                       btnType="del"
                                       size="small"
                                       btnNames="삭제"
-                                      onClick={() => handleDeleteCategory(index)}
+                                      onClick={() =>
+                                        handleDeleteCategory(index)
+                                      }
                                     />
                                   </td>
                                 </tr>
@@ -511,7 +562,9 @@ export default function BbsForm() {
                         radioValue="Y"
                         radioName="사용"
                         selectedValue={formData.cmntPsbltyYn}
-                        onChange={(value) => handleChange('cmntPsbltyYn', value)}
+                        onChange={(value) =>
+                          handleChange('cmntPsbltyYn', value)
+                        }
                       />
                       <RadioButton
                         groupId="cmntPsbltyYn_n"
@@ -519,7 +572,9 @@ export default function BbsForm() {
                         radioValue="N"
                         radioName="미사용"
                         selectedValue={formData.cmntPsbltyYn}
-                        onChange={(value) => handleChange('cmntPsbltyYn', value)}
+                        onChange={(value) =>
+                          handleChange('cmntPsbltyYn', value)
+                        }
                       />
                     </div>
                   </td>
@@ -533,14 +588,18 @@ export default function BbsForm() {
                         menuType="input"
                         menuSize="80px"
                         value={formData.atchFilePsblCnt}
-                        onChange={(e) => handleChange('atchFilePsblCnt', e.target.value)}
+                        onChange={(e) =>
+                          handleChange('atchFilePsblCnt', e.target.value)
+                        }
                       />
                       <span>개 / 파일크기제한</span>
                       <MenuInputBox
                         menuType="input"
                         menuSize="80px"
                         value={formData.maxAtchFileSz}
-                        onChange={(e) => handleChange('maxAtchFileSz', e.target.value)}
+                        onChange={(e) =>
+                          handleChange('maxAtchFileSz', e.target.value)
+                        }
                       />
                       <span>MB (0인 경우 제한 없음)</span>
                     </div>
@@ -557,7 +616,11 @@ export default function BbsForm() {
                         value={formData.scrnId}
                         onChange={(e) => handleChange('scrnId', e.target.value)}
                       />
-                      <Button btnType="edit" btnNames="중복체크" onClick={handleCheckDuplicateApi} />
+                      <Button
+                        btnType="edit"
+                        btnNames="중복체크"
+                        onClick={handleCheckDuplicateApi}
+                      />
                     </div>
                   </td>
                 </tr>
