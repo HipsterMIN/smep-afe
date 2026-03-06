@@ -58,7 +58,7 @@ export default function SurveyList() {
   };
 
   const handleRegister = () => {
-    navigate('/survey-manage');
+    navigate('create');
   };
 
   const formatDate = (date) => {

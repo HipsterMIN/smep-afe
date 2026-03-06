@@ -255,7 +255,7 @@ export default function SurveyManage() {
         await http.post('/api/v1/surveys', payload, config);
         alert('설문이 생성/저장되었습니다.');
       }
-      navigate('/survey-list');
+      navigate('..');
     } catch (error) {
       console.error('설문 저장 실패:', error);
       const errorCode = error.response?.data?.code;
@@ -385,7 +385,7 @@ export default function SurveyManage() {
           </div>
           <div className="onflexbtns">
             <div style={{ marginRight: 'auto' }}>
-              <Button btnType="list" btnNames="목록" onClick={() => navigate('/survey-list')} />
+              <Button btnType="list" btnNames="목록" onClick={() => navigate('..')} />
             </div>
             {useYn === 'N' && (
                <Button btnType="add" btnNames="게시 (PUBLISH)" onClick={handlePublish} />
