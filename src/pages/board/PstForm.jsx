@@ -8,7 +8,7 @@ import http from '@lib/http.js';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 const unwrapData = (response) => {
   if (response && typeof response === 'object' && 'data' in response) {
@@ -84,7 +84,9 @@ const getDeletedExistingFileSns = (files = []) =>
 
 export default function PstForm() {
   const navigate = useNavigate();
-  const { bbsNo, pstNo } = useParams();
+  const [searchParams] = useSearchParams();
+  const { bbsNo: bbsNoFromParams, pstNo } = useParams();
+  const bbsNo = bbsNoFromParams || searchParams.get('bbsNo') || '';
   const isEdit = Boolean(pstNo);
 
   const [loading, setLoading] = useState(false);
@@ -407,7 +409,7 @@ export default function PstForm() {
           responseData?.rprsImgAtchFileId || prev.rprsImgAtchFileId,
       }));
 
-      navigate('..');
+      navigate('..', { state: { refreshListAt: Date.now() } });
     } catch (error) {
       console.error('게시물 저장 실패:', error);
       alert(
