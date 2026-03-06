@@ -70,6 +70,7 @@ export default function PstList() {
 
     return String(mappedBbsNo);
   }, [bbsNoFromParams, currentMenuId, flatMenuMap]);
+  const canShowBackToBoardListButton = Boolean(bbsNoFromParams);
 
   const [bbsInfo, setBbsInfo] = useState(null);
   const [pstData, setPstData] = useState([]);
@@ -387,9 +388,11 @@ export default function PstList() {
             </table>
           </div>
           <div className="onflexbtns">
-            <div style={{ marginRight: 'auto' }}>
-              <Button btnType="list" btnNames="목록" onClick={handleGoToList} />
-            </div>
+            {canShowBackToBoardListButton && (
+              <div style={{ marginRight: 'auto' }}>
+                <Button btnType="list" btnNames="목록" onClick={handleGoToList} />
+              </div>
+            )}
           </div>
         </div>
         <div className="oncontent">
