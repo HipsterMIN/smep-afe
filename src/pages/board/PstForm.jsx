@@ -73,7 +73,12 @@ const mapExistingFile = (file) => ({
 
 const getDeletedExistingFileSns = (files = []) =>
   files
-    .filter((file) => file?.status === 'deleted' && file?.atchFileSn !== null && file?.atchFileSn !== undefined)
+    .filter(
+      (file) =>
+        file?.status === 'deleted' &&
+        file?.atchFileSn !== null &&
+        file?.atchFileSn !== undefined
+    )
     .map((file) => Number(file.atchFileSn))
     .filter((value) => Number.isFinite(value));
 
@@ -112,7 +117,10 @@ export default function PstForm() {
   }, [bbsInfo, bbsTypeOptions]);
 
   const canWriteAnswer = useMemo(() => {
-    const candidates = [String(bbsInfo?.bbsTypeCd || ''), String(bbsTypeLabel || '')]
+    const candidates = [
+      String(bbsInfo?.bbsTypeCd || ''),
+      String(bbsTypeLabel || ''),
+    ]
       .map((value) => value.toUpperCase().replace(/\s+/g, ''))
       .filter(Boolean);
 
@@ -122,7 +130,10 @@ export default function PstForm() {
   }, [bbsInfo, bbsTypeLabel]);
 
   const canShowThumbnailImage = useMemo(() => {
-    const candidates = [String(bbsInfo?.bbsTypeCd || ''), String(bbsTypeLabel || '')]
+    const candidates = [
+      String(bbsInfo?.bbsTypeCd || ''),
+      String(bbsTypeLabel || ''),
+    ]
       .map((value) => value.toUpperCase())
       .filter(Boolean);
 
@@ -131,7 +142,8 @@ export default function PstForm() {
       .some((token) => token === 'IMG' || token === 'VDO');
   }, [bbsInfo, bbsTypeLabel]);
 
-  const isCategoryRequired = bbsInfo?.ctgryUseYn === 'Y' && categoryOptions.length > 0;
+  const isCategoryRequired =
+    bbsInfo?.ctgryUseYn === 'Y' && categoryOptions.length > 0;
 
   useEffect(() => {
     if (isEdit) return;
@@ -183,7 +195,10 @@ export default function PstForm() {
     setFormData((prev) => ({
       ...prev,
       bbsNo: data?.bbsNo || prev.bbsNo,
-      ctgryNo: data?.ctgryNo === null || data?.ctgryNo === undefined ? '' : String(data.ctgryNo),
+      ctgryNo:
+        data?.ctgryNo === null || data?.ctgryNo === undefined
+          ? ''
+          : String(data.ctgryNo),
       pstTtl: data?.pstTtl || '',
       pstCn: data?.pstCn || '',
       pstSrcCn: data?.pstSrcCn || '',
@@ -249,13 +264,17 @@ export default function PstForm() {
         setBbsInfo(bbsDetail || null);
 
         if (isEdit) {
-          const pstResponse = await http.get(`/api/v1/board/pst/${bbsNo}/${pstNo}`);
+          const pstResponse = await http.get(
+            `/api/v1/board/pst/${bbsNo}/${pstNo}`
+          );
           if (!active) return;
           applyDetailToForm(unwrapData(pstResponse));
         }
       } catch (error) {
         console.error('게시물 데이터 조회 실패:', error);
-        alert(error?.response?.data?.message || '게시물 정보를 불러오지 못했습니다.');
+        alert(
+          error?.response?.data?.message || '게시물 정보를 불러오지 못했습니다.'
+        );
       } finally {
         if (active) setLoading(false);
       }
@@ -344,7 +363,10 @@ export default function PstForm() {
       const requestData = buildRequestData();
       const multipart = new FormData();
 
-      multipart.append('data', new Blob([JSON.stringify(requestData)], { type: 'application/json' }));
+      multipart.append(
+        'data',
+        new Blob([JSON.stringify(requestData)], { type: 'application/json' })
+      );
       appendNewFiles(multipart, 'atchFile', attachFiles);
       appendNewFiles(multipart, 'rprsImgAtchFile', rprsImgFiles);
       multipart.append(
@@ -358,11 +380,15 @@ export default function PstForm() {
       let saved = null;
 
       if (isEdit) {
-        saved = await http.put(`/api/v1/board/pst/${bbsNo}/${pstNo}`, multipart, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+        saved = await http.put(
+          `/api/v1/board/pst/${bbsNo}/${pstNo}`,
+          multipart,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
         alert('게시물이 수정되었습니다.');
       } else {
         saved = await http.post('/api/v1/board/pst', multipart, {
@@ -377,10 +403,11 @@ export default function PstForm() {
       setFormData((prev) => ({
         ...prev,
         atchFileId: responseData?.atchFileId || prev.atchFileId,
-        rprsImgAtchFileId: responseData?.rprsImgAtchFileId || prev.rprsImgAtchFileId,
+        rprsImgAtchFileId:
+          responseData?.rprsImgAtchFileId || prev.rprsImgAtchFileId,
       }));
 
-      navigate(-1);
+      navigate('..');
     } catch (error) {
       console.error('게시물 저장 실패:', error);
       alert(
@@ -400,10 +427,12 @@ export default function PstForm() {
     try {
       await http.delete(`/api/v1/board/pst/${bbsNo}/${pstNo}`);
       alert('게시물이 삭제되었습니다.');
-      navigate(-1);
+      navigate('..');
     } catch (error) {
       console.error('게시물 삭제 실패:', error);
-      alert(error?.response?.data?.message || '게시물 삭제 중 오류가 발생했습니다.');
+      alert(
+        error?.response?.data?.message || '게시물 삭제 중 오류가 발생했습니다.'
+      );
     } finally {
       setDeleting(false);
     }
@@ -411,7 +440,7 @@ export default function PstForm() {
 
   const handleGoToList = () => {
     if (saving || deleting) return;
-    navigate(-1);
+    navigate('..');
   };
 
   if (loading) {
@@ -451,7 +480,9 @@ export default function PstForm() {
               <tbody>
                 <tr>
                   <td>게시물 ID</td>
-                  <td>{isEdit ? auditData.pstNo || pstNo || '-' : '자동생성'}</td>
+                  <td>
+                    {isEdit ? auditData.pstNo || pstNo || '-' : '자동생성'}
+                  </td>
                   <td>작성자</td>
                   <td>홍길동</td>
                 </tr>
@@ -494,7 +525,9 @@ export default function PstForm() {
                       menuType="input"
                       menuSize="500px"
                       value={formData.pstUrlAddr}
-                      onChange={(e) => handleChange('pstUrlAddr', e.target.value)}
+                      onChange={(e) =>
+                        handleChange('pstUrlAddr', e.target.value)
+                      }
                     />
                   </td>
                 </tr>
@@ -606,7 +639,10 @@ export default function PstForm() {
                       <td>작성일시</td>
                       <td>
                         {auditData.pstRegDt
-                          ? formatDate(auditData.pstRegDt, 'yyyy-MM-dd HH:mm:ss')
+                          ? formatDate(
+                              auditData.pstRegDt,
+                              'yyyy-MM-dd HH:mm:ss'
+                            )
                           : '-'}
                       </td>
                     </tr>
@@ -616,7 +652,10 @@ export default function PstForm() {
                       <td>수정일시</td>
                       <td>
                         {auditData.pstMdfcnDt
-                          ? formatDate(auditData.pstMdfcnDt, 'yyyy-MM-dd HH:mm:ss')
+                          ? formatDate(
+                              auditData.pstMdfcnDt,
+                              'yyyy-MM-dd HH:mm:ss'
+                            )
                           : '-'}
                       </td>
                     </tr>
@@ -664,10 +703,13 @@ export default function PstForm() {
               onClick={handleDelete}
             />
           )}
-          <Button btnType="add" btnNames={saving ? '저장중...' : '저장'} onClick={handleSave} />
+          <Button
+            btnType="add"
+            btnNames={saving ? '저장중...' : '저장'}
+            onClick={handleSave}
+          />
         </div>
       </div>
     </div>
   );
 }
-
