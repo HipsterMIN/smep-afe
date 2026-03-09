@@ -1,5 +1,7 @@
-﻿import Button from '@components/ui/Button.jsx';
+﻿import Breadcrumb from '@components/ui/Breadcrumb.jsx';
+import Button from '@components/ui/Button.jsx';
 import CheckBox from '@components/ui/CheckBox.jsx';
+import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import Popup from '@components/ui/Popup.jsx';
@@ -9,7 +11,7 @@ import http from '@lib/http.js';
 import { SUPPORT_BUSINESS_RELATED_ANNOUNCEMENT_TYPES } from '@pages/public-announcement/publicAnnouncementType.js';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useMatches, useNavigate, useParams } from 'react-router-dom';
 
 const LIST_PATH = '/sprtBiz/bizPbanc/bizInfo';
 const CANDIDATE_PAGE_SIZE = 20;
@@ -62,8 +64,15 @@ const toId = (bizPbancNo) => String(bizPbancNo);
 
 export default function SupportBusinessForm() {
   const navigate = useNavigate();
+  const matches = useMatches();
   const { sprtBizId } = useParams();
   const isEdit = !!sprtBizId;
+  const routeMenuName =
+    [...matches]
+      .reverse()
+      .map((match) => match?.handle?.menuNm)
+      .find((menuNm) => typeof menuNm === 'string' && menuNm.trim()) || '';
+  const pageTitle = routeMenuName || '통합로그인 사이트 목록';
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -141,6 +150,14 @@ export default function SupportBusinessForm() {
     },
   ];
 
+  const candidateAddActionCell = createGridValueActionCell({
+    getValue: () => '추가',
+    fallback: '추가',
+    onClick: (row) => stageAddRelation(row),
+    variant: 'button',
+    className: 'defaultbutton add',
+  });
+
   const candidateColumns = [
     {
       id: 'rowNumber',
@@ -155,21 +172,7 @@ export default function SupportBusinessForm() {
       id: 'add',
       header: '관리',
       width: 90,
-      cell: ({ row }) => (
-        <button
-          type="button"
-          className="defaultbutton add"
-          data-action="ignore-click"
-          onMouseDown={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            stageAddRelation(row);
-          }}
-        >
-          추가
-        </button>
-      ),
+      cell: candidateAddActionCell,
     },
   ];
 
@@ -564,12 +567,8 @@ export default function SupportBusinessForm() {
   return (
     <div className="oncontentbox full">
       <div className="oncontentTitle">
-        <h2>지원사업 {isEdit ? '수정' : '등록'}</h2>
-        <ul className="onbreadcrumb">
-          <li>지원사업 관리</li>
-          <li>사업공고 관리</li>
-          <li className="on">사업정보 관리</li>
-        </ul>
+        <h2>{pageTitle}</h2>
+        <Breadcrumb pageTitle={pageTitle} />
       </div>
 
       <div className="oncontents">
@@ -899,7 +898,7 @@ export default function SupportBusinessForm() {
             <Button
               btnType="list"
               btnNames="목록"
-              onClick={() => navigate(LIST_PATH)}
+              onClick={() => navigate('..')}
               disabled={saving}
             />
           </div>
@@ -991,4 +990,3 @@ export default function SupportBusinessForm() {
     </div>
   );
 }
-
