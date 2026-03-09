@@ -1,12 +1,14 @@
+import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button';
 import CheckBox from '@components/ui/CheckBox.jsx';
+import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.jsx';
 import GridTable from '@components/ui/GridTable';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import PropTypes from 'prop-types';
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMatches, useNavigate } from 'react-router-dom';
 
 import { PUBLIC_ANNOUNCEMENT_TYPE } from './publicAnnouncementType.js';
 
@@ -49,6 +51,24 @@ export default function PublicAnnouncement({
   const bizTypeOptions = commonCodeOptions.BIZ_PBANC_CLSF_CD || [];
   const supportTypeOptions = commonCodeOptions.BIZ_PBANC_SPRT_TYPE_CD || [];
   const supportInstOptions = commonCodeOptions.BIZ_PBANC_SPRT_INST_CD || [];
+  const matches = useMatches();
+  const routeMenuName =
+    [...matches]
+      .reverse()
+      .map((match) => match?.handle?.menuNm)
+      .find((menuNm) => typeof menuNm === 'string' && menuNm.trim()) || '';
+  const pageTitle = routeMenuName || '통합로그인 사이트 목록';
+
+  const managementActionCell = createGridValueActionCell({
+    getValue: () => '수정',
+    fallback: '수정',
+    onClick: (row) => {
+      if (!row?.bizPbancNo) return;
+      navigate(`${row.bizPbancNo}`);
+    },
+    variant: 'button',
+    className: 'defaultbutton edit',
+  });
 
   const columns = [
     {
@@ -117,22 +137,7 @@ export default function PublicAnnouncement({
       id: 'management',
       header: '관리',
       width: 80,
-      cell: ({ row }) => (
-        <button
-          type="button"
-          className="defaultbutton edit"
-          data-action="ignore-click"
-          onMouseDown={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (!row?.bizPbancNo) return;
-            navigate(`${row.bizPbancNo}`);
-          }}
-        >
-          수정
-        </button>
-      ),
+      cell: managementActionCell,
     },
   ];
 
@@ -252,13 +257,8 @@ export default function PublicAnnouncement({
   return (
     <div className="oncontentbox full">
       <div className="oncontentTitle">
-        <h2>지원사업 공고 목록</h2>
-        <ul className="onbreadcrumb">
-          <li>지원사업 관리</li>
-          <li>사업공고 관리</li>
-          <li>지원사업 공고관리</li>
-          <li className="on">지원사업공고 목록</li>
-        </ul>
+        <h2>{pageTitle}</h2>
+        <Breadcrumb pageTitle={pageTitle} />
       </div>
       <div className="oncontents">
         <div className="oncontent">

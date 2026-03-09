@@ -1,9 +1,10 @@
+import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import http from '@lib/http.js';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { createElement, useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useMatches, useNavigate, useParams } from 'react-router-dom';
 
 const LIST_PATH = '/sprtBiz/bizPbanc/bizInfo';
 
@@ -153,6 +154,15 @@ export default function SupportBusinessDetail() {
   const mapRelationRows = (list) =>
     list.map((item, idx) => ({ ...item, _rowIndex: idx + 1 }));
 
+  const matches = useMatches();
+  const routeMenuName =
+    [...matches]
+      .reverse()
+      .map((match) => match?.handle?.menuNm)
+      .find((menuNm) => typeof menuNm === 'string' && menuNm.trim()) || '';
+
+  const pageTitle = routeMenuName || '통합로그인 사이트 목록';
+
   const relationColumns = [
     {
       id: 'bizPbancNo',
@@ -257,13 +267,8 @@ export default function SupportBusinessDetail() {
   return (
     <div className="oncontentbox full">
       <div className="oncontentTitle">
-        <h2>지원사업 상세조회</h2>
-        <ul className="onbreadcrumb">
-          <li>지원사업 관리</li>
-          <li>사업공고 관리</li>
-          <li>사업정보 관리</li>
-          <li className="on">지원사업 상세조회</li>
-        </ul>
+        <h2>{pageTitle}</h2>
+        <Breadcrumb pageTitle={pageTitle} />
       </div>
 
       <div className="oncontents">
@@ -302,7 +307,10 @@ export default function SupportBusinessDetail() {
                 <tr>
                   <td>기업유형</td>
                   <td>
-                    {labelOrValue(commonCodeMap.ENT_LFCY_SE_CD, detail.entLfcySeCd)}
+                    {labelOrValue(
+                      commonCodeMap.ENT_LFCY_SE_CD,
+                      detail.entLfcySeCd
+                    )}
                   </td>
                   <td>기업구분</td>
                   <td>
@@ -440,7 +448,7 @@ export default function SupportBusinessDetail() {
             <Button
               btnType="list"
               btnNames="목록"
-              onClick={() => navigate(LIST_PATH)}
+              onClick={() => navigate('..')}
             />
           </div>
           <Button
