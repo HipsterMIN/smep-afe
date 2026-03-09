@@ -229,12 +229,19 @@ export default function PstList() {
     navigate(`create?bbsNo=${encodeURIComponent(bbsNo)}`);
   };
 
-  const handleMoveToEdit = (pstNoValue) => {
+  const handleMoveToEdit = (pstNoValue, rowBbsNo) => {
     if (!pstNoValue) {
       alert('게시물 번호가 없습니다.');
       return;
     }
-    navigate(`${pstNoValue}`);
+    const targetBbsNo = rowBbsNo || bbsNo;
+    if (!targetBbsNo) {
+      alert('게시판 번호가 없습니다.');
+      return;
+    }
+    navigate(
+      `${pstNoValue}?bbsNo=${encodeURIComponent(String(targetBbsNo))}`
+    );
   };
 
   const handleGoToList = () => {
@@ -278,7 +285,7 @@ export default function PstList() {
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
-            handleMoveToEdit(row?.pstNo);
+            handleMoveToEdit(row?.pstNo, row?.bbsNo);
           }}
         >
           수정

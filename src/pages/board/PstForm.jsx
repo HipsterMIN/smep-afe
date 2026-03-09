@@ -5,10 +5,16 @@ import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import RadioButton from '@components/ui/RadioButton.jsx';
 import RichEditor from '@components/ui/RichEditor.jsx';
 import http from '@lib/http.js';
+import { useMenuStore } from '@store/useMenuStore';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import {
+  useMatches,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 
 const unwrapData = (response) => {
   if (response && typeof response === 'object' && 'data' in response) {
@@ -84,9 +90,35 @@ const getDeletedExistingFileSns = (files = []) =>
 
 export default function PstForm() {
   const navigate = useNavigate();
+  const matches = useMatches();
+  const flatMenuMap = useMenuStore((state) => state.flatMenuMap);
   const [searchParams] = useSearchParams();
   const { bbsNo: bbsNoFromParams, pstNo } = useParams();
-  const bbsNo = bbsNoFromParams || searchParams.get('bbsNo') || '';
+  const currentMenuId = useMemo(() => {
+    const matchWithHandle = [...matches]
+      .reverse()
+      .find((match) => match.handle?.menuId);
+    return matchWithHandle?.handle?.menuId || null;
+  }, [matches]);
+  const bbsNo = useMemo(() => {
+    if (bbsNoFromParams) return String(bbsNoFromParams);
+
+    const bbsNoFromQuery = searchParams.get('bbsNo');
+    if (bbsNoFromQuery) return String(bbsNoFromQuery);
+
+    if (!currentMenuId) return '';
+
+    const mappedBbsNo = flatMenuMap?.[currentMenuId]?.bbsNo;
+    if (
+      mappedBbsNo === null ||
+      mappedBbsNo === undefined ||
+      mappedBbsNo === ''
+    ) {
+      return '';
+    }
+
+    return String(mappedBbsNo);
+  }, [bbsNoFromParams, searchParams, currentMenuId, flatMenuMap]);
   const isEdit = Boolean(pstNo);
 
   const [loading, setLoading] = useState(false);
