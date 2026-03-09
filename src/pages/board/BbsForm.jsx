@@ -35,6 +35,20 @@ export default function BbsForm() {
     .map((category, index) => ({ category, index }))
     .filter(({ category }) => (category?.useYn || 'Y') !== 'N');
 
+  const resolveSortSeq = (value, fallback) => {
+    const numericValue = Number(value);
+    if (Number.isFinite(numericValue) && numericValue > 0) {
+      return Math.floor(numericValue);
+    }
+    return fallback;
+  };
+
+  const getNextCategorySortSeq = (items) =>
+    items.reduce((max, item) => {
+      const sortSeq = Number(item?.sortSeq);
+      return Number.isFinite(sortSeq) && sortSeq > max ? sortSeq : max;
+    }, 0) + 1;
+
   const applyDetailToForm = (data) => {
     if (!data) return;
 
@@ -57,9 +71,10 @@ export default function BbsForm() {
 
     const detailCategories = Array.isArray(data.categories)
       ? data.categories
-          .map((category) => ({
+          .map((category, index) => ({
             ctgryNo: category?.ctgryNo,
             name: category?.ctgryNm || category?.name || '',
+            sortSeq: resolveSortSeq(category?.sortSeq, index + 1),
             useYn: category?.useYn || 'Y',
             isEditing: false,
           }))
@@ -110,7 +125,12 @@ export default function BbsForm() {
     }
     setCategories([
       ...categories,
-      { name: categoryName, useYn: 'Y', isEditing: false },
+      {
+        name: categoryName,
+        sortSeq: getNextCategorySortSeq(categories),
+        useYn: 'Y',
+        isEditing: false,
+      },
     ]);
     setCategoryInput('');
   };
@@ -133,6 +153,23 @@ export default function BbsForm() {
       categories.map((cat, i) =>
         i === index
           ? { ...cat, name: categoryName, useYn: 'Y', isEditing: false }
+          : cat
+      )
+    );
+  };
+
+  const handleChangeCategorySortSeq = (index, value) => {
+    const numericText = value.replace(/[^0-9]/g, '');
+    setCategories((prev) =>
+      prev.map((cat, i) =>
+        i === index
+          ? {
+              ...cat,
+              sortSeq:
+                numericText === ''
+                  ? ''
+                  : resolveSortSeq(numericText, Number(cat?.sortSeq) || 1),
+            }
           : cat
       )
     );
@@ -225,7 +262,7 @@ export default function BbsForm() {
       formData.ctgryUseYn === 'Y'
         ? activeCategories.map((category, index) => ({
             ctgryNm: (category?.name || '').trim(),
-            sortSeq: index + 1,
+            sortSeq: resolveSortSeq(category?.sortSeq, index + 1),
             useYn: 'Y',
           }))
         : [];
@@ -438,6 +475,7 @@ export default function BbsForm() {
                         <table>
                           <colgroup>
                             <col />
+                            <col style={{ width: '90px' }} />
                             <col style={{ width: '76px' }} />
                             <col style={{ width: '76px' }} />
                           </colgroup>
@@ -445,7 +483,7 @@ export default function BbsForm() {
                             {visibleCategories.length === 0 ? (
                               <tr>
                                 <td
-                                  colSpan={3}
+                                  colSpan={4}
                                   style={{ textAlign: 'center', color: '#999' }}
                                 >
                                   등록된 카테고리가 없습니다.
@@ -485,6 +523,19 @@ export default function BbsForm() {
                                     )}
                                   </td>
                                   <td>
+                                    <MenuInputBox
+                                      menuType="input"
+                                      menuSize="70px"
+                                      value={category?.sortSeq ?? ''}
+                                      onChange={(e) =>
+                                        handleChangeCategorySortSeq(
+                                          index,
+                                          e.target.value
+                                        )
+                                      }
+                                    />
+                                  </td>
+                                  <td className="ontableFlex">
                                     {category.isEditing ? (
                                       <Button
                                         btnType="add"
@@ -508,7 +559,7 @@ export default function BbsForm() {
                                       />
                                     )}
                                   </td>
-                                  <td>
+                                  <td className="ontableFlex">
                                     <Button
                                       btnType="del"
                                       size="small"
