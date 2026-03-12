@@ -292,9 +292,8 @@ export default function MenuBase({
     const item = row || data || {};
     const depth = typeof item.depth === 'number' ? item.depth : 0;
     const showEdit = depth !== 0;
-    const showAddChild = depth !== maxDepth && item.scrnTypeCd !== 'T';
     return (
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div>
         {showEdit && (
           <Button
             btnType="edit"
@@ -311,14 +310,13 @@ export default function MenuBase({
     data: PropTypes.object,
   };
 
-
   const LowerAddCell = ({ row, data }) => {
     const item = row || data || {};
     const depth = typeof item.depth === 'number' ? item.depth : 0;
     const showAddChild = depth !== maxDepth && item.scrnTypeCd !== 'T';
     if (depth === 0) {
       return (
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <div>
           {showAddChild && (
             <Button
               btnType="add small"
@@ -378,13 +376,13 @@ export default function MenuBase({
     },
     { id: 'scrnUseYn', header: '사용여부', resize: true, width: 66 },
     {
-      id: 'management',
+      id: 'edit',
       header: '관리',
       width: 68,
       cell: (props) => <ManagementCell {...props} />,
     },
     {
-      id: 'lowerAdd',
+      id: 'management',
       header: '하위추가',
       width: 72,
       cell: (props) => <LowerAddCell {...props} />,

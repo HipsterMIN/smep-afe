@@ -14,7 +14,7 @@ function ButtonCell({ row, column, onAction }) {
       });
   }
 
-  return <Button btnType="edit" btnNames="버튼1" onClick={onClick} />;
+  return <Button btnType="add small" btnNames="버튼2" onClick={onClick} />;
 }
 
 export default ButtonCell;
