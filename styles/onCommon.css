@@ -1124,6 +1124,9 @@ button.defaultbutton.detail::before {
   height: 15px;
   background: url("../src/assets/images/common/ico_detail.svg") center center / cover no-repeat;
 }
+button.defaultbutton.add {
+  max-width: 62px;
+}
 button.defaultbutton.add,
 button.defaultbutton.addfile {
   background-color: #2750BB;
@@ -1134,6 +1137,7 @@ button.defaultbutton.event {
   background-color: #2750BB;
 }
 button.defaultbutton.del {
+  max-width: 62px;
   background-color: #DC3545;
 }
 button.defaultbutton.edit {
@@ -1889,7 +1893,8 @@ input.searchBox::placeholder {
 }
 
 
-div[data-col-id="management"] {
+div[data-col-id="management"],
+div[data-col-id="edit"] {
   display: flex;
   align-items: center;
   justify-content: center;
