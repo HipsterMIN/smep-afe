@@ -57,16 +57,16 @@ const IntegrationLoginSiteSort = lazy(
   () => import('@pages/member/IntegrationLoginSiteSort.jsx')
 );
 const PolicyFinanceList = lazy(
-  () => import('@pages/business/policyFinanceList.jsx')
+  () => import('@pages/business/policy-finance/policyFinanceList.jsx')
 );
 const PolicyFinanceDetail = lazy(
-  () => import('@pages/business/policyFinanceDetail.jsx')
+  () => import('@pages/business/policy-finance/policyFinanceDetail.jsx')
 );
 const PolicyFinanceCreate = lazy(
-  () => import('@pages/business/policyFinanceCreate.jsx')
+  () => import('@pages/business/policy-finance/policyFinanceCreate.jsx')
 );
 const PolicyFinanceUpdate = lazy(
-  () => import('@pages/business/policyFinanceUpdate.jsx')
+  () => import('@pages/business/policy-finance/policyFinanceUpdate.jsx')
 );
 
 const CertificateList = lazy(
