@@ -254,17 +254,19 @@ export default function BbsForm() {
     }
 
     const memberNo = getCurrentMemberNo();
-    const activeCategories = categories.filter(
-      (category) =>
-        (category?.useYn || 'Y') !== 'N' && (category?.name || '').trim() !== ''
-    );
     const requestCategories =
       formData.ctgryUseYn === 'Y'
-        ? activeCategories.map((category, index) => ({
-            ctgryNm: (category?.name || '').trim(),
-            sortSeq: resolveSortSeq(category?.sortSeq, index + 1),
-            useYn: 'Y',
-          }))
+        ? categories
+            .filter((category) => {
+              const categoryName = (category?.name || '').trim();
+              return Boolean(category?.ctgryNo) || categoryName !== '';
+            })
+            .map((category, index) => ({
+              ctgryNo: category?.ctgryNo ?? null,
+              ctgryNm: (category?.name || '').trim(),
+              sortSeq: resolveSortSeq(category?.sortSeq, index + 1),
+              useYn: (category?.useYn || 'Y') === 'N' ? 'N' : 'Y',
+            }))
         : [];
 
     const requestData = {

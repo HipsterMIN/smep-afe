@@ -473,8 +473,13 @@ export default function PstForm() {
   };
 
   const handleGoToList = () => {
-    if (saving || deleting) return;
-    navigate('..');
+    if (
+      window.confirm(
+        '작성 중인 내용은 저장되지 않습니다. 목록으로 이동하시겠습니까?'
+      )
+    ) {
+      navigate('..');
+    }
   };
 
   if (loading) {

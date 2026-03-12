@@ -245,7 +245,7 @@ export default function PstList() {
   };
 
   const handleGoToList = () => {
-    navigate(-1);
+    navigate('..');
   };
 
   const pstColumns = [
