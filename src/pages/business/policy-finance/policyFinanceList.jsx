@@ -104,25 +104,25 @@ export default function PolicyFinanceList() {
     {
       id: 'plcyFnncRcptSttsCdNm',
       header: '접수상황',
-      width: 110,
+      width: 90,
       cell: ({ row }) => toDisplayText(row?.plcyFnncRcptSttsCdNm),
     },
     {
       id: 'rgtrId',
       header: '등록자',
-      width: 120,
+      width: 90,
       cell: ({ row }) => toDisplayText(row?.rgtrId),
     },
     {
       id: 'regDt',
       header: '등록일시',
-      width: 170,
+      width: 160,
       cell: ({ row }) => formatDate(row?.regDt, 'yyyy-MM-dd HH:mm:ss'),
     },
     {
       id: 'mdfrId',
       header: '수정자',
-      width: 120,
+      width: 90,
       cell: ({ row }) => toDisplayText(row?.mdfrId),
     },
     {
