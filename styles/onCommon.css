@@ -778,19 +778,25 @@ caption {
   border-bottom: 1px dashed #E1E1E1;
 }
 .onselect-form .onparagraph dl {
+  position: relative;
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
   gap: 20px;
+  padding-left: 60px;
 }
 .onselect-form .onparagraph dl dt {
+  position: absolute;
+  left: 0;
+  top: 0;
   width: 50px;
   color: #333;
   font-family: Pretendard;
   font-size: 14px;
   font-weight: 600;
   line-height: 14px;
-  letter-spacing: -0.84px;
+  letter-spacing: -.84px;
 }
 .onselect-form .onbtn {
   position: relative;
@@ -1136,7 +1142,7 @@ button.defaultbutton.edit {
   font-size: 13px;
   line-height: 0;
   padding: 0;
-  margin-left: 4px;
+  margin-left: 0;
   background-color: #707070;
 }
 button.defaultbutton.reset {
@@ -1880,4 +1886,11 @@ input.searchBox::placeholder {
 }
 .react-datepicker-popper {
   z-index: 9999 !important;
+}
+
+
+div[data-col-id="management"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
