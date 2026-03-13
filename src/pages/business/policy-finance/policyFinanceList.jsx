@@ -473,11 +473,13 @@ export default function PolicyFinanceList() {
               <Button btnType="add" btnNames="메세지 작성" />
               <Button btnType="add" btnNames="이메일 작성" />
               <Button btnType="list" btnNames="이용 가이드" />
+              {/*
               <Button
                 btnType="add"
                 btnNames="등록"
                 onClick={() => navigate('create')}
               />
+*/}
             </div>
           </div>
 

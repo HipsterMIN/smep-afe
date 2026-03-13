@@ -6,7 +6,7 @@ import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import RadioButton from '@components/ui/RadioButton.jsx';
 import React, { useState } from 'react';
 
-export default function CommonCode() {
+export default function PolicyFinanceForm() {
   const [selectedValue, setSelectedValue] = useState(null); // radio button 분기변수
 
   return (
