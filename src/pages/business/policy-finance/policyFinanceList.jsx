@@ -3,11 +3,30 @@ import { createGridValueActionCell } from '@components/ui/createGridValueActionC
 import GridTable from '@components/ui/GridTable';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
+import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const PAGE_SIZE = 20;
+const POLICY_FINANCE_COMMON_CODE_GROUPS = [
+  'PLCY_FNNC_GDS_TYPE_CD',
+  'PLCY_FNNC_STTS_CD',
+  'PLCY_FNNC_APLY_MTH_CD',
+  'PLCY_FNNC_RCPT_STTS_CD',
+  'PLCY_FNNC_ENT_SCL_CD',
+  'PLCY_FNNC_DTL_CND_CD',
+];
+const createSearchParams = () => ({
+  linkSystem: '',
+  productType: '',
+  approvalStatus: '',
+  applyMethod: '',
+  receiptStatus: '',
+  companyScale: '',
+  preferredCompanyType: '',
+  productName: '',
+});
 
 const toDisplayText = (value) => {
   if (value === null || value === undefined || value === '') return '-';
@@ -18,22 +37,34 @@ export default function PolicyFinanceList() {
   const navigate = useNavigate();
   const observerRef = useRef(null);
   const rowsRef = useRef([]);
+  const appliedSearchParamsRef = useRef(createSearchParams());
 
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [cursor, setCursor] = useState(null);
   const [hasNext, setHasNext] = useState(true);
-  const [searchParams, setSearchParams] = useState({
-    linkSystem: '',
-    productType: '',
-    approvalStatus: '',
-    applyMethod: '',
-    receiptStatus: '',
-    companyScale: '',
-    preferredCompanyType: '',
-    productName: '',
-  });
+  const [commonCodeOptions, setCommonCodeOptions] = useState({});
+  const [institutionOptions, setInstitutionOptions] = useState([]);
+  const [searchParams, setSearchParams] = useState(createSearchParams);
+
+  const productTypeOptions = commonCodeOptions.PLCY_FNNC_GDS_TYPE_CD || [];
+  const approvalStatusOptions = commonCodeOptions.PLCY_FNNC_STTS_CD || [];
+  const applyMethodOptions = commonCodeOptions.PLCY_FNNC_APLY_MTH_CD || [];
+  const receiptStatusOptions = commonCodeOptions.PLCY_FNNC_RCPT_STTS_CD || [];
+  const companyScaleOptions = commonCodeOptions.PLCY_FNNC_ENT_SCL_CD || [];
+  const preferredCompanyTypeOptions =
+    commonCodeOptions.PLCY_FNNC_DTL_CND_CD || [];
+
+  const getTooltipTitle = (value) => (value === '-' ? '' : String(value));
+  const renderTextWithTooltip = (value) => {
+    const text = toDisplayText(value);
+    return <span title={getTooltipTitle(text)}>{text}</span>;
+  };
+  const renderDateWithTooltip = (value) => {
+    const text = formatDate(value, 'yyyy-MM-dd HH:mm:ss');
+    return <span title={getTooltipTitle(text)}>{text}</span>;
+  };
 
   const managementActionCell = createGridValueActionCell({
     getValue: () => '수정',
@@ -44,6 +75,21 @@ export default function PolicyFinanceList() {
     },
     variant: 'button',
     className: 'defaultbutton edit',
+    buttonProps: {
+      title: '수정',
+    },
+  });
+  const policyFinanceNameActionCell = createGridValueActionCell({
+    getValue: (row) => {
+      const text = toDisplayText(row?.plcyFnncGdsNm);
+      return <span title={getTooltipTitle(text)}>{text}</span>;
+    },
+    onClick: (row) => {
+      if (!row?.plcyFnncGdsSn) return;
+      navigate(`${row.plcyFnncGdsSn}`);
+    },
+    variant: 'link',
+    style: { textAlign: 'left' },
   });
 
   const columns = [
@@ -64,72 +110,93 @@ export default function PolicyFinanceList() {
     {
       id: 'plcyFnncGdsTypeCdNm',
       header: '유형',
-      width: 60,
-      cell: ({ row }) => toDisplayText(row?.plcyFnncGdsTypeCdNm),
+      width: 50,
+      cell: ({ row }) => renderTextWithTooltip(row?.plcyFnncGdsTypeCdNm),
+    },
+    {
+      id: 'plcyFnncBizFlfmtInstNm',
+      header: '사업수행기관',
+      resize: true,
+      width: 140,
+      cell: ({ row }) => renderTextWithTooltip(row?.plcyFnncBizFlfmtInstNm),
+    },
+    {
+      id: 'plcyFnncGdsNm',
+      header: '상품명',
+      resize: true,
+      width: 200,
+      cell: policyFinanceNameActionCell,
     },
     {
       id: 'plcyFnncAplyMthCdNm',
       header: '신청방식',
-      width: 170,
+      resize: true,
+      width: 120,
       dataAlign: 'left',
-      cell: ({ row }) => toDisplayText(row?.plcyFnncAplyMthCdNm),
+      cell: ({ row }) => renderTextWithTooltip(row?.plcyFnncAplyMthCdNm),
     },
     {
       id: 'approvalStatus',
       header: '승인여부',
       width: 80,
-      cell: ({ row }) => toDisplayText(row?.plcyFnncGdsSttsCdNm),
+      cell: ({ row }) => renderTextWithTooltip(row?.plcyFnncGdsSttsCdNm),
     },
     {
       id: 'plcyFnncEntSclCdNm',
       header: '기업규모',
-      width: 160,
+      resize: true,
+      width: 100,
       dataAlign: 'left',
-      cell: ({ row }) => toDisplayText(row?.plcyFnncEntSclCdNm),
+      cell: ({ row }) => renderTextWithTooltip(row?.plcyFnncEntSclCdNm),
     },
     {
       id: 'industry',
       header: '업종',
-      width: 170,
+      resize: true,
+      width: 100,
       dataAlign: 'left',
-      cell: ({ row }) => toDisplayText(row?.plcyFnncTpbizNmNm),
+      cell: ({ row }) =>
+        renderTextWithTooltip(row?.plcyFnncTpbizNmNm || '업종제한없음'),
     },
     {
       id: 'preferredEnterpriseType',
       header: '우대기업유형',
-      width: 180,
+      resize: true,
+      width: 80,
       dataAlign: 'left',
-      cell: ({ row }) => toDisplayText(row?.plcyFnncAddDtlCndCnNm),
+      cell: ({ row }) => renderTextWithTooltip(row?.plcyFnncAddDtlCndCnNm),
     },
     {
       id: 'plcyFnncRcptSttsCdNm',
       header: '접수상황',
       width: 90,
-      cell: ({ row }) => toDisplayText(row?.plcyFnncRcptSttsCdNm),
+      cell: ({ row }) => renderTextWithTooltip(row?.plcyFnncRcptSttsCdNm),
     },
     {
       id: 'rgtrId',
       header: '등록자',
-      width: 90,
-      cell: ({ row }) => toDisplayText(row?.rgtrId),
+      width: 80,
+      cell: ({ row }) => renderTextWithTooltip(row?.rgtrId),
     },
     {
       id: 'regDt',
       header: '등록일시',
-      width: 160,
-      cell: ({ row }) => formatDate(row?.regDt, 'yyyy-MM-dd HH:mm:ss'),
+      resize: true,
+      width: 150,
+      cell: ({ row }) => renderDateWithTooltip(row?.regDt),
     },
     {
       id: 'mdfrId',
       header: '수정자',
-      width: 90,
-      cell: ({ row }) => toDisplayText(row?.mdfrId),
+      width: 80,
+      cell: ({ row }) => renderTextWithTooltip(row?.mdfrId),
     },
     {
       id: 'mdfcnDt',
       header: '수정일시',
-      width: 170,
-      cell: ({ row }) => formatDate(row?.mdfcnDt, 'yyyy-MM-dd HH:mm:ss'),
+      resize: true,
+      width: 150,
+      cell: ({ row }) => renderDateWithTooltip(row?.mdfcnDt),
     },
     {
       id: 'management',
@@ -149,19 +216,43 @@ export default function PolicyFinanceList() {
     }));
   };
 
+  const normalizeRequestValue = (value) => {
+    if (value === null || value === undefined) return null;
+    const normalized = String(value).trim();
+    return normalized === '' ? null : normalized;
+  };
+
+  const buildSearchRequestBody = (params, nextCursor = null) => ({
+    cursorPageRequest: {
+      size: PAGE_SIZE,
+      cursor: nextCursor,
+    },
+    plcyFnncBizFlfmtInstNm: normalizeRequestValue(params.linkSystem),
+    plcyFnncGdsTypeCd: normalizeRequestValue(params.productType),
+    plcyFnncSttsCd: normalizeRequestValue(params.approvalStatus),
+    plcyFnncAplyMthCd: normalizeRequestValue(params.applyMethod),
+    plcyFnncRcptSttsCd: normalizeRequestValue(params.receiptStatus),
+    plcyFnncEntSclCd: normalizeRequestValue(params.companyScale),
+    plcyFnncAddDtlCndCn: normalizeRequestValue(params.preferredCompanyType),
+    plcyFnncGdsNm: normalizeRequestValue(params.productName),
+  });
+
   const fetchList = async (nextCursor = null, reset = false) => {
     if (loading) return;
     if (!hasNext && !reset) return;
 
     setLoading(true);
+    if (reset) {
+      appliedSearchParamsRef.current = { ...searchParams };
+    }
 
     try {
-      const response = await http.post('/api/v1/policy-finance/search', {
-        cursorPageRequest: {
-          size: PAGE_SIZE,
-          cursor: nextCursor,
-        },
-      });
+      const params = reset ? searchParams : appliedSearchParamsRef.current;
+      const requestBody = buildSearchRequestBody(params, nextCursor);
+      const response = await http.post(
+        '/api/v1/policy-finance/search',
+        requestBody
+      );
 
       const page = response?.data ?? {};
       const list = Array.isArray(page?.data) ? page.data : [];
@@ -222,10 +313,48 @@ export default function PolicyFinanceList() {
     handleSearch();
   };
 
+  const loadCommonCodeOptions = async () => {
+    try {
+      const codes = await fetchAndConvertCommonCodes(
+        POLICY_FINANCE_COMMON_CODE_GROUPS
+      );
+      setCommonCodeOptions(codes || {});
+    } catch (error) {
+      console.error('정책금융 공통코드 조회 실패:', error);
+      setCommonCodeOptions({});
+    }
+  };
+
+  const loadInstitutionOptions = async (suprtTy = '') => {
+    try {
+      const params = suprtTy ? { suprtTy } : undefined;
+      const response = await http.get('/api/v1/policy-finance/institutions', {
+        params,
+      });
+      const list = Array.isArray(response?.data) ? response.data : [];
+      setInstitutionOptions(
+        list.map((name) => ({
+          value: name,
+          label: name,
+        }))
+      );
+    } catch (error) {
+      console.error('정책금융 사업수행기관 조회 실패:', error);
+      setInstitutionOptions([]);
+    }
+  };
+
   useEffect(() => {
     fetchList(null, true);
+    loadCommonCodeOptions();
+    loadInstitutionOptions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    loadInstitutionOptions(searchParams.productType);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.productType]);
 
   useEffect(() => {
     if (!observerRef.current) return;
@@ -263,6 +392,7 @@ export default function PolicyFinanceList() {
                 menuType="select"
                 menuName="연계시스템"
                 menuSize="150px"
+                options={institutionOptions}
                 value={searchParams.linkSystem}
                 onChange={(e) => handleInputChange('linkSystem', e)}
               />
@@ -270,6 +400,7 @@ export default function PolicyFinanceList() {
                 menuType="select"
                 menuName="상품유형"
                 menuSize="150px"
+                options={productTypeOptions}
                 value={searchParams.productType}
                 onChange={(e) => handleInputChange('productType', e)}
               />
@@ -277,6 +408,7 @@ export default function PolicyFinanceList() {
                 menuType="select"
                 menuName="승인여부"
                 menuSize="150px"
+                options={approvalStatusOptions}
                 value={searchParams.approvalStatus}
                 onChange={(e) => handleInputChange('approvalStatus', e)}
               />
@@ -284,6 +416,7 @@ export default function PolicyFinanceList() {
                 menuType="select"
                 menuName="신청방식"
                 menuSize="150px"
+                options={applyMethodOptions}
                 value={searchParams.applyMethod}
                 onChange={(e) => handleInputChange('applyMethod', e)}
               />
@@ -300,6 +433,7 @@ export default function PolicyFinanceList() {
                 menuType="select"
                 menuName="접수상황"
                 menuSize="150px"
+                options={receiptStatusOptions}
                 value={searchParams.receiptStatus}
                 onChange={(e) => handleInputChange('receiptStatus', e)}
               />
@@ -307,6 +441,7 @@ export default function PolicyFinanceList() {
                 menuType="select"
                 menuName="기업규모"
                 menuSize="150px"
+                options={companyScaleOptions}
                 value={searchParams.companyScale}
                 onChange={(e) => handleInputChange('companyScale', e)}
               />
@@ -314,6 +449,7 @@ export default function PolicyFinanceList() {
                 menuType="select"
                 menuName="우대기업유형"
                 menuSize="150px"
+                options={preferredCompanyTypeOptions}
                 value={searchParams.preferredCompanyType}
                 onChange={(e) => handleInputChange('preferredCompanyType', e)}
               />
