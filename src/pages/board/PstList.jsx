@@ -251,8 +251,8 @@ export default function PstList() {
   const pstColumns = [
     { id: 'no', width: 40, header: 'No' },
     { id: 'pstNo', width: 110, header: '게시물 ID' },
-    { id: 'pstTtl', width: 220, header: '게시물 제목' },
-    { id: 'pstCn', flexgrow: 1, header: '게시물 내용' },
+    { id: 'pstTtl', width: 220, header: '게시물 제목', dataAlign: 'left' },
+    { id: 'pstCn', flexgrow: 1, header: '게시물 내용', dataAlign: 'left' },
     {
       id: 'ctgryNo',
       width: 160,

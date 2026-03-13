@@ -1,5 +1,5 @@
 // TabPageWrapper.jsx
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useLocation, useMatches, useOutlet } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
 
@@ -121,14 +121,9 @@ export default function TabPageWrapper() {
 
   return (
     <ContentBox>
-      {panels.map(([path, panel]) => (
-        <div
-          key={path}
-          style={{ display: path === currentPath ? 'block' : 'none' }}
-        >
-          {panel}
-        </div>
-      ))}
+      {panels.map(([path, panel]) =>
+        path === currentPath ? <Fragment key={path}>{panel}</Fragment> : null
+      )}
     </ContentBox>
   );
 }

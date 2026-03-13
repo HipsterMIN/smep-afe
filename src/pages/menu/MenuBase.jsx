@@ -292,34 +292,13 @@ export default function MenuBase({
     const item = row || data || {};
     const depth = typeof item.depth === 'number' ? item.depth : 0;
     const showEdit = depth !== 0;
-    const showAddChild = depth !== maxDepth && item.scrnTypeCd !== 'T';
-    if (depth === 0) {
-      return (
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          {showAddChild && (
-            <Button
-              btnType="add"
-              btnNames="하위추가"
-              onClick={() => handleAdd(item)}
-            />
-          )}
-        </div>
-      );
-    }
     return (
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div>
         {showEdit && (
           <Button
             btnType="edit"
             btnNames="수정"
             onClick={() => handleEdit(item)}
-          />
-        )}
-        {showAddChild && (
-          <Button
-            btnType="add"
-            btnNames="하위추가"
-            onClick={() => handleAdd(item)}
           />
         )}
       </div>
@@ -330,6 +309,42 @@ export default function MenuBase({
     row: PropTypes.object,
     data: PropTypes.object,
   };
+
+  const LowerAddCell = ({ row, data }) => {
+    const item = row || data || {};
+    const depth = typeof item.depth === 'number' ? item.depth : 0;
+    const showAddChild = depth !== maxDepth && item.scrnTypeCd !== 'T';
+    if (depth === 0) {
+      return (
+        <div>
+          {showAddChild && (
+            <Button
+              btnType="add small"
+              btnNames="하위추가"
+              onClick={() => handleAdd(item)}
+            />
+          )}
+        </div>
+      );
+    }
+    return (
+      <div style={{ display: 'flex', gap: 8 }}>
+        {showAddChild && (
+          <Button
+            btnType="add small"
+            btnNames="하위추가"
+            onClick={() => handleAdd(item)}
+          />
+        )}
+      </div>
+    );
+  };
+
+  LowerAddCell.propTypes = {
+    row: PropTypes.object,
+    data: PropTypes.object,
+  };
+
 
   const TypeCell = ({ row, data }) => {
     const item = row || data || {};
@@ -351,7 +366,7 @@ export default function MenuBase({
     },
     { id: 'menuId', header: '메뉴ID', resize: true, width: 110 },
     { id: 'sortSeq', header: '순서', resize: true, width: 43 },
-    { id: 'scrnUrlAddr', header: 'URL', resize: true, width: 124 },
+    { id: 'scrnUrlAddr', header: 'URL', resize: true, width: 124, dataAlign: 'left' },
     {
       id: 'scrnTypeCd',
       header: '유형',
@@ -361,10 +376,16 @@ export default function MenuBase({
     },
     { id: 'scrnUseYn', header: '사용여부', resize: true, width: 66 },
     {
-      id: 'management',
+      id: 'edit',
       header: '관리',
-      width: 171,
+      width: 68,
       cell: (props) => <ManagementCell {...props} />,
+    },
+    {
+      id: 'management',
+      header: '하위추가',
+      width: 72,
+      cell: (props) => <LowerAddCell {...props} />,
     },
   ];
 
