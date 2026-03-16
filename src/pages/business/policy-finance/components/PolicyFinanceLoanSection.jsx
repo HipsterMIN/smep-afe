@@ -1,5 +1,6 @@
 import CheckBox from '@components/ui/CheckBox.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import RichEditor from '@components/ui/RichEditor.jsx';
 import PropTypes from 'prop-types';
 
 export default function PolicyFinanceLoanSection({
@@ -48,11 +49,11 @@ export default function PolicyFinanceLoanSection({
             <tr>
               <td>우대조건</td>
               <td colSpan={3}>
-                <MenuInputBox
-                  menuType="input"
-                  menuSize="100%"
+                <RichEditor
+                  theme="light"
+                  minHeight={160}
                   value={form.loanPrtrtCndCn}
-                  onChange={(e) => handleInputChange('loanPrtrtCndCn', e)}
+                  onChange={(value) => handleInputChange('loanPrtrtCndCn', value)}
                 />
               </td>
             </tr>
@@ -103,21 +104,23 @@ export default function PolicyFinanceLoanSection({
             </tr>
             <tr>
               <td>기준금리</td>
-              <td>
+              <td colSpan={3}>
                 <MenuInputBox
                   menuType="input"
-                  menuSize="300px"
+                  menuSize="100%"
                   value={form.crtrIrtCn}
                   onChange={(e) => handleInputChange('crtrIrtCn', e)}
                 />
               </td>
+            </tr>
+            <tr>
               <td>대출금리</td>
-              <td>
-                <MenuInputBox
-                  menuType="input"
-                  menuSize="300px"
+              <td colSpan={3}>
+                <RichEditor
+                  theme="light"
+                  minHeight={160}
                   value={form.loanIrtCn}
-                  onChange={(e) => handleInputChange('loanIrtCn', e)}
+                  onChange={(value) => handleInputChange('loanIrtCn', value)}
                 />
               </td>
             </tr>
@@ -140,21 +143,23 @@ export default function PolicyFinanceLoanSection({
             </tr>
             <tr>
               <td>대출기간</td>
-              <td>
-                <MenuInputBox
-                  menuType="input"
-                  menuSize="300px"
+              <td colSpan={3}>
+                <RichEditor
+                  theme="light"
+                  minHeight={160}
                   value={form.loanPrdCn}
-                  onChange={(e) => handleInputChange('loanPrdCn', e)}
+                  onChange={(value) => handleInputChange('loanPrdCn', value)}
                 />
               </td>
+            </tr>
+            <tr>
               <td>거치기간</td>
-              <td>
-                <MenuInputBox
-                  menuType="input"
-                  menuSize="300px"
+              <td colSpan={3}>
+                <RichEditor
+                  theme="light"
+                  minHeight={160}
                   value={form.dfmtPrdCn}
-                  onChange={(e) => handleInputChange('dfmtPrdCn', e)}
+                  onChange={(value) => handleInputChange('dfmtPrdCn', value)}
                 />
               </td>
             </tr>

@@ -1,4 +1,5 @@
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import RichEditor from '@components/ui/RichEditor.jsx';
 import PropTypes from 'prop-types';
 
 export default function PolicyFinanceInsuranceSection({
@@ -20,61 +21,71 @@ export default function PolicyFinanceInsuranceSection({
           <tbody>
             <tr>
               <td>우대조건</td>
-              <td>
-                <MenuInputBox
-                  menuType="input"
-                  menuSize="300px"
+              <td colSpan={3}>
+                <RichEditor
+                  theme="light"
+                  minHeight={160}
                   value={form.insrncPrtrtCndCn}
-                  onChange={(e) => handleInputChange('insrncPrtrtCndCn', e)}
+                  onChange={(value) => handleInputChange('insrncPrtrtCndCn', value)}
                 />
               </td>
+            </tr>
+            <tr>
               <td>보험료 우대</td>
-              <td>
-                <MenuInputBox
-                  menuType="input"
-                  menuSize="300px"
+              <td colSpan={3}>
+                <RichEditor
+                  theme="light"
+                  minHeight={160}
                   value={form.insrncIspmPrtrtCndCn}
-                  onChange={(e) => handleInputChange('insrncIspmPrtrtCndCn', e)}
+                  onChange={(value) =>
+                    handleInputChange('insrncIspmPrtrtCndCn', value)
+                  }
                 />
               </td>
             </tr>
             <tr>
               <td>부보율(보상비율)</td>
-              <td>
-                <MenuInputBox
-                  menuType="input"
-                  menuSize="300px"
+              <td colSpan={3}>
+                <RichEditor
+                  theme="light"
+                  minHeight={160}
                   value={form.insrncCmpnRtCn}
-                  onChange={(e) => handleInputChange('insrncCmpnRtCn', e)}
+                  onChange={(value) => handleInputChange('insrncCmpnRtCn', value)}
                 />
               </td>
+            </tr>
+            <tr>
               <td>지급보험금</td>
-              <td>
-                <MenuInputBox
-                  menuType="input"
-                  menuSize="300px"
+              <td colSpan={3}>
+                <RichEditor
+                  theme="light"
+                  minHeight={160}
                   value={form.insrncGiveAmtCn}
-                  onChange={(e) => handleInputChange('insrncGiveAmtCn', e)}
+                  onChange={(value) => handleInputChange('insrncGiveAmtCn', value)}
                 />
               </td>
             </tr>
             <tr>
               <td>보험료</td>
-              <td>
-                <MenuInputBox
-                  menuType="input"
-                  menuSize="300px"
+              <td colSpan={3}>
+                <RichEditor
+                  theme="light"
+                  minHeight={160}
                   value={form.ispmCn}
-                  onChange={(e) => handleInputChange('ispmCn', e)}
+                  onChange={(value) => handleInputChange('ispmCn', value)}
                 />
               </td>
+            </tr>
+            <tr>
               <td>보험증권유효기간</td>
-              <td>
-                <MenuInputBox
-                  menuType="input"
-                  menuSize="300px"
+              <td colSpan={3}>
+                <RichEditor
+                  theme="light"
+                  minHeight={160}
                   value={form.insrncScrtVldPrdCn}
-                  onChange={(e) => handleInputChange('insrncScrtVldPrdCn', e)}
+                  onChange={(value) =>
+                    handleInputChange('insrncScrtVldPrdCn', value)
+                  }
                 />
               </td>
             </tr>

@@ -54,6 +54,7 @@ const createInitialForm = () => ({
   plcyFnncAplyDdlnDtCn: '',
   plcyFnncDtlUrlAddr: '',
   plcyFnncInqplUrlAddr: '',
+  hstgSnsInput: '',
   plcyFnncAtchFileUrlAddr: '',
   plcyFnncEntSclCd: [],
   plcyFnncTpbizNm: '',
@@ -108,10 +109,48 @@ const normalizeText = (value) => {
   return text === '' ? null : text;
 };
 
+const normalizeSelectValue = (value) => {
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+};
+
 const parseCsvToArray = (value) => {
   if (!value) return [];
   return [...new Set(String(value).split(',').map((item) => item.trim()))]
     .filter(Boolean);
+};
+
+const parseIdCsvToNumberArray = (value) => {
+  if (value === null || value === undefined) {
+    return { ids: [], invalidToken: null };
+  }
+
+  const raw = String(value).trim();
+  if (!raw) {
+    return { ids: [], invalidToken: null };
+  }
+
+  const tokens = raw
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const ids = [];
+  const seen = new Set();
+  for (const token of tokens) {
+    if (!/^\d+$/.test(token)) {
+      return { ids: [], invalidToken: token };
+    }
+    const id = Number(token);
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      return { ids: [], invalidToken: token };
+    }
+    if (seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+  }
+
+  return { ids, invalidToken: null };
 };
 
 const joinArrayToCsv = (values) => {
@@ -131,8 +170,8 @@ const formatDateTime = (value) =>
 const mapDetailToForm = (detail = {}) => ({
   ...createInitialForm(),
   plcyFnncGdsTypeCd: detail.plcyFnncGdsTypeCd || '',
-  plcyFnncSttsCd: detail.plcyFnncSttsCd || '',
-  plcyFnncRcptSttsCd: detail.plcyFnncRcptSttsCd || '',
+  plcyFnncSttsCd: normalizeSelectValue(detail.plcyFnncSttsCd),
+  plcyFnncRcptSttsCd: normalizeSelectValue(detail.plcyFnncRcptSttsCd),
   plcyFnncBizFlfmtInstNm: detail.plcyFnncBizFlfmtInstNm || '',
   plcyFnncGdsNm: detail.plcyFnncGdsNm || '',
   plcyFnncGdsPrpsCn: detail.plcyFnncGdsPrpsCn || '',
@@ -146,6 +185,7 @@ const mapDetailToForm = (detail = {}) => ({
   plcyFnncAplyDdlnDtCn: detail.plcyFnncAplyDdlnDtCn || '',
   plcyFnncDtlUrlAddr: detail.plcyFnncDtlUrlAddr || '',
   plcyFnncInqplUrlAddr: detail.plcyFnncInqplUrlAddr || '',
+  hstgSnsInput: parseCsvToArray(detail.hstgSnList).join(','),
   plcyFnncAtchFileUrlAddr: detail.plcyFnncAtchFileUrlAddr || '',
   plcyFnncEntSclCd: parseCsvToArray(detail.plcyFnncEntSclCd),
   plcyFnncTpbizNm: detail.plcyFnncTpbizNm || '',
@@ -333,7 +373,12 @@ export default function PolicyFinanceForm({ mode }) {
   });
 
   const buildRequestPayload = () => {
+    const { ids: hashtagIds } = parseIdCsvToNumberArray(form.hstgSnsInput);
     const payload = { master: buildMasterPayload(!isUpdateMode) };
+    payload.additional = {
+      prfrcGdsSns: null,
+      hstgSns: hashtagIds,
+    };
     if (form.plcyFnncGdsTypeCd === GDS_TYPE_LOAN) {
       payload.loanDetail = buildLoanDetailPayload();
     }
@@ -365,6 +410,11 @@ export default function PolicyFinanceForm({ mode }) {
     }
     if (!normalizeText(form.plcyFnncGdsNm)) {
       alert('상품명을 입력해주세요.');
+      return false;
+    }
+    const { invalidToken } = parseIdCsvToNumberArray(form.hstgSnsInput);
+    if (invalidToken) {
+      alert(`해시태그 일련번호 형식이 올바르지 않습니다: ${invalidToken}`);
       return false;
     }
     return true;
@@ -635,6 +685,7 @@ export default function PolicyFinanceForm({ mode }) {
                   <td colSpan={3}>
                     <RichEditor
                       theme="light"
+                      minHeight={160}
                       value={form.plcyFnncGdsPrpsCn}
                       onChange={(value) =>
                         handleInputChange('plcyFnncGdsPrpsCn', value)
@@ -645,34 +696,38 @@ export default function PolicyFinanceForm({ mode }) {
                 <tr>
                   <td>지원대상</td>
                   <td colSpan={3}>
-                    <MenuInputBox
-                      menuType="input"
-                      menuSize="100%"
+                    <RichEditor
+                      theme="light"
+                      minHeight={160}
                       value={form.plcyFnncSprtTrgtCn}
-                      onChange={(e) => handleInputChange('plcyFnncSprtTrgtCn', e)}
+                      onChange={(value) =>
+                        handleInputChange('plcyFnncSprtTrgtCn', value)
+                      }
                     />
                   </td>
                 </tr>
                 <tr>
                   <td>지원한도</td>
                   <td colSpan={3}>
-                    <MenuInputBox
-                      menuType="input"
-                      menuSize="100%"
+                    <RichEditor
+                      theme="light"
+                      minHeight={160}
                       value={form.plcyFnncSprtLimCn}
-                      onChange={(e) => handleInputChange('plcyFnncSprtLimCn', e)}
+                      onChange={(value) =>
+                        handleInputChange('plcyFnncSprtLimCn', value)
+                      }
                     />
                   </td>
                 </tr>
                 <tr>
                   <td>지원제한대상</td>
                   <td colSpan={3}>
-                    <MenuInputBox
-                      menuType="input"
-                      menuSize="100%"
+                    <RichEditor
+                      theme="light"
+                      minHeight={160}
                       value={form.plcyFnncSprtExclTrgtCn}
-                      onChange={(e) =>
-                        handleInputChange('plcyFnncSprtExclTrgtCn', e)
+                      onChange={(value) =>
+                        handleInputChange('plcyFnncSprtExclTrgtCn', value)
                       }
                     />
                   </td>
@@ -700,22 +755,22 @@ export default function PolicyFinanceForm({ mode }) {
                 <tr>
                   <td>관할지역</td>
                   <td colSpan={3}>
-                    <MenuInputBox
-                      menuType="input"
-                      menuSize="100%"
+                    <RichEditor
+                      theme="light"
+                      minHeight={160}
                       value={form.cmptncRgnNm}
-                      onChange={(e) => handleInputChange('cmptncRgnNm', e)}
+                      onChange={(value) => handleInputChange('cmptncRgnNm', value)}
                     />
                   </td>
                 </tr>
                 <tr>
                   <td>문의</td>
                   <td colSpan={3}>
-                    <MenuInputBox
-                      menuType="input"
-                      menuSize="100%"
+                    <RichEditor
+                      theme="light"
+                      minHeight={160}
                       value={form.plcyFnncInqCn}
-                      onChange={(e) => handleInputChange('plcyFnncInqCn', e)}
+                      onChange={(value) => handleInputChange('plcyFnncInqCn', value)}
                     />
                   </td>
                 </tr>
@@ -764,6 +819,18 @@ export default function PolicyFinanceForm({ mode }) {
                       onChange={(e) =>
                         handleInputChange('plcyFnncInqplUrlAddr', e)
                       }
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <td>해시태그(일련번호)</td>
+                  <td colSpan={3}>
+                    <MenuInputBox
+                      menuType="input"
+                      menuSize="100%"
+                      placeholder="예: 101, 102, 103"
+                      value={form.hstgSnsInput}
+                      onChange={(e) => handleInputChange('hstgSnsInput', e)}
                     />
                   </td>
                 </tr>

@@ -1,5 +1,6 @@
 import CheckBox from '@components/ui/CheckBox.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import RichEditor from '@components/ui/RichEditor.jsx';
 import PropTypes from 'prop-types';
 
 export default function PolicyFinanceGuaranteeSection({
@@ -25,21 +26,23 @@ export default function PolicyFinanceGuaranteeSection({
           <tbody>
             <tr>
               <td>우대조건</td>
-              <td>
-                <MenuInputBox
-                  menuType="input"
-                  menuSize="300px"
+              <td colSpan={3}>
+                <RichEditor
+                  theme="light"
+                  minHeight={160}
                   value={form.grntePrtrtCndCn}
-                  onChange={(e) => handleInputChange('grntePrtrtCndCn', e)}
+                  onChange={(value) => handleInputChange('grntePrtrtCndCn', value)}
                 />
               </td>
+            </tr>
+            <tr>
               <td>보증료율 감면</td>
-              <td>
-                <MenuInputBox
-                  menuType="input"
-                  menuSize="300px"
+              <td colSpan={3}>
+                <RichEditor
+                  theme="light"
+                  minHeight={160}
                   value={form.grfeCn}
-                  onChange={(e) => handleInputChange('grfeCn', e)}
+                  onChange={(value) => handleInputChange('grfeCn', value)}
                 />
               </td>
             </tr>
