@@ -86,6 +86,8 @@ const BannerManagement = lazy(
   () => import('@pages/banner/BannerManagement.jsx')
 );
 
+const RlvntSysMng = lazy(() => import('@pages/portalMng/RlvntSysMng.jsx'));
+
 /**
  * =============================================================================
  * Component Map - menuId와 실제 컴포넌트 매핑
@@ -396,6 +398,11 @@ export const componentMap = {
         component: PstForm,
       },
     ],
+  },
+  // 유관시스템 관리
+ M_PIIO_00145: {
+    component: RlvntSysMng,
+    layout: AdminLayoutWithAuth,
   },
   // ---------- 활용정보 관리 ----------
   // 행사정보
