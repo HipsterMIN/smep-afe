@@ -139,7 +139,7 @@ export default function PolicyFinanceList() {
       id: 'approvalStatus',
       header: '승인여부',
       width: 80,
-      cell: ({ row }) => renderTextWithTooltip(row?.plcyFnncGdsSttsCdNm),
+      cell: ({ row }) => renderTextWithTooltip(row?.plcyFnncSttsCdNm),
     },
     {
       id: 'plcyFnncEntSclCdNm',
@@ -473,13 +473,11 @@ export default function PolicyFinanceList() {
               <Button btnType="add" btnNames="메세지 작성" />
               <Button btnType="add" btnNames="이메일 작성" />
               <Button btnType="list" btnNames="이용 가이드" />
-              {/*
               <Button
                 btnType="add"
                 btnNames="등록"
                 onClick={() => navigate('create')}
               />
-*/}
             </div>
           </div>
 
