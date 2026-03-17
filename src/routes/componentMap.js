@@ -314,10 +314,10 @@ export const componentMap = {
   //   layout: AdminLayoutWithAuth,
   // },
   // 기업가정신 콘텐츠 관리
-  // 'M_PIIO_00034': {
-  //   component: TODO_M_PIIO_00034,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  'M_PIIO_00034': {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+  },
   // 팝업관리
   M_PIIO_00035: {
     component: PopupManagement,
