@@ -99,10 +99,10 @@ const SmsSendList = lazy(
   () => import('@pages/notification/sms/SmsSendList.jsx')
 );
 const EmailFormList = lazy(
-  () => import('@pages/notification/Email/EmailFormList.jsx')
+  () => import('@pages/notification/email/EmailFormList.jsx')
 );
 const EmailSendList = lazy(
-  () => import('@pages/notification/Email/EmailSendList.jsx')
+  () => import('@pages/notification/email/EmailSendList.jsx')
 );
 
 /**
@@ -331,7 +331,7 @@ export const componentMap = {
   //   layout: AdminLayoutWithAuth,
   // },
   // 기업가정신 콘텐츠 관리
-  'M_PIIO_00034': {
+  M_PIIO_00034: {
     component: PstList,
     layout: AdminLayoutWithAuth,
   },
