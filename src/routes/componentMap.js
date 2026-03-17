@@ -81,12 +81,29 @@ const CertificateDetail = lazy(
 const CertificateIssuanceList = lazy(
   () => import('@pages/certificate/CertificateIssuanceList')
 );
+const CertificateVerificationList = lazy(
+  () => import('@pages/certificate/CertificateVerificationList.jsx')
+);
+
 const PopupManagement = lazy(() => import('@pages/popup/PopupManagement.jsx'));
 const BannerManagement = lazy(
   () => import('@pages/banner/BannerManagement.jsx')
 );
 
 const RlvntSysMng = lazy(() => import('@pages/portalMng/RlvntSysMng.jsx'));
+
+const SmsFormList = lazy(
+  () => import('@pages/notification/sms/SmsFormList.jsx')
+);
+const SmsSendList = lazy(
+  () => import('@pages/notification/sms/SmsSendList.jsx')
+);
+const EmailFormList = lazy(
+  () => import('@pages/notification/Email/EmailFormList.jsx')
+);
+const EmailSendList = lazy(
+  () => import('@pages/notification/Email/EmailSendList.jsx')
+);
 
 /**
  * =============================================================================
@@ -314,10 +331,10 @@ export const componentMap = {
   //   layout: AdminLayoutWithAuth,
   // },
   // 기업가정신 콘텐츠 관리
-  // 'M_PIIO_00034': {
-  //   component: TODO_M_PIIO_00034,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  'M_PIIO_00034': {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+  },
   // 팝업관리
   M_PIIO_00035: {
     component: PopupManagement,
@@ -329,25 +346,25 @@ export const componentMap = {
     layout: AdminLayoutWithAuth,
   },
   // SMS 발송
-  // 'M_PIIO_00130': {
-  //   component: TODO_M_PIIO_00130,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00130: {
+    component: SmsSendList,
+    layout: AdminLayoutWithAuth,
+  },
   // 이메일 발송
-  // 'M_PIIO_00131': {
-  //   component: TODO_M_PIIO_00131,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00131: {
+    component: EmailSendList,
+    layout: AdminLayoutWithAuth,
+  },
   // SMS 양식
-  // 'M_PIIO_00132': {
-  //   component: TODO_M_PIIO_00132,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00132: {
+    component: SmsFormList,
+    layout: AdminLayoutWithAuth,
+  },
   // 이메일 양식
-  // 'M_PIIO_00133': {
-  //   component: TODO_M_PIIO_00133,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00133: {
+    component: EmailFormList,
+    layout: AdminLayoutWithAuth,
+  },
   // ---------- 포털 관리 ----------
   // 중소기업 통합플랫폼 소개
   // 'M_PIIO_00038': {
@@ -400,7 +417,7 @@ export const componentMap = {
     ],
   },
   // 유관시스템 관리
- M_PIIO_00145: {
+  M_PIIO_00145: {
     component: RlvntSysMng,
     layout: AdminLayoutWithAuth,
   },
@@ -566,10 +583,10 @@ export const componentMap = {
   },
   // ---------- 증명서 일괄 확인 이력 ----------
   // 증명서 일괄 확인 이력
-  // 'M_PIIO_00019': {
-  //   component: TODO_M_PIIO_00019,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00019: {
+    component: CertificateVerificationList,
+    layout: AdminLayoutWithAuth,
+  },
   // ---------- 증명서 정보 관리 ----------
   // 증명서 정보 관리
   M_PIIO_00017: {
