@@ -54,7 +54,7 @@ const createInitialForm = () => ({
   plcyFnncAplyDdlnDtCn: '',
   plcyFnncDtlUrlAddr: '',
   plcyFnncInqplUrlAddr: '',
-  hstgSnsInput: '',
+  hstgNmsInput: '',
   plcyFnncAtchFileUrlAddr: '',
   plcyFnncEntSclCd: [],
   plcyFnncTpbizNm: '',
@@ -120,38 +120,37 @@ const parseCsvToArray = (value) => {
     .filter(Boolean);
 };
 
-const parseIdCsvToNumberArray = (value) => {
+const parseHashtagInputToNameArray = (value) => {
   if (value === null || value === undefined) {
-    return { ids: [], invalidToken: null };
+    return { names: [], overLengthToken: null };
   }
 
   const raw = String(value).trim();
   if (!raw) {
-    return { ids: [], invalidToken: null };
+    return { names: [], overLengthToken: null };
   }
 
   const tokens = raw
     .split(',')
-    .map((item) => item.trim())
+    .map((item) => item.replace(/#/g, '').trim())
     .filter(Boolean);
 
-  const ids = [];
+  const names = [];
   const seen = new Set();
   for (const token of tokens) {
-    if (!/^\d+$/.test(token)) {
-      return { ids: [], invalidToken: token };
+    if (token.length > 100) {
+      return { names: [], overLengthToken: token };
     }
-    const id = Number(token);
-    if (!Number.isSafeInteger(id) || id <= 0) {
-      return { ids: [], invalidToken: token };
-    }
-    if (seen.has(id)) continue;
-    seen.add(id);
-    ids.push(id);
+    if (seen.has(token)) continue;
+    seen.add(token);
+    names.push(token);
   }
 
-  return { ids, invalidToken: null };
+  return { names, overLengthToken: null };
 };
+
+const normalizeHashtagInputForCompare = (value) =>
+  parseHashtagInputToNameArray(value).names.join(',');
 
 const joinArrayToCsv = (values) => {
   const normalized = [...new Set((values || []).map((item) => String(item).trim()))]
@@ -166,6 +165,12 @@ const createCheckboxId = (fieldName, value) =>
 
 const formatDateTime = (value) =>
   value ? formatDate(value, 'yyyy-MM-dd HH:mm:ss') : '-';
+
+const mapDetailToHashtagInput = (detail = {}) => {
+  const hashtagNames = parseCsvToArray(detail.hstgNmList).join(',');
+  if (hashtagNames) return hashtagNames;
+  return parseCsvToArray(detail.hstgSnList).join(',');
+};
 
 const mapDetailToForm = (detail = {}) => ({
   ...createInitialForm(),
@@ -185,7 +190,7 @@ const mapDetailToForm = (detail = {}) => ({
   plcyFnncAplyDdlnDtCn: detail.plcyFnncAplyDdlnDtCn || '',
   plcyFnncDtlUrlAddr: detail.plcyFnncDtlUrlAddr || '',
   plcyFnncInqplUrlAddr: detail.plcyFnncInqplUrlAddr || '',
-  hstgSnsInput: parseCsvToArray(detail.hstgSnList).join(','),
+  hstgNmsInput: mapDetailToHashtagInput(detail),
   plcyFnncAtchFileUrlAddr: detail.plcyFnncAtchFileUrlAddr || '',
   plcyFnncEntSclCd: parseCsvToArray(detail.plcyFnncEntSclCd),
   plcyFnncTpbizNm: detail.plcyFnncTpbizNm || '',
@@ -242,6 +247,7 @@ export default function PolicyFinanceForm({ mode }) {
   const [loading, setLoading] = useState(isUpdateMode);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(createInitialForm);
+  const [initialHashtagInput, setInitialHashtagInput] = useState('');
   const [commonCodeOptions, setCommonCodeOptions] = useState({});
   const [institutionOptions, setInstitutionOptions] = useState([]);
 
@@ -373,11 +379,16 @@ export default function PolicyFinanceForm({ mode }) {
   });
 
   const buildRequestPayload = () => {
-    const { ids: hashtagIds } = parseIdCsvToNumberArray(form.hstgSnsInput);
+    const { names: hashtagNames } = parseHashtagInputToNameArray(form.hstgNmsInput);
+    const isHashtagChanged =
+      normalizeHashtagInputForCompare(form.hstgNmsInput) !==
+      normalizeHashtagInputForCompare(initialHashtagInput);
     const payload = { master: buildMasterPayload(!isUpdateMode) };
     payload.additional = {
       prfrcGdsSns: null,
-      hstgSns: hashtagIds,
+      hstgNms: isUpdateMode
+        ? (isHashtagChanged ? hashtagNames : null)
+        : hashtagNames,
     };
     if (form.plcyFnncGdsTypeCd === GDS_TYPE_LOAN) {
       payload.loanDetail = buildLoanDetailPayload();
@@ -412,9 +423,9 @@ export default function PolicyFinanceForm({ mode }) {
       alert('상품명을 입력해주세요.');
       return false;
     }
-    const { invalidToken } = parseIdCsvToNumberArray(form.hstgSnsInput);
-    if (invalidToken) {
-      alert(`해시태그 일련번호 형식이 올바르지 않습니다: ${invalidToken}`);
+    const { overLengthToken } = parseHashtagInputToNameArray(form.hstgNmsInput);
+    if (overLengthToken) {
+      alert(`해시태그는 항목별 100자 이하로 입력해주세요: ${overLengthToken}`);
       return false;
     }
     return true;
@@ -465,7 +476,9 @@ export default function PolicyFinanceForm({ mode }) {
         navigate('..');
         return;
       }
-      setForm(mapDetailToForm(detail));
+      const mappedForm = mapDetailToForm(detail);
+      setForm(mappedForm);
+      setInitialHashtagInput(mappedForm.hstgNmsInput);
     } catch (error) {
       console.error('정책금융 상세 조회 실패:', error);
       alert('정책금융 상세정보를 불러오는데 실패했습니다.');
@@ -523,6 +536,7 @@ export default function PolicyFinanceForm({ mode }) {
 
   useEffect(() => {
     if (isUpdateMode) return;
+    setInitialHashtagInput('');
     setForm((prev) => ({
       ...prev,
       plcyFnncGdsTypeCd:
@@ -823,14 +837,14 @@ export default function PolicyFinanceForm({ mode }) {
                   </td>
                 </tr>
                 <tr>
-                  <td>해시태그(일련번호)</td>
+                  <td>해시태그(이름)</td>
                   <td colSpan={3}>
                     <MenuInputBox
                       menuType="input"
                       menuSize="100%"
-                      placeholder="예: 101, 102, 103"
-                      value={form.hstgSnsInput}
-                      onChange={(e) => handleInputChange('hstgSnsInput', e)}
+                      placeholder="예: 정책자금, 중소기업, #창업"
+                      value={form.hstgNmsInput}
+                      onChange={(e) => handleInputChange('hstgNmsInput', e)}
                     />
                   </td>
                 </tr>
