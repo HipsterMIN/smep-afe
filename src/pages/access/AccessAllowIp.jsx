@@ -3,8 +3,10 @@ import '@svar-ui/react-grid/all.css';
 import Button from '@components/ui/Button.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
 import AccessAllowIpAddModal from '@pages/access/AccessAllowIpAddModal.jsx';
+import { Willow } from '@svar-ui/react-grid';
 // import GridTable from '@pages/access/Grid.jsx';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -55,7 +57,8 @@ export default function AccessAllowIp() {
   const [loading, setLoading] = useState(false);
   const [hasNext, setHasNext] = useState(true);
   const [cursor, setCursor] = useState(null);
-  const observerRef = useRef(null);
+  const gridViewportRef = useRef(null);
+  const loadingRef = useRef(false);
   const [totalCount, setTotalCount] = useState(0);
 
   const appliedSearchParamsRef = useRef(createSearchParams());
@@ -98,24 +101,6 @@ export default function AccessAllowIp() {
     }
   };
 
-  useEffect(() => {
-    const scrollContainer = document.querySelector('.wx-scroll');
-    // if (!observerRef.current) return;
-    if (!observerRef.current || !scrollContainer) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNext && !loading) {
-          fetchAccessAllowIps(cursor, false);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(observerRef.current);
-    return () => observer.disconnect();
-  }, [cursor, hasNext, loading]);
-
   const handleStatusChange = async (row) => {
     const action = row.useYn === 'Y' ? 'disable' : 'enable';
     const isEnabling = row.useYn !== 'Y';
@@ -131,9 +116,11 @@ export default function AccessAllowIp() {
 
   //접속허용 IP 목록 조회
   const fetchAccessAllowIps = async (nextCursor = null, reset = false) => {
-    if (loading) return;
+    if (loadingRef.current) return;
     if (!hasNext && !reset) return;
 
+    loadingRef.current = true;
+    setLoading(true);
     if (reset) {
       appliedSearchParamsRef.current = { ...searchParams };
     }
@@ -180,11 +167,19 @@ export default function AccessAllowIp() {
       }
       setHasNext(false);
       setCursor(null);
-      setLoading(true);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
+
+  useGridInfiniteScroll({
+    viewportRef: gridViewportRef,
+    loading,
+    loadingRef,
+    hasNext,
+    onLoadMore: () => fetchAccessAllowIps(cursor, false),
+  });
 
   const handleAccessAllowIpSearch = () => {
     setCursor(null);
@@ -346,9 +341,21 @@ export default function AccessAllowIp() {
             />
           )}
           <div className="ongrid-tableform">
-            <GridTable data={rows} columns={accessAllowIpColumns} />
-
-            <div ref={observerRef} style={{ height: '20px' }} />
+            <Willow>
+              <div
+                ref={gridViewportRef}
+                style={{
+                  height: 'max(420px, calc(100dvh - 390px))',
+                  overflow: 'hidden',
+                }}
+              >
+                <GridTable
+                  data={rows}
+                  columns={accessAllowIpColumns}
+                  useWillow={false}
+                />
+              </div>
+            </Willow>
           </div>
         </div>
       </div>

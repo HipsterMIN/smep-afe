@@ -428,7 +428,10 @@ export default function SupportBusiness() {
             <Willow>
               <div
                 ref={gridViewportRef}
-                style={{ height: 510, overflow: 'hidden' }}
+                style={{
+                  height: 'max(420px, calc(100dvh - 410px))',
+                  overflow: 'hidden',
+                }}
               >
                 <GridTable columns={columns} data={rows} useWillow={false} />
               </div>

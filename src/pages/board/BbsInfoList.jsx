@@ -2,8 +2,10 @@ import Button from '@components/ui/Button.jsx';
 import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import { useUserMenu } from '@context/UserMenuContext';
 import http from '@lib/http.js';
+import { Willow } from '@svar-ui/react-grid';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useRef, useState } from 'react';
@@ -18,7 +20,8 @@ export default function BbsList() {
   const [cursor, setCursor] = useState(null);
   const [hasNext, setHasNext] = useState(true);
   const [bbsTypeCdList, setBbsTypeCdList] = useState([]);
-  const observerRef = useRef(null);
+  const gridViewportRef = useRef(null);
+  const loadingRef = useRef(false);
   const appliedSearchParamsRef = useRef({
     bbsNo: '',
     bbsNm: '',
@@ -62,9 +65,10 @@ export default function BbsList() {
   };
 
   const fetchBbsList = async (nextCursor = null, reset = false) => {
-    if (loading) return;
+    if (loadingRef.current) return;
     if (!hasNext && !reset) return;
 
+    loadingRef.current = true;
     setLoading(true);
     if (reset) {
       appliedSearchParamsRef.current = { ...searchParams };
@@ -129,6 +133,7 @@ export default function BbsList() {
       setHasNext(false);
       setCursor(null);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -241,22 +246,13 @@ export default function BbsList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!observerRef.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNext && !loading) {
-          fetchBbsList(cursor, false);
-        }
-      },
-      { threshold: 1 }
-    );
-
-    observer.observe(observerRef.current);
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, hasNext, loading]);
+  useGridInfiniteScroll({
+    viewportRef: gridViewportRef,
+    loading,
+    loadingRef,
+    hasNext,
+    onLoadMore: () => fetchBbsList(cursor, false),
+  });
 
   return (
     <div className="oncontentbox full">
@@ -342,8 +338,21 @@ export default function BbsList() {
             className="ongrid-tableform"
             style={{ scrollbarGutter: 'stable' }}
           >
-            <GridTable data={bbsData} columns={bbsColumns} />
-            <div ref={observerRef} style={{ height: 40 }} />
+            <Willow>
+              <div
+                ref={gridViewportRef}
+                style={{
+                  height: 'max(420px, calc(100dvh - 390px))',
+                  overflow: 'hidden',
+                }}
+              >
+                <GridTable
+                  data={bbsData}
+                  columns={bbsColumns}
+                  useWillow={false}
+                />
+              </div>
+            </Willow>
             <div
               className="loading"
               style={{

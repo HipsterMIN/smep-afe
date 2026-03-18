@@ -480,9 +480,19 @@ export default function PolicyFinanceList() {
 
           <div className="ongrid-tableform">
             <Willow>
+              {/* Grid 내부 스크롤/헤더 고정을 위해 viewport 높이를 "반응형 고정값"으로 관리한다.
+                  clamp(min, preferred, max) 동작:
+                  1) min(420px): 작은 화면에서도 그리드가 너무 눌리지 않게 최소 높이 보장
+                  2) preferred(calc(100dvh - Npx)): 화면 높이에서 상단 UI(타이틀/검색영역/여백) 공간을 뺀 값
+                  3) max(760px): 큰 화면에서 과도하게 늘어 행 간격 체감이 커지는 것을 방지
+                  결과적으로 화면 크기에 따라 유연하게 변하지만, 항상 "내부 스크롤 가능한 고정 높이 박스"를 유지한다.
+                  overflow: hidden은 외부(div) 스크롤을 막고, 실제 스크롤 주체를 Grid 내부(.wx-scroll)로 고정한다. */}
               <div
                 ref={gridViewportRef}
-                style={{ height: 480, overflow: 'hidden' }}
+                style={{
+                  height: 'max(420px, calc(100dvh - 430px))',
+                  overflow: 'hidden',
+                }}
               >
                 <GridTable data={rows} columns={columns} useWillow={false} />
               </div>
