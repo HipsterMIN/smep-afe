@@ -1,12 +1,12 @@
 import '@svar-ui/react-grid/all.css';
 
 import Button from '@components/ui/Button.jsx';
-import DatepickerBox from '@components/ui/DatepickerBox.jsx';
+import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
 import AccessAllowIpAddModal from '@pages/access/AccessAllowIpAddModal.jsx';
-import { Grid, Willow } from '@svar-ui/react-grid';
-import React, { useEffect, useRef, useState } from 'react';
+// import GridTable from '@pages/access/Grid.jsx';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 const createSearchParams = () => ({
   ipAddr: '',
@@ -34,7 +34,7 @@ const toApiValue = (value) => {
 function StatusToggleButton({ row, onStatusChange }) {
   const isUsing = row.useYn === 'Y';
   const btnLabel = isUsing ? '사용안함' : '사용함';
-  const btnType = isUsing ? 'del' : 'edit';
+  const btnType = isUsing ? 'small del' : 'small add';
 
   const handleClick = (e) => {
     e.stopPropagation();
@@ -60,6 +60,11 @@ export default function AccessAllowIp() {
 
   const appliedSearchParamsRef = useRef(createSearchParams());
   const [searchParams, setSearchParams] = useState(createSearchParams());
+
+  useEffect(() => {
+    fetchAccessAllowIps(null, true);
+    fetchCount(searchParams);
+  }, []);
 
   const buildParams = (baseParams) => {
     const params = {
@@ -94,12 +99,9 @@ export default function AccessAllowIp() {
   };
 
   useEffect(() => {
-    fetchAccessAllowIps(null, true);
-    fetchCount(searchParams);
-  }, []);
-
-  useEffect(() => {
-    if (!observerRef.current) return;
+    const scrollContainer = document.querySelector('.wx-scroll');
+    // if (!observerRef.current) return;
+    if (!observerRef.current || !scrollContainer) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -107,7 +109,7 @@ export default function AccessAllowIp() {
           fetchAccessAllowIps(cursor, false);
         }
       },
-      { threshold: 1 }
+      { threshold: 0.1 }
     );
 
     observer.observe(observerRef.current);
@@ -116,9 +118,11 @@ export default function AccessAllowIp() {
 
   const handleStatusChange = async (row) => {
     const action = row.useYn === 'Y' ? 'disable' : 'enable';
+    const isEnabling = row.useYn !== 'Y';
+    const statusName = isEnabling ? '사용함' : '사용안함';
     try {
       await http.patch(`/api/v1/access-allowIp/${row.mngrPrmIpNo}/${action}`);
-      alert(`상태가 변경되었습니다.`);
+      alert(`상태가 [${statusName}]으로 변경되었습니다.`);
       fetchAccessAllowIps(null, true);
     } catch (error) {
       alert('오류가 발생했습니다.');
@@ -129,8 +133,6 @@ export default function AccessAllowIp() {
   const fetchAccessAllowIps = async (nextCursor = null, reset = false) => {
     if (loading) return;
     if (!hasNext && !reset) return;
-
-    setLoading(true);
 
     if (reset) {
       appliedSearchParamsRef.current = { ...searchParams };
@@ -169,7 +171,6 @@ export default function AccessAllowIp() {
           _rowIndex: idx + 1,
         }));
       });
-
       setCursor(page?.nextCursor ?? null);
       setHasNext(Boolean(page?.hasNext));
     } catch (error) {
@@ -179,6 +180,7 @@ export default function AccessAllowIp() {
       }
       setHasNext(false);
       setCursor(null);
+      setLoading(true);
     } finally {
       setLoading(false);
     }
@@ -221,39 +223,48 @@ export default function AccessAllowIp() {
     }));
   };
 
-  const accessAllowIpColumns = [
-    { id: 'mngrPrmIpNo', width: 86, header: '번호' },
-    { id: 'ipAddr', flexgrow: 1, header: 'IP' },
-    { id: 'memoCn', flexgrow: 2, header: '메모' },
-    { id: 'useYn', width: 80, header: '사용여부' },
-    { id: 'rgtrId', width: 76, header: '등록자' },
-    {
-      id: 'regDt',
-      width: 140,
-      header: '등록일시',
-      cell: (props) => formatDateTime(props.row.regDt),
-    },
-    { id: 'mdfrId', width: 76, header: '수정자' },
-    {
-      id: 'mdfcnDt',
-      width: 140,
-      header: '수정일시',
-      cell: (props) => formatDateTime(props.row.mdfcnDt),
-    },
-    {
-      id: 'edit',
-      width: 100,
-      header: '관리',
-      headerAlign: 'center',
-      dataAlign: 'center',
-      cell: (props) => (
-        <StatusToggleButton
-          row={props.row}
-          onStatusChange={handleStatusChange}
-        />
-      ),
-    },
-  ];
+  const accessAllowIpColumns = useMemo(
+    () => [
+      {
+        id: 'mngrPrmIpNo',
+        width: 86,
+        header: '번호',
+        headerAlign: 'center',
+        dataAlign: 'center',
+      },
+      { id: 'ipAddr', flexgrow: 1, header: 'IP', dataAlign: 'left' },
+      { id: 'memoCn', flexgrow: 2, header: '메모', dataAlign: 'left' },
+      { id: 'useYn', width: 80, header: '사용여부' },
+      { id: 'rgtrId', width: 76, header: '등록자' },
+      {
+        id: 'regDt',
+        width: 140,
+        header: '등록일시',
+        cell: (props) => formatDateTime(props.row.regDt),
+      },
+      { id: 'mdfrId', width: 76, header: '수정자' },
+      {
+        id: 'mdfcnDt',
+        width: 140,
+        header: '수정일시',
+        cell: (props) => formatDateTime(props.row.mdfcnDt),
+      },
+      {
+        id: 'edit',
+        width: 100,
+        header: '관리',
+        headerAlign: 'center',
+        dataAlign: 'center',
+        cell: (props) => (
+          <StatusToggleButton
+            row={props.row}
+            onStatusChange={handleStatusChange}
+          />
+        ),
+      },
+    ],
+    [handleStatusChange, formatDateTime]
+  );
 
   const handleAdd = () => {
     setIsAddOpen(true);
@@ -295,20 +306,6 @@ export default function AccessAllowIp() {
                 value={searchParams.rgtrId}
                 onChange={(e) => handleInputChange('rgtrId', e.target.value)}
               />
-              <div className="ondatepickerbox">
-                <DatepickerBox
-                  menuName="등록일"
-                  value={searchParams.startRegDt}
-                  outputFormat="datetime"
-                  onChange={(date) => handleInputChange('startRegDt', date)}
-                />
-                <span className="onunit">~</span>
-                <DatepickerBox
-                  value={searchParams.endRegDt}
-                  outputFormat="datetime"
-                  onChange={(date) => handleInputChange('endRegDt', date)}
-                />
-              </div>
               <MenuInputBox
                 menuType="select"
                 menuName="사용여부"
@@ -349,15 +346,8 @@ export default function AccessAllowIp() {
             />
           )}
           <div className="ongrid-tableform">
-            <Willow>
-              <Grid
-                data={rows}
-                columns={accessAllowIpColumns}
-                init={(api) => {
-                  apiRef.current = api;
-                }}
-              />
-            </Willow>
+            <GridTable data={rows} columns={accessAllowIpColumns} />
+
             <div ref={observerRef} style={{ height: '20px' }} />
           </div>
         </div>
