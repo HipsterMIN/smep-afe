@@ -1075,13 +1075,6 @@ button.defaultbutton {
   border-radius: 5px;
   background-color: #fff;
 }
-button.defaultbutton.small {
-    font-size: 13px;
-    padding: 1px;
-    height: 24px;
-    padding: 5px 15px;
-    min-width: 52px;
-} 
 button.defaultbutton.search {
   background-color: #707070;
 }
@@ -1123,9 +1116,6 @@ button.defaultbutton.detail::before {
   width: 15px;
   height: 15px;
   background: url("../src/assets/images/common/ico_detail.svg") center center / cover no-repeat;
-}
-button.defaultbutton.add {
-  max-width: 62px;
 }
 button.defaultbutton.add,
 button.defaultbutton.addfile {
@@ -1190,6 +1180,106 @@ button.defaultbutton.closeAll::before {
   height: 10px;
   background: url("../src/assets/images/common/ico_close.svg") left center / cover no-repeat;
 }
+
+
+/* common button css */
+button.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 64px;
+  height: 30px;
+  color: #FFF;
+  font-family: Pretendard;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.84px;
+  padding: 8px 19px;
+  border-radius: 5px;
+  background-color: #fff;
+}
+
+/* button size */
+button.btn.small {
+  width: 52px;
+  min-width: 52px;
+  height: 24px;
+  padding: 8px;
+}
+button.btn.medium {
+  width: 64px;
+  min-width: 64px;
+  height: 30px;
+  padding: 8px;
+}
+button.btn.large {
+  width: 70px;
+  min-width: 70px;
+  height: 32px;
+  padding: 8px 12px;
+}
+button.btn.auto {
+  width: auto;
+  min-width: auto;
+}
+
+/* button max-width */
+button.btn.mx-small {
+  max-width: 52px;
+}
+button.btn.mx-medium {
+  max-width: 62px;
+}
+button.btn.mx-large {
+  max-width: 72px;
+}
+
+/* button color */
+button.btn.color-navy {
+  background: #03167B;
+}
+button.btn.color-blue {
+  background: #2750BB;
+}
+button.btn.color-gray {
+  background: #6B7280;
+}
+button.btn.color-red {
+  background: #DC3545;
+}
+button.btn.color-light_gray {
+  border: 1px solid #CDD1D5;
+  background: none;
+}
+
+/* button color hover */
+button.btn.color-navy:hover {
+  background: #0E184B;
+}
+button.btn.color-blue:hover {
+  background: #2F5BFF;
+}
+button.btn.color-gray:hover {
+  background: #4D525C;
+}
+button.btn.color-red:hover {
+  background: #CC291D;
+}
+button.btn.color-light_gray:hover {
+  border: 1px solid #9CA3AF;
+  background: #F3F3F3;
+}
+
+/* button color disabled */
+button.btn.disabled {
+  min-width: 64px;
+  color: #A7A7A7;
+  font-weight: 600;
+  padding: 7px 8px;
+  background: #E5E7EB;
+}
+
 
 /* radio button css */
 .onradiobtns {
