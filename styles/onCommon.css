@@ -1205,18 +1205,21 @@ button.btn.small {
   width: 52px;
   min-width: 52px;
   height: 24px;
+  font-size: 13px;
   padding: 8px;
 }
 button.btn.medium {
   width: 64px;
   min-width: 64px;
   height: 30px;
+  font-size: 14px;
   padding: 8px;
 }
 button.btn.large {
   width: 70px;
   min-width: 70px;
   height: 32px;
+  font-size: 15px;
   padding: 8px 12px;
 }
 button.btn.auto {
