@@ -4,6 +4,9 @@ import { lazy } from 'react';
 // Lazy import (필요할 때 로드)
 const CommonCode = lazy(() => import('@pages/CommonCode'));
 const AccessAllowIp = lazy(() => import('@pages/access/AccessAllowIp'));
+const SecurityPolicy = lazy(
+  () => import('@pages/security-policy/SecurityPolicy.jsx')
+);
 const BbsList = lazy(() => import('@pages/board/BbsList'));
 const BbsForm = lazy(() => import('@pages/board/BbsForm'));
 const BbsInfoList = lazy(() => import('@pages/board/BbsInfoList'));
@@ -193,7 +196,7 @@ export const componentMap = {
   },
   // 보안설정
   M_PIIO_00061: {
-    component: AccessAllowIp,
+    component: SecurityPolicy,
     layout: AdminLayoutWithAuth,
   },
   // 접속허용IP 관리
