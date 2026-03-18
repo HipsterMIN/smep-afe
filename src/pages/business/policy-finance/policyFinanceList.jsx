@@ -125,6 +125,7 @@ export default function PolicyFinanceList() {
       header: '상품명',
       resize: true,
       width: 200,
+      dataAlign: 'left',
       cell: policyFinanceNameActionCell,
     },
     {
@@ -182,7 +183,7 @@ export default function PolicyFinanceList() {
       id: 'regDt',
       header: '등록일시',
       resize: true,
-      width: 150,
+      width: 160,
       cell: ({ row }) => renderDateWithTooltip(row?.regDt),
     },
     {
@@ -195,13 +196,13 @@ export default function PolicyFinanceList() {
       id: 'mdfcnDt',
       header: '수정일시',
       resize: true,
-      width: 150,
+      width: 160,
       cell: ({ row }) => renderDateWithTooltip(row?.mdfcnDt),
     },
     {
       id: 'management',
       header: '관리',
-      width: 90,
+      width: 70,
       cell: managementActionCell,
     },
   ];
