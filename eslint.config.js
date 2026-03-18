@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier";
+import importPlugin from "eslint-plugin-import";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import prettier from "eslint-plugin-prettier";
 import react from "eslint-plugin-react";
@@ -9,6 +10,7 @@ import simpleImportSort from "eslint-plugin-simple-import-sort";
 import globals from "globals";
 
 const PLUGINS = {
+  import: importPlugin,
   react,
   "react-hooks": reactHooks,
   "react-refresh": reactRefresh,
@@ -48,6 +50,11 @@ const importSortRules = {
   // Import 정렬 강제 (유지보수성 향상)
   "simple-import-sort/imports": "error",
   "simple-import-sort/exports": "error",
+  // import 경로 해석 실패 및 경로 대소문자 불일치 차단
+  "import/no-unresolved": [
+    "error",
+    { caseSensitive: true, caseSensitiveStrict: true }
+  ],
 };
 
 const a11yRules = {
@@ -63,6 +70,33 @@ const securityRules = {
   "react/jsx-no-target-blank": "error", // target="_blank" 보안 취약점 방지
 };
 
+const importResolverSettings = {
+  "import/resolver": {
+    node: {
+      extensions: [".js", ".jsx", ".json"],
+    },
+    alias: {
+      map: [
+        ["@", "./src"],
+        ["@assets", "./src/assets"],
+        ["@components", "./src/components"],
+        ["@context", "./src/context"],
+        ["@layouts", "./src/layouts"],
+        ["@lib", "./src/lib"],
+        ["@pages", "./src/pages"],
+        ["@publishing", "./src/publishing"],
+        ["@routes", "./src/routes"],
+        ["@store", "./src/store"],
+        ["@utils", "./src/utils"],
+        ["@styles", "./styles"],
+        ["@public", "./public"],
+        ["@docs", "./documents"],
+      ],
+      extensions: [".js", ".jsx", ".json"],
+    },
+  },
+};
+
 export default [
   { ignores: ["dist"] },
   js.configs.recommended,
@@ -72,7 +106,7 @@ export default [
     files: ["**/*.{js,jsx}"],
     plugins: PLUGINS,
     languageOptions: LANGUAGE_OPTIONS,
-    settings: { react: { version: "detect" } },
+    settings: { react: { version: "detect" }, ...importResolverSettings },
     rules: {
       ...baseRules,
       ...formattingRules,
