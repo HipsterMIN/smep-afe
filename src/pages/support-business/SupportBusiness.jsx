@@ -4,6 +4,7 @@ import CheckBox from '@components/ui/CheckBox.jsx';
 import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
 import { Willow } from '@svar-ui/react-grid';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
@@ -297,35 +298,13 @@ export default function SupportBusiness() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    const viewport = gridViewportRef.current;
-    if (!viewport) return;
-
-    const scrollElement = viewport.querySelector('.wx-scroll');
-    if (!scrollElement) return;
-
-    const handleGridScroll = () => {
-      if (loading || loadingRef.current || !hasNext) return;
-
-      const remain =
-        scrollElement.scrollHeight -
-        scrollElement.scrollTop -
-        scrollElement.clientHeight;
-      if (remain <= 80) {
-        fetchList(cursor, false);
-      }
-    };
-
-    handleGridScroll();
-    scrollElement.addEventListener('scroll', handleGridScroll, {
-      passive: true,
-    });
-
-    return () => {
-      scrollElement.removeEventListener('scroll', handleGridScroll);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, hasNext, loading, rows.length]);
+  useGridInfiniteScroll({
+    viewportRef: gridViewportRef,
+    loading,
+    loadingRef,
+    hasNext,
+    onLoadMore: () => fetchList(cursor, false),
+  });
 
   return (
     <div className="oncontentbox full">
