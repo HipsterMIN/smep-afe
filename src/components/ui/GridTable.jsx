@@ -167,6 +167,7 @@ export default function GridTable({
   headerAlign = DEFAULT_ALIGN,
   dataAlign = DEFAULT_ALIGN,
   gridProps = {},
+  useWillow = true,
 }) {
   const { columnStyle: customColumnStyle, cellStyle: customCellStyle, ...restGridProps } = gridProps;
 
@@ -182,17 +183,18 @@ export default function GridTable({
       `gridtable-data-align-${resolveColumnAlign(column, 'dataAlign', dataAlign)}`
     );
 
-  return (
-    <Willow>
-      <Grid
-        data={data}
-        columns={columns}
-        columnStyle={columnStyle}
-        cellStyle={cellStyle}
-        {...restGridProps}
-      />
-    </Willow>
+  const gridElement = (
+    <Grid
+      data={data}
+      columns={columns}
+      columnStyle={columnStyle}
+      cellStyle={cellStyle}
+      {...restGridProps}
+    />
   );
+
+  if (!useWillow) return gridElement;
+  return <Willow>{gridElement}</Willow>;
 }
 
 GridTable.propTypes = {
@@ -201,4 +203,5 @@ GridTable.propTypes = {
   headerAlign: PropTypes.oneOf(VALID_ALIGNMENTS),
   dataAlign: PropTypes.oneOf(VALID_ALIGNMENTS),
   gridProps: PropTypes.object,
+  useWillow: PropTypes.bool,
 };

@@ -2,7 +2,9 @@ import Button from '@components/ui/Button';
 import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.jsx';
 import GridTable from '@components/ui/GridTable';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
+import { Willow } from '@svar-ui/react-grid';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useRef, useState } from 'react';
@@ -35,7 +37,8 @@ const toDisplayText = (value) => {
 
 export default function PolicyFinanceList() {
   const navigate = useNavigate();
-  const observerRef = useRef(null);
+  const gridViewportRef = useRef(null);
+  const loadingRef = useRef(false);
   const rowsRef = useRef([]);
   const appliedSearchParamsRef = useRef(createSearchParams());
 
@@ -239,9 +242,10 @@ export default function PolicyFinanceList() {
   });
 
   const fetchList = async (nextCursor = null, reset = false) => {
-    if (loading) return;
+    if (loadingRef.current) return;
     if (!hasNext && !reset) return;
 
+    loadingRef.current = true;
     setLoading(true);
     if (reset) {
       appliedSearchParamsRef.current = { ...searchParams };
@@ -298,6 +302,7 @@ export default function PolicyFinanceList() {
       setHasNext(false);
       setCursor(null);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -357,22 +362,13 @@ export default function PolicyFinanceList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams.productType]);
 
-  useEffect(() => {
-    if (!observerRef.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNext && !loading) {
-          fetchList(cursor, false);
-        }
-      },
-      { threshold: 1 }
-    );
-
-    observer.observe(observerRef.current);
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, hasNext, loading]);
+  useGridInfiniteScroll({
+    viewportRef: gridViewportRef,
+    loading,
+    loadingRef,
+    hasNext,
+    onLoadMore: () => fetchList(cursor, false),
+  });
 
   return (
     <div className="oncontentbox full">
@@ -483,8 +479,14 @@ export default function PolicyFinanceList() {
           </div>
 
           <div className="ongrid-tableform">
-            <GridTable data={rows} columns={columns} />
-            <div ref={observerRef} style={{ height: 40 }} />
+            <Willow>
+              <div
+                ref={gridViewportRef}
+                style={{ height: 480, overflow: 'hidden' }}
+              >
+                <GridTable data={rows} columns={columns} useWillow={false} />
+              </div>
+            </Willow>
           </div>
         </div>
       </div>
