@@ -1,7 +1,9 @@
 import Button from '@components/ui/Button.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
+import { Willow } from '@svar-ui/react-grid';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useRef, useState } from 'react';
@@ -15,7 +17,8 @@ export default function BbsList() {
   const [cursor, setCursor] = useState(null);
   const [hasNext, setHasNext] = useState(true);
   const [bbsTypeCdList, setBbsTypeCdList] = useState([]);
-  const observerRef = useRef(null);
+  const gridViewportRef = useRef(null);
+  const loadingRef = useRef(false);
   const appliedSearchParamsRef = useRef({
     bbsNo: '',
     bbsNm: '',
@@ -59,9 +62,10 @@ export default function BbsList() {
   };
 
   const fetchBbsList = async (nextCursor = null, reset = false) => {
-    if (loading) return;
+    if (loadingRef.current) return;
     if (!hasNext && !reset) return;
 
+    loadingRef.current = true;
     setLoading(true);
     if (reset) {
       appliedSearchParamsRef.current = { ...searchParams };
@@ -122,9 +126,10 @@ export default function BbsList() {
         setBbsData([]);
         setTotalCount(0);
       }
-      setHasNext(false);``
+      setHasNext(false);
       setCursor(null);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -134,18 +139,28 @@ export default function BbsList() {
       alert('게시판 번호가 없습니다.');
       return;
     }
-    let url = "";
-    if(type === "pst"){
+    let url = '';
+    if (type === 'pst') {
       url = `/sys/sysStng/pst/`;
     }
     navigate(url + `${bbsNo}`);
   };
 
   const bbsColumns = [
-    { id: 'no', width: 40, header: 'No', headerAlign: 'center', dataAlign: 'center' },
+    {
+      id: 'no',
+      width: 40,
+      header: 'No',
+      headerAlign: 'center',
+      dataAlign: 'center',
+    },
     { id: 'bbsNo', width: 90, header: '게시판 ID' },
-    { id: 'bbsNm', width: 300, header: '게시판 명', dataAlign: 'left'
-      , cell: ({ row }) => (
+    {
+      id: 'bbsNm',
+      width: 300,
+      header: '게시판 명',
+      dataAlign: 'left',
+      cell: ({ row }) => (
         <button
           type="button"
           data-action="ignore-click"
@@ -153,7 +168,7 @@ export default function BbsList() {
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
-            handleMoveToEdit( 'bbs', row?.bbsNo);
+            handleMoveToEdit('bbs', row?.bbsNo);
           }}
           style={{
             background: 'none',
@@ -174,7 +189,12 @@ export default function BbsList() {
       header: '게시판 유형',
       template: (value) => getBbsTypeLabel(value),
     },
-    { id: 'bbsExplnCn', flexgrow: 1, header: '게시판 소개글', dataAlign: 'left' },
+    {
+      id: 'bbsExplnCn',
+      flexgrow: 1,
+      header: '게시판 소개글',
+      dataAlign: 'left',
+    },
     { id: 'ctgryUseYn', width: 120, header: '카테고리 사용여부' },
     { id: 'useYn', width: 80, header: '사용여부' },
     { id: 'rgtrId', width: 120, header: '등록자 ID' },
@@ -244,22 +264,13 @@ export default function BbsList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!observerRef.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNext && !loading) {
-          fetchBbsList(cursor, false);
-        }
-      },
-      { threshold: 1 }
-    );
-
-    observer.observe(observerRef.current);
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, hasNext, loading]);
+  useGridInfiniteScroll({
+    viewportRef: gridViewportRef,
+    loading,
+    loadingRef,
+    hasNext,
+    onLoadMore: () => fetchBbsList(cursor, false),
+  });
 
   return (
     <div className="oncontentbox full">
@@ -307,7 +318,9 @@ export default function BbsList() {
                 menuName="게시판 소개글"
                 menuSize="300px"
                 value={searchParams.bbsExplnCn}
-                onChange={(e) => handleInputChange('bbsExplnCn', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange('bbsExplnCn', e.target.value)
+                }
                 onKeyDown={handleSearchKeyDown}
               />
               <MenuInputBox
@@ -337,18 +350,38 @@ export default function BbsList() {
             <span>
               총 <b>{totalCount}</b>건
             </span>
-            <Button btnType="add" btnNames="등록" onClick={() => navigate('create')} />
+            <Button
+              btnType="add"
+              btnNames="등록"
+              onClick={() => navigate('create')}
+            />
           </div>
 
-          <div className="ongrid-tableform" style={{ scrollbarGutter: 'stable' }}>
-            <GridTable
-              data={bbsData}
-              columns={bbsColumns}
-            />
-            <div ref={observerRef} style={{ height: 40 }} />
+          <div
+            className="ongrid-tableform"
+            style={{ scrollbarGutter: 'stable' }}
+          >
+            <Willow>
+              <div
+                ref={gridViewportRef}
+                style={{
+                  height: 'max(420px, calc(100dvh - 470px))',
+                  overflow: 'hidden',
+                }}
+              >
+                <GridTable
+                  data={bbsData}
+                  columns={bbsColumns}
+                  useWillow={false}
+                />
+              </div>
+            </Willow>
             <div
               className="loading"
-              style={{ minHeight: 20, visibility: loading ? 'visible' : 'hidden' }}
+              style={{
+                minHeight: 20,
+                visibility: loading ? 'visible' : 'hidden',
+              }}
             >
               데이터를 불러오는 중...
             </div>

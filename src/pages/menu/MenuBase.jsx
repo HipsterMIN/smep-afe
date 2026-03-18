@@ -3,6 +3,7 @@ import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import RadioButton from '@components/ui/RadioButton.jsx';
 import http from '@lib/http.js';
+import { Willow } from '@svar-ui/react-grid';
 import PropTypes from 'prop-types';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -345,7 +346,6 @@ export default function MenuBase({
     data: PropTypes.object,
   };
 
-
   const TypeCell = ({ row, data }) => {
     const item = row || data || {};
     return getScrnTypeLabel(item.scrnTypeCd);
@@ -366,7 +366,13 @@ export default function MenuBase({
     },
     { id: 'menuId', header: '메뉴ID', resize: true, width: 110 },
     { id: 'sortSeq', header: '순서', resize: true, width: 43 },
-    { id: 'scrnUrlAddr', header: 'URL', resize: true, width: 124, dataAlign: 'left' },
+    {
+      id: 'scrnUrlAddr',
+      header: 'URL',
+      resize: true,
+      width: 124,
+      dataAlign: 'left',
+    },
     {
       id: 'scrnTypeCd',
       header: '유형',
@@ -489,12 +495,22 @@ export default function MenuBase({
             </div>
           </div>
 
-          <div className="ongrid-tableform onSCrollBox">
-            <GridTable
-              columns={columns}
-              data={rows}
-              gridProps={{ tree: true, ref: apiRef }}
-            />
+          <div className="ongrid-tableform">
+            <Willow>
+              <div
+                style={{
+                  height: 'max(420px, calc(100dvh - 430px))',
+                  overflow: 'hidden',
+                }}
+              >
+                <GridTable
+                  columns={columns}
+                  data={rows}
+                  gridProps={{ tree: true, ref: apiRef }}
+                  useWillow={false}
+                />
+              </div>
+            </Willow>
           </div>
         </div>
 
