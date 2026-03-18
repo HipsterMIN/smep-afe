@@ -3,6 +3,7 @@ import { createGridValueActionCell } from '@components/ui/createGridValueActionC
 import GridTable from '@components/ui/GridTable';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
+import { Willow } from '@svar-ui/react-grid';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useRef, useState } from 'react';
@@ -35,7 +36,8 @@ const toDisplayText = (value) => {
 
 export default function PolicyFinanceList() {
   const navigate = useNavigate();
-  const observerRef = useRef(null);
+  const gridViewportRef = useRef(null);
+  const loadingRef = useRef(false);
   const rowsRef = useRef([]);
   const appliedSearchParamsRef = useRef(createSearchParams());
 
@@ -239,9 +241,10 @@ export default function PolicyFinanceList() {
   });
 
   const fetchList = async (nextCursor = null, reset = false) => {
-    if (loading) return;
+    if (loadingRef.current) return;
     if (!hasNext && !reset) return;
 
+    loadingRef.current = true;
     setLoading(true);
     if (reset) {
       appliedSearchParamsRef.current = { ...searchParams };
@@ -298,6 +301,7 @@ export default function PolicyFinanceList() {
       setHasNext(false);
       setCursor(null);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -358,21 +362,34 @@ export default function PolicyFinanceList() {
   }, [searchParams.productType]);
 
   useEffect(() => {
-    if (!observerRef.current) return;
+    const viewport = gridViewportRef.current;
+    if (!viewport) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNext && !loading) {
-          fetchList(cursor, false);
-        }
-      },
-      { threshold: 1 }
-    );
+    const scrollElement = viewport.querySelector('.wx-scroll');
+    if (!scrollElement) return;
 
-    observer.observe(observerRef.current);
-    return () => observer.disconnect();
+    const handleGridScroll = () => {
+      if (loading || loadingRef.current || !hasNext) return;
+
+      const remain =
+        scrollElement.scrollHeight -
+        scrollElement.scrollTop -
+        scrollElement.clientHeight;
+      if (remain <= 80) {
+        fetchList(cursor, false);
+      }
+    };
+
+    handleGridScroll();
+    scrollElement.addEventListener('scroll', handleGridScroll, {
+      passive: true,
+    });
+
+    return () => {
+      scrollElement.removeEventListener('scroll', handleGridScroll);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, hasNext, loading]);
+  }, [cursor, hasNext, loading, rows.length]);
 
   return (
     <div className="oncontentbox full">
@@ -483,8 +500,14 @@ export default function PolicyFinanceList() {
           </div>
 
           <div className="ongrid-tableform">
-            <GridTable data={rows} columns={columns} />
-            <div ref={observerRef} style={{ height: 40 }} />
+            <Willow>
+              <div
+                ref={gridViewportRef}
+                style={{ height: 480, overflow: 'hidden' }}
+              >
+                <GridTable data={rows} columns={columns} useWillow={false} />
+              </div>
+            </Willow>
           </div>
         </div>
       </div>

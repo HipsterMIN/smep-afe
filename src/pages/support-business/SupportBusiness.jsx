@@ -5,6 +5,7 @@ import { createGridValueActionCell } from '@components/ui/createGridValueActionC
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
+import { Willow } from '@svar-ui/react-grid';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useRef, useState } from 'react';
@@ -44,7 +45,8 @@ const toApiValue = (value) => {
 
 export default function SupportBusiness() {
   const navigate = useNavigate();
-  const observerRef = useRef(null);
+  const gridViewportRef = useRef(null);
+  const loadingRef = useRef(false);
   const [isDetailOpen, setIsDetailOpen] = useState(true);
   const appliedSearchParamsRef = useRef(createSearchParams());
 
@@ -176,9 +178,10 @@ export default function SupportBusiness() {
   };
 
   const fetchList = async (nextCursor = null, reset = false) => {
-    if (loading) return;
+    if (loadingRef.current) return;
     if (!hasNext && !reset) return;
 
+    loadingRef.current = true;
     setLoading(true);
 
     if (reset) {
@@ -231,6 +234,7 @@ export default function SupportBusiness() {
       setHasNext(false);
       setCursor(null);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -294,21 +298,34 @@ export default function SupportBusiness() {
   }, []);
 
   useEffect(() => {
-    if (!observerRef.current) return;
+    const viewport = gridViewportRef.current;
+    if (!viewport) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNext && !loading) {
-          fetchList(cursor, false);
-        }
-      },
-      { threshold: 1 }
-    );
+    const scrollElement = viewport.querySelector('.wx-scroll');
+    if (!scrollElement) return;
 
-    observer.observe(observerRef.current);
-    return () => observer.disconnect();
+    const handleGridScroll = () => {
+      if (loading || loadingRef.current || !hasNext) return;
+
+      const remain =
+        scrollElement.scrollHeight -
+        scrollElement.scrollTop -
+        scrollElement.clientHeight;
+      if (remain <= 80) {
+        fetchList(cursor, false);
+      }
+    };
+
+    handleGridScroll();
+    scrollElement.addEventListener('scroll', handleGridScroll, {
+      passive: true,
+    });
+
+    return () => {
+      scrollElement.removeEventListener('scroll', handleGridScroll);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, hasNext, loading]);
+  }, [cursor, hasNext, loading, rows.length]);
 
   return (
     <div className="oncontentbox full">
@@ -429,10 +446,15 @@ export default function SupportBusiness() {
           </div>
 
           <div className="ongrid-tableform">
-            <GridTable columns={columns} data={rows} />
+            <Willow>
+              <div
+                ref={gridViewportRef}
+                style={{ height: 510, overflow: 'hidden' }}
+              >
+                <GridTable columns={columns} data={rows} useWillow={false} />
+              </div>
+            </Willow>
           </div>
-
-          <div ref={observerRef} style={{ height: '20px' }} />
         </div>
       </div>
     </div>
