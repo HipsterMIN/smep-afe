@@ -2,7 +2,9 @@ import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button.jsx';
 import GridTable from '@components/ui/GridTable';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
+import { Willow } from '@svar-ui/react-grid';
 import { fetchCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useRef, useState } from 'react';
@@ -22,11 +24,12 @@ export default function IntegrationLoginSiteList() {
   const [cursor, setCursor] = useState(null);
   const [hasNext, setHasNext] = useState(true);
   const [linkUseTrgtSeCd, setLinkUseTrgtSeCd] = useState([]); // 사이트사용대상구분코드
+  const gridViewportRef = useRef(null);
+  const loadingRef = useRef(false);
   const ynOptions = [
     { value: 'Y', label: '사용' },
     { value: 'N', label: '미사용' },
   ];
-  const observerRef = useRef(null);
   const appliedSearchParamsRef = useRef({
     siteNm: '',
     siteMngInstNm: '',
@@ -73,9 +76,10 @@ export default function IntegrationLoginSiteList() {
   };
 
   const fetchLinkSiteList = async (nextCursor = null, reset = false) => {
-    if (loading) return;
+    if (loadingRef.current) return;
     if (!hasNext && !reset) return;
 
+    loadingRef.current = true;
     setLoading(true);
     if (reset) {
       appliedSearchParamsRef.current = { ...searchParams };
@@ -142,6 +146,7 @@ export default function IntegrationLoginSiteList() {
       setHasNext(false);
       setCursor(null);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -218,22 +223,13 @@ export default function IntegrationLoginSiteList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!observerRef.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNext && !loading) {
-          fetchLinkSiteList(cursor, false);
-        }
-      },
-      { threshold: 1 }
-    );
-
-    observer.observe(observerRef.current);
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, hasNext, loading]);
+  useGridInfiniteScroll({
+    viewportRef: gridViewportRef,
+    loading,
+    loadingRef,
+    hasNext,
+    onLoadMore: () => fetchLinkSiteList(cursor, false),
+  });
 
   return (
     <div className="oncontentbox full">
@@ -321,8 +317,21 @@ export default function IntegrationLoginSiteList() {
           </div>
 
           <div className="ongrid-tableform">
-            <GridTable data={gridMemberList} columns={columns} />
-            <div ref={observerRef} style={{ height: 40 }} />
+            <Willow>
+              <div
+                ref={gridViewportRef}
+                style={{
+                  height: 'max(420px, calc(100dvh - 390px))',
+                  overflow: 'hidden',
+                }}
+              >
+                <GridTable
+                  data={gridMemberList}
+                  columns={columns}
+                  useWillow={false}
+                />
+              </div>
+            </Willow>
           </div>
         </div>
       </div>

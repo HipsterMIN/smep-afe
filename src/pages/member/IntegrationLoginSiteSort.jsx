@@ -2,16 +2,13 @@ import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import http from '@lib/http.js';
+import { Willow } from '@svar-ui/react-grid';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useMatches, useNavigate } from 'react-router-dom';
 
 export default function IntegrationLoginSiteSort() {
   const panelScrollStyle = {
-    height: 'auto',
-    maxHeight: 'calc(100vh - 247px)',
     minHeight: 0,
-    overflowY: 'auto',
-    overflowX: 'hidden',
   };
 
   const navigate = useNavigate();
@@ -225,11 +222,21 @@ export default function IntegrationLoginSiteSort() {
           </div>
           <h4>개인</h4>
           <div className="ongrid-tableform">
-            <GridTable
-              data={indRows}
-              columns={indColumns}
-              gridProps={{ init: initIndGrid }}
-            />
+            <Willow>
+              <div
+                style={{
+                  height: 'max(420px, calc(100dvh - 330px))',
+                  overflow: 'hidden',
+                }}
+              >
+                <GridTable
+                  data={indRows}
+                  columns={indColumns}
+                  gridProps={{ init: initIndGrid }}
+                  useWillow={false}
+                />
+              </div>
+            </Willow>
           </div>
         </div>
 
@@ -246,11 +253,21 @@ export default function IntegrationLoginSiteSort() {
           <h4>기업</h4>
 
           <div className="ongrid-tableform">
-            <GridTable
-              data={entRows}
-              columns={entColumns}
-              gridProps={{ init: initEntGrid }}
-            />
+            <Willow>
+              <div
+                style={{
+                  height: 'max(420px, calc(100dvh - 330px))',
+                  overflow: 'hidden',
+                }}
+              >
+                <GridTable
+                  data={entRows}
+                  columns={entColumns}
+                  gridProps={{ init: initEntGrid }}
+                  useWillow={false}
+                />
+              </div>
+            </Willow>
             {loading && (
               <div
                 style={{
