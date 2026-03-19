@@ -1144,6 +1144,39 @@ export default function RichEditor({
     }
   }
 
+  async function switchToHtmlMode() {
+    if (!editor || isBusy || isHtmlView) return;
+    setHtmlRoundtripWarning(null);
+    setHtmlPreviewNotice('');
+    syncContentHeightFromElement(editorContainerRef.current);
+    // 진입: 에디터의 현재 HTML을 로드하고(필요 시) 포맷한 뒤 표시
+    let raw = '';
+    try {
+      raw = editor.getHTML();
+    } catch {
+      raw = '';
+    }
+    let toShow = raw;
+    if (autoFormatHtmlOnOpen) {
+      toShow = await formatHtmlString(raw);
+    }
+    setHtmlSource(toShow);
+    setIsHtmlView(true);
+  }
+
+  async function switchToWysiwygMode() {
+    if (!editor || isBusy || !isHtmlView) return;
+    // 복귀: 수정된 HTML을 적용(편집 허용 시)
+    if (allowHtmlEdit) {
+      await applyHtmlSourceToEditor();
+      return;
+    }
+    setHtmlRoundtripWarning(null);
+    setHtmlPreviewNotice('');
+    syncContentHeightFromElement(htmlViewContainerRef.current);
+    setIsHtmlView(false);
+  }
+
   function buildHtmlPreviewDocument(source) {
     const safeHtml = source ?? '';
     return `<!doctype html>
@@ -1790,6 +1823,24 @@ export default function RichEditor({
           stroke: none !important;
         }
         .tiptap-wrap .toolbar .btn.wide { width: auto; padding: 0 8px; line-height: 1; gap: 6px; }
+        .tiptap-wrap .toolbar .mode-segment { display: inline-flex; align-items: center; border: 1px solid; border-radius: 8px; overflow: hidden; }
+        .tiptap-wrap.light .toolbar .mode-segment { border-color: #ddd; background: #fff; }
+        .tiptap-wrap.dark .toolbar .mode-segment { border-color: #444; background: #222; }
+        .tiptap-wrap .toolbar .mode-segment .mode-btn {
+          min-width: 54px;
+          width: auto;
+          height: 30px;
+          padding: 0 10px;
+          border: 0;
+          border-radius: 0;
+          font-size: 12px;
+          font-weight: 600;
+          line-height: 1;
+          letter-spacing: 0;
+        }
+        .tiptap-wrap .toolbar .mode-segment .mode-btn + .mode-btn { border-left: 1px solid; }
+        .tiptap-wrap.light .toolbar .mode-segment .mode-btn + .mode-btn { border-color: #ddd; }
+        .tiptap-wrap.dark .toolbar .mode-segment .mode-btn + .mode-btn { border-color: #444; }
         .tiptap-wrap.light .toolbar .btn { background: #fff; color: #111; border-color: #ddd; }
         .tiptap-wrap.dark .toolbar .btn { background: #222; color: #eee; border-color: #444; }
         .tiptap-wrap .toolbar .btn:hover { filter: brightness(1.06); }
@@ -1916,55 +1967,36 @@ export default function RichEditor({
           </button>
           <span className="divider" />
           {showHtmlToggle && (
-            <button
-              className={`btn ${isHtmlView ? 'active' : ''}`}
-              title={isHtmlView ? 'WYSIWYG로 돌아가기' : 'HTML 보기'}
-              aria-label={
-                isHtmlView ? 'Switch to WYSIWYG view' : 'Switch to HTML view'
-              }
-              onClick={async () => {
-                if (!editor) return;
-                if (!isHtmlView) {
-                  setHtmlRoundtripWarning(null);
-                  setHtmlPreviewNotice('');
-                  syncContentHeightFromElement(editorContainerRef.current);
-                  // 진입: 에디터의 현재 HTML을 로드하고(필요 시) 포맷한 뒤 표시
-                  let raw = '';
-                  try {
-                    raw = editor.getHTML();
-                  } catch {
-                    raw = '';
-                  }
-                  let toShow = raw;
-                  if (autoFormatHtmlOnOpen) {
-                    toShow = await formatHtmlString(raw);
-                  }
-                  setHtmlSource(toShow);
-                  setIsHtmlView(true);
-                } else {
-                  // 복귀: 수정된 HTML을 적용(편집 허용 시)
-                  if (allowHtmlEdit) {
-                    await applyHtmlSourceToEditor();
-                  } else {
-                    setHtmlRoundtripWarning(null);
-                    setHtmlPreviewNotice('');
-                    syncContentHeightFromElement(htmlViewContainerRef.current);
-                    setIsHtmlView(false);
-                  }
-                }
-              }}
-              disabled={!editor || isBusy}
-            >
-              <Icon.Code />
-            </button>
+            <div className="mode-segment" role="group" aria-label="Editor mode">
+              <button
+                className={`btn mode-btn ${isHtmlView ? 'active' : ''}`}
+                title="HTML 모드"
+                aria-label="Switch to HTML mode"
+                aria-pressed={isHtmlView}
+                onClick={switchToHtmlMode}
+                disabled={!editor || isBusy || isHtmlView}
+              >
+                HTML
+              </button>
+              <button
+                className={`btn mode-btn ${!isHtmlView ? 'active' : ''}`}
+                title="편집 모드"
+                aria-label="Switch to WYSIWYG mode"
+                aria-pressed={!isHtmlView}
+                onClick={switchToWysiwygMode}
+                disabled={!editor || isBusy || !isHtmlView}
+              >
+                편집
+              </button>
+            </div>
           )}
-          {showHtmlPreviewPopup && isHtmlView && (
+          {showHtmlPreviewPopup && (
             <button
-              className="btn wide"
-              title="새 탭 미리보기"
+              className={`btn wide ${isHtmlView ? '' : 'disabled'}`}
+              title={isHtmlView ? '새 탭 미리보기' : 'HTML 모드에서 사용 가능'}
               aria-label="Open HTML preview in a new tab"
               onClick={openHtmlPreviewPopup}
-              disabled={isBusy || !hasHtmlSource}
+              disabled={!isHtmlView || isBusy || !hasHtmlSource}
             >
               <span style={{ fontSize: 12 }}>미리보기</span>
             </button>
