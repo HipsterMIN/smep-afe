@@ -1,7 +1,7 @@
 // Leftbar.jsx
 import { useUserMenu } from '@context/UserMenuContext';
 import { useMenuStore } from '@store/useMenuStore'; // ✅ 추가
-import { buildFullPath } from '@utils/menuUtils'; // ✅ 추가
+import { buildFullPath, extractExternalUrl } from '@utils/menuUtils'; // ✅ 추가
 import { useEffect, useState } from 'react';
 import { matchPath, NavLink, useLocation } from 'react-router-dom';
 
@@ -80,16 +80,19 @@ export default function Leftbar() {
       <nav>
         <ul className="onleftbar-navlink navdepth1">
           {sideMenus.map((depth2Menu) => {
+            const depth2ExternalUrl = extractExternalUrl(depth2Menu.link);
             const isOpen = openMenus[depth2Menu.menuId];
             const hasChildren =
               depth2Menu.children && depth2Menu.children.length > 0;
             const hasActiveDepth3 =
               hasChildren &&
               depth2Menu.children.some((depth3Menu) =>
+                !extractExternalUrl(depth3Menu.link) &&
                 isPathActive(depth3Menu.link, true)
               );
             const isActiveDepth2 =
               depth2Menu.scrnTypeCd !== 'M' &&
+              !depth2ExternalUrl &&
               isPathActive(depth2Menu.link, !hasChildren);
             const isOn = isOpen || hasActiveDepth3 || isActiveDepth2;
 
@@ -103,9 +106,17 @@ export default function Leftbar() {
                   <button onClick={() => toggleMenu(depth2Menu.menuId)}>
                     <span>{depth2Menu.menuNm}</span>
                   </button>
+                ) : depth2ExternalUrl ? (
+                  <a
+                    href={depth2ExternalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span>{depth2Menu.menuNm}</span>
+                  </a>
                 ) : (
                   <NavLink
-                    to={depth2Menu.link}
+                    to={depth2Menu.link || '#'}
                     className={({ isActive }) => (isActive ? 'on' : '')}
                   >
                     <span>{depth2Menu.menuNm}</span>
@@ -116,18 +127,33 @@ export default function Leftbar() {
                 {hasChildren && (
                   <ul className="navdepth2">
                     {depth2Menu.children.map((depth3Menu) => {
-                      const isActiveDepth3 = isPathActive(depth3Menu.link, true);
+                      const depth3ExternalUrl = extractExternalUrl(depth3Menu.link);
+                      const isActiveDepth3 =
+                        !depth3ExternalUrl &&
+                        isPathActive(depth3Menu.link, true);
                       return (
                         <li
                           key={depth3Menu.menuId}
                           className={`navdepth2-list ${isActiveDepth3 ? 'on' : ''}`}
                         >
-                          <NavLink
-                            to={depth3Menu.link}
-                            className={({ isActive }) => (isActive ? 'on' : '')}
-                          >
-                            {depth3Menu.menuNm}
-                          </NavLink>
+                          {depth3ExternalUrl ? (
+                            <a
+                              href={depth3ExternalUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {depth3Menu.menuNm}
+                            </a>
+                          ) : (
+                            <NavLink
+                              to={depth3Menu.link || '#'}
+                              className={({ isActive }) =>
+                                isActive ? 'on' : ''
+                              }
+                            >
+                              {depth3Menu.menuNm}
+                            </NavLink>
+                          )}
                         </li>
                       );
                     })}
