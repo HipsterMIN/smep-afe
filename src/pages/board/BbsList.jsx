@@ -365,7 +365,7 @@ export default function BbsList() {
               <div
                 ref={gridViewportRef}
                 style={{
-                  height: 'max(420px, calc(100dvh - 470px))',
+                  height: 'max(420px, calc(100dvh - 400px))',
                   overflow: 'hidden',
                 }}
               >
