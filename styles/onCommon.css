@@ -1196,6 +1196,7 @@ button.btn {
   font-weight: 400;
   letter-spacing: -0.84px;
   padding: 8px 19px;
+  white-space: nowrap;
   border-radius: 5px;
   background-color: #fff;
 }
@@ -1229,13 +1230,28 @@ button.btn.auto {
 
 /* button max-width */
 button.btn.mx-small {
+  width: 100%;
+  min-width: auto;
   max-width: 52px;
+  height: 24px;
+  font-size: 13px;
+  padding: 8px;
 }
 button.btn.mx-medium {
+  width: 100%;
+  min-width: auto;
   max-width: 62px;
+  height: 30px;
+  font-size: 14px;
+  padding: 8px;
 }
 button.btn.mx-large {
+  width: 100%;
+  min-width: auto;
   max-width: 72px;
+  height: 32px;
+  font-size: 15px;
+  padding: 8px 12px;
 }
 
 /* button color */
@@ -1252,6 +1268,7 @@ button.btn.color-red {
   background: #DC3545;
 }
 button.btn.color-light_gray {
+  color: #666;
   border: 1px solid #CDD1D5;
   background: none;
 }
@@ -1264,7 +1281,8 @@ button.btn.color-blue:hover {
   background: #2F5BFF;
 }
 button.btn.color-gray:hover {
-  background: #4D525C;
+  background: #707070;
+  /* background: #4D525C; */
 }
 button.btn.color-red:hover {
   background: #CC291D;
@@ -1281,6 +1299,7 @@ button.btn.disabled {
   font-weight: 600;
   padding: 7px 8px;
   background: #E5E7EB;
+  cursor: default;
 }
 
 
