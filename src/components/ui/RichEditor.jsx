@@ -12,6 +12,7 @@ import Underline from '@tiptap/extension-underline';
 import Youtube from '@tiptap/extension-youtube';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { DOMParser as PMDOMParser, DOMSerializer } from 'prosemirror-model';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 // 세련된 선 중심의 아이콘 컴포넌트 (Lucide Style)
@@ -89,64 +90,80 @@ const Icon = {
   Table: (props) => (
     <Icon.Wrapper {...props}>
       <rect x="3" y="3" width="18" height="18" rx="2" />
-      <line x1="3" y1="9" x2="21" y2="9" /><line x1="3" y1="15" x2="21" y2="15" /><line x1="12" y1="3" x2="12" y2="21" />
+      <line x1="3" y1="9" x2="21" y2="9" />
+      <line x1="3" y1="15" x2="21" y2="15" />
+      <line x1="12" y1="3" x2="12" y2="21" />
     </Icon.Wrapper>
   ),
 
   PlusCol: (props) => (
     <Icon.Wrapper {...props}>
       <rect x="2" y="3" width="12" height="18" rx="2" />
-      <line x1="19" y1="8" x2="19" y2="16" /><line x1="16" y1="12" x2="22" y2="12" />
+      <line x1="19" y1="8" x2="19" y2="16" />
+      <line x1="16" y1="12" x2="22" y2="12" />
     </Icon.Wrapper>
   ),
 
   PlusRow: (props) => (
     <Icon.Wrapper {...props}>
       <rect x="3" y="2" width="18" height="12" rx="2" />
-      <line x1="8" y1="19" x2="16" y2="19" /><line x1="12" y1="16" x2="12" y2="22" />
+      <line x1="8" y1="19" x2="16" y2="19" />
+      <line x1="12" y1="16" x2="12" y2="22" />
     </Icon.Wrapper>
   ),
 
   DeleteTable: (props) => (
     <Icon.Wrapper {...props}>
       <rect x="3" y="3" width="18" height="18" rx="2" />
-      <path d="m15 9-6 6" /><path d="m9 9 6 6" />
+      <path d="m15 9-6 6" />
+      <path d="m9 9 6 6" />
     </Icon.Wrapper>
   ),
 
   Undo: (props) => (
     <Icon.Wrapper {...props}>
-      <path d="M3 7v6h6" /><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+      <path d="M3 7v6h6" />
+      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
     </Icon.Wrapper>
   ),
 
   Redo: (props) => (
     <Icon.Wrapper {...props}>
-      <path d="M21 7v6h-6" /><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" />
+      <path d="M21 7v6h-6" />
+      <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" />
     </Icon.Wrapper>
   ),
 
   AlignLeft: (props) => (
     <Icon.Wrapper {...props}>
-      <line x1="21" y1="6" x2="3" y2="6" /><line x1="15" y1="12" x2="3" y2="12" /><line x1="18" y1="18" x2="3" y2="18" />
+      <line x1="21" y1="6" x2="3" y2="6" />
+      <line x1="15" y1="12" x2="3" y2="12" />
+      <line x1="18" y1="18" x2="3" y2="18" />
     </Icon.Wrapper>
   ),
 
   AlignCenter: (props) => (
     <Icon.Wrapper {...props}>
-      <line x1="21" y1="6" x2="3" y2="6" /><line x1="18" y1="12" x2="6" y2="12" /><line x1="21" y1="18" x2="3" y2="18" />
+      <line x1="21" y1="6" x2="3" y2="6" />
+      <line x1="18" y1="12" x2="6" y2="12" />
+      <line x1="21" y1="18" x2="3" y2="18" />
     </Icon.Wrapper>
   ),
 
   AlignRight: (props) => (
     <Icon.Wrapper {...props}>
-      <line x1="21" y1="6" x2="3" y2="6" /><line x1="21" y1="12" x2="9" y2="12" /><line x1="21" y1="18" x2="3" y2="18" />
+      <line x1="21" y1="6" x2="3" y2="6" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+      <line x1="21" y1="18" x2="3" y2="18" />
     </Icon.Wrapper>
   ),
 
   AlignJustify: (props) => (
     <Icon.Wrapper {...props}>
-      <line x1="21" y1="6" x2="3" y2="6" /><line x1="21" y1="12" x2="3" y2="12" /><line x1="21" y1="18" x2="3" y2="18" /><line x1="21" y1="21" x2="3" y2="21" style={{opacity: 0}} />
+      <line x1="21" y1="6" x2="3" y2="6" />
+      <line x1="21" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="18" x2="3" y2="18" />
+      <line x1="21" y1="21" x2="3" y2="21" style={{ opacity: 0 }} />
     </Icon.Wrapper>
   ),
 
@@ -174,6 +191,24 @@ const Icon = {
   ),
 };
 
+const HTML_VIEW_POLICIES = new Set(['auto', 'html', 'wysiwyg']);
+
+function normalizeInitialViewPolicy(policy, initialHtmlView) {
+  if (typeof policy === 'string') {
+    const normalized = policy.trim().toLowerCase();
+    if (HTML_VIEW_POLICIES.has(normalized)) return normalized;
+  }
+  return initialHtmlView ? 'html' : 'wysiwyg';
+}
+
+function shouldBootstrapInHtmlView(policy, sourceValue) {
+  if (policy === 'html') return true;
+  if (policy === 'auto' || policy === 'wysiwyg') {
+    return (sourceValue ?? '').trim().length > 0;
+  }
+  return false;
+}
+
 export default function RichEditor({
   theme = 'dark',
   minHeight = 280,
@@ -198,10 +233,14 @@ export default function RichEditor({
   // HTML 보기/편집 토글
   showHtmlToggle = true,
   allowHtmlEdit = true,
+  initialHtmlView = true,
+  initialViewPolicy = 'auto', // 'auto' | 'html' | 'wysiwyg'
   // HTML 소스 정렬(Beautify)
   showHtmlFormat = false,
   autoFormatHtmlOnOpen = true,
   autoFormatHtmlOnApply = false,
+  // HTML 소스 새 탭 미리보기
+  showHtmlPreviewPopup = true,
   htmlFormatOptions = { printWidth: 100, tabWidth: 2, useTabs: false },
   // 이미지 삽입/업로드 옵션
   showImage = true,
@@ -856,21 +895,57 @@ export default function RichEditor({
     ]
   );
 
+  const isEditable = !!editable;
+  const resolvedInitialViewPolicy = useMemo(
+    () => normalizeInitialViewPolicy(initialViewPolicy, initialHtmlView),
+    [initialViewPolicy, initialHtmlView]
+  );
+  const initialValue = typeof value === 'string' ? value : '';
+  const bootstrapHtmlView = shouldBootstrapInHtmlView(
+    resolvedInitialViewPolicy,
+    initialValue
+  );
   const [isDark, setIsDark] = useState(theme === 'dark');
   const [fontSizeValue, setFontSizeValue] = useState('');
   const [rowHeightValue, setRowHeightValue] = useState(''); // e.g., '40px' or ''
-  const [isHtmlView, setIsHtmlView] = useState(false);
-  const [htmlSource, setHtmlSource] = useState('');
+  const [isHtmlView, setIsHtmlView] = useState(() => bootstrapHtmlView);
+  const [htmlSource, setHtmlSource] = useState(() => initialValue);
   const [isFormatting, setIsFormatting] = useState(false);
+  const [isApplyingHtml, setIsApplyingHtml] = useState(false);
+  const [htmlRoundtripWarning, setHtmlRoundtripWarning] = useState(null);
+  const [htmlPreviewNotice, setHtmlPreviewNotice] = useState('');
   const editorContainerRef = useRef(null);
   const htmlViewContainerRef = useRef(null);
+  const htmlPreviewWindowRef = useRef(null);
+  const isHtmlViewRef = useRef(bootstrapHtmlView);
+  const onChangeRef = useRef(onChange);
+  const lastExternalValueRef = useRef(undefined);
+  const lastInternalEmitValueRef = useRef(undefined);
   const [contentHeight, setContentHeight] = useState(null);
   const prettierRef = useMemo(
     () => ({ loaded: false, prettier: null, plugins: null }),
     []
   );
   const [fileInputKey, setFileInputKey] = useState(0); // 파일 입력 초기화용
-  const isEditable = !!editable;
+
+  const emitChangeValue = (nextHtml) => {
+    const emitChange = onChangeRef.current;
+    if (typeof emitChange !== 'function') return;
+    const normalizedHtml = typeof nextHtml === 'string' ? nextHtml : '';
+    lastInternalEmitValueRef.current = normalizedHtml;
+    emitChange(normalizedHtml);
+  };
+
+  const isBusy = isFormatting || isApplyingHtml;
+  const hasHtmlSource = (htmlSource ?? '').trim().length > 0;
+
+  useEffect(() => {
+    isHtmlViewRef.current = isHtmlView;
+  }, [isHtmlView]);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   const syncContentHeightFromElement = (element) => {
     if (height != null || !element) return;
@@ -933,6 +1008,200 @@ export default function RichEditor({
     const formatted = await formatHtmlString(htmlSource);
     setHtmlSource(formatted);
   }
+
+  function toLossList(beforeMap, afterMap) {
+    const out = [];
+    beforeMap.forEach((beforeCount, name) => {
+      const afterCount = afterMap.get(name) || 0;
+      if (beforeCount > afterCount) {
+        out.push({ name, count: beforeCount - afterCount });
+      }
+    });
+    out.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    return out;
+  }
+
+  function collectHtmlSignature(html) {
+    const empty = {
+      tagCounts: new Map(),
+      attrCounts: new Map(),
+      stylePropCounts: new Map(),
+    };
+    if (typeof document === 'undefined' || typeof DOMParser === 'undefined') {
+      return empty;
+    }
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(
+        `<body>${html ?? ''}</body>`,
+        'text/html'
+      );
+      const tagCounts = new Map();
+      const attrCounts = new Map();
+      const stylePropCounts = new Map();
+      doc.body.querySelectorAll('*').forEach((el) => {
+        const tag = el.tagName.toLowerCase();
+        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+        el.getAttributeNames().forEach((name) => {
+          attrCounts.set(name, (attrCounts.get(name) || 0) + 1);
+          if (name === 'style') {
+            const styleText = el.getAttribute('style') || '';
+            styleText.split(';').forEach((decl) => {
+              const [rawProp] = decl.split(':');
+              const prop = rawProp?.trim().toLowerCase();
+              if (!prop) return;
+              stylePropCounts.set(prop, (stylePropCounts.get(prop) || 0) + 1);
+            });
+          }
+        });
+      });
+      return { tagCounts, attrCounts, stylePropCounts };
+    } catch (e) {
+      console.warn('[RichEditor] signature parse failed:', e);
+      return empty;
+    }
+  }
+
+  function roundtripHtmlWithSchema(source) {
+    if (!editor || typeof document === 'undefined') return source ?? '';
+    try {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = source ?? '';
+      const parsedDoc = PMDOMParser.fromSchema(editor.schema).parse(wrap);
+      const fragment = DOMSerializer.fromSchema(
+        editor.schema
+      ).serializeFragment(parsedDoc.content);
+      const out = document.createElement('div');
+      out.appendChild(fragment);
+      return out.innerHTML;
+    } catch (e) {
+      console.warn('[RichEditor] roundtrip check failed:', e);
+      return source ?? '';
+    }
+  }
+
+  function detectHtmlLossOnRoundtrip(source) {
+    const sourceHtml = source ?? '';
+    const roundtrippedHtml = roundtripHtmlWithSchema(sourceHtml);
+    const sourceSig = collectHtmlSignature(sourceHtml);
+    const roundSig = collectHtmlSignature(roundtrippedHtml);
+    const removedTags = toLossList(sourceSig.tagCounts, roundSig.tagCounts);
+    const removedAttrs = toLossList(sourceSig.attrCounts, roundSig.attrCounts);
+    const removedStyleProps = toLossList(
+      sourceSig.stylePropCounts,
+      roundSig.stylePropCounts
+    );
+    const hasLoss =
+      removedTags.length > 0 ||
+      removedAttrs.length > 0 ||
+      removedStyleProps.length > 0;
+    return {
+      hasLoss,
+      sourceHtml,
+      roundtrippedHtml,
+      removedTags,
+      removedAttrs,
+      removedStyleProps,
+    };
+  }
+
+  function summarizeLossItems(items) {
+    if (!items || items.length === 0) return '-';
+    const preview = items
+      .slice(0, 8)
+      .map((it) => `${it.name}(-${it.count})`)
+      .join(', ');
+    const rest = items.length - 8;
+    return rest > 0 ? `${preview}, 외 ${rest}개` : preview;
+  }
+
+  async function applyHtmlSourceToEditor({ force = false } = {}) {
+    if (!editor || isApplyingHtml) return;
+    setIsApplyingHtml(true);
+    try {
+      let sourceToApply = htmlSource;
+      if (autoFormatHtmlOnApply) {
+        sourceToApply = await formatHtmlString(sourceToApply);
+      }
+      if (!force) {
+        const report = detectHtmlLossOnRoundtrip(sourceToApply);
+        if (report.hasLoss) {
+          setHtmlRoundtripWarning(report);
+          return;
+        }
+      }
+      try {
+        editor.commands.setContent(sourceToApply || '', false);
+        emitChangeValue(editor.getHTML());
+        setHtmlRoundtripWarning(null);
+        syncContentHeightFromElement(htmlViewContainerRef.current);
+        setIsHtmlView(false);
+      } catch (e) {
+        console.warn('[RichEditor] setContent failed, stay in HTML view:', e);
+      }
+    } finally {
+      setIsApplyingHtml(false);
+    }
+  }
+
+  function buildHtmlPreviewDocument(source) {
+    const safeHtml = source ?? '';
+    return `<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'none'; connect-src 'none'; img-src https: data: blob:; style-src 'unsafe-inline' https:; font-src https: data:; media-src https: data: blob:;"
+    />
+    <base target="_blank" />
+    <title>HTML Preview</title>
+    <style>
+      html, body { margin: 0; padding: 0; background: #f4f4f4; }
+      body { padding: 14px; box-sizing: border-box; min-height: 100vh; }
+      .preview-root { box-sizing: border-box; width: 100%; max-width: 1280px; margin: 0 auto; background: #fff; }
+      .preview-meta { position: sticky; top: 0; z-index: 1; margin: 0 0 10px; padding: 8px 10px; background: #f2f7ff; color: #173b69; border: 1px solid #c9defc; font: 12px/1.4 -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    </style>
+  </head>
+  <body>
+    <div class="preview-meta">읽기 전용 새 탭 미리보기입니다. 저장 데이터는 원본 HTML 문자열입니다.</div>
+    <div class="preview-root">${safeHtml}</div>
+  </body>
+</html>`;
+  }
+
+  function openHtmlPreviewPopup() {
+    if (typeof window === 'undefined') return;
+    if (!hasHtmlSource) {
+      setHtmlPreviewNotice('미리보기할 HTML 소스가 없습니다.');
+      return;
+    }
+    setHtmlPreviewNotice('');
+    const documentHtml = buildHtmlPreviewDocument(htmlSource);
+    try {
+      let previewWindow = htmlPreviewWindowRef.current;
+      if (!previewWindow || previewWindow.closed) {
+        previewWindow = window.open('', 'rich-editor-html-preview');
+        if (!previewWindow) {
+          setHtmlPreviewNotice(
+            '팝업이 차단되었습니다. 브라우저 팝업 허용 후 다시 시도하세요.'
+          );
+          return;
+        }
+        htmlPreviewWindowRef.current = previewWindow;
+      }
+      previewWindow.document.open();
+      previewWindow.document.write(documentHtml);
+      previewWindow.document.close();
+      previewWindow.focus();
+    } catch (e) {
+      console.warn('[RichEditor] openHtmlPreviewPopup failed:', e);
+      setHtmlPreviewNotice('미리보기 창을 열지 못했습니다. 다시 시도하세요.');
+    }
+  }
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -997,9 +1266,8 @@ export default function RichEditor({
       }
     },
     onUpdate: ({ editor }) => {
-      if (onChange) {
-        onChange(editor.getHTML());
-      }
+      if (isHtmlViewRef.current) return;
+      emitChangeValue(editor.getHTML());
     },
     editorProps: {
       handlePaste: (view, event) => {
@@ -1394,12 +1662,62 @@ export default function RichEditor({
     };
   }, [editor]);
 
-  // value prop이 변경되었을 때 에디터 동기화
+  // value prop 변경 시 외부/내부 반영을 구분하고 정책 기반으로 모드를 결정한다.
   useEffect(() => {
-    if (editor && value && editor.getHTML() !== value) {
-      editor.commands.setContent(value, false);
+    if (!editor) return;
+    const nextValue = typeof value === 'string' ? value : '';
+    if (lastExternalValueRef.current === nextValue) return;
+    lastExternalValueRef.current = nextValue;
+
+    const isInternalEcho = lastInternalEmitValueRef.current === nextValue;
+    if (isInternalEcho) {
+      lastInternalEmitValueRef.current = undefined;
+      if (isHtmlViewRef.current) {
+        setHtmlSource((prev) => (prev === nextValue ? prev : nextValue));
+      }
+      return;
     }
-  }, [value, editor]);
+
+    const syncHtmlSource = () => {
+      setHtmlSource((prev) => (prev === nextValue ? prev : nextValue));
+    };
+
+    setHtmlPreviewNotice('');
+
+    if (resolvedInitialViewPolicy === 'html') {
+      syncHtmlSource();
+      setHtmlRoundtripWarning(null);
+      if (!isHtmlViewRef.current) setIsHtmlView(true);
+      return;
+    }
+
+    if (nextValue.trim().length === 0) {
+      setHtmlRoundtripWarning(null);
+      if (isHtmlViewRef.current) setIsHtmlView(false);
+      if (editor.getHTML() !== nextValue) {
+        editor.commands.setContent(nextValue, false);
+      }
+      return;
+    }
+
+    const report = detectHtmlLossOnRoundtrip(nextValue);
+    if (report.hasLoss) {
+      syncHtmlSource();
+      if (resolvedInitialViewPolicy === 'auto') {
+        setHtmlRoundtripWarning(null);
+      } else {
+        setHtmlRoundtripWarning(report);
+      }
+      if (!isHtmlViewRef.current) setIsHtmlView(true);
+      return;
+    }
+
+    setHtmlRoundtripWarning(null);
+    if (isHtmlViewRef.current) setIsHtmlView(false);
+    if (editor.getHTML() !== nextValue) {
+      editor.commands.setContent(nextValue, false);
+    }
+  }, [value, editor, resolvedInitialViewPolicy]);
 
   const contentStyle = useMemo(
     () => ({
@@ -1555,6 +1873,27 @@ export default function RichEditor({
         .tiptap-wrap .html-view textarea { width: 100%; box-sizing: border-box; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 12px; line-height: 1.5; border-radius: 6px; border: 1px solid; padding: 10px; height: 98%; min-height: 160px; resize: vertical; }
         .tiptap-wrap.light .html-view textarea { background: #fff; color: #111; border-color: #ddd; }
         .tiptap-wrap.dark .html-view textarea { background: #111; color: #eee; border-color: #444; }
+        .tiptap-wrap .html-alert-stack { position: sticky; top: 0; z-index: 4; display: grid; gap: 8px; margin: 0 0 10px; padding-bottom: 8px; }
+        .tiptap-wrap.light .html-alert-stack { background: linear-gradient(to bottom, #fff 72%, rgba(255, 255, 255, 0)); }
+        .tiptap-wrap.dark .html-alert-stack { background: linear-gradient(to bottom, #111 72%, rgba(17, 17, 17, 0)); }
+        .tiptap-wrap .html-warning { margin: 0; border: 1px solid; border-radius: 8px; padding: 10px; font-size: 12px; line-height: 1.45; }
+        .tiptap-wrap.light .html-warning { background: #fff8f8; border-color: #f0c9c9; color: #4d1f1f; }
+        .tiptap-wrap.dark .html-warning { background: #2a1717; border-color: #754242; color: #ffd7d7; }
+        .tiptap-wrap .html-warning-title { margin: 0; font-weight: 700; }
+        .tiptap-wrap .html-warning-desc { margin: 6px 0 0; }
+        .tiptap-wrap .html-warning-grid { margin-top: 8px; display: grid; gap: 6px; }
+        .tiptap-wrap .html-warning-row { margin: 0; }
+        .tiptap-wrap .html-warning-row strong { display: inline-block; min-width: 92px; }
+        .tiptap-wrap .html-warning-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .tiptap-wrap .html-warning-actions .btn-warning { height: 30px; border-radius: 6px; border: 1px solid; padding: 0 10px; cursor: pointer; }
+        .tiptap-wrap.light .html-warning-actions .btn-warning.secondary { background: #fff; color: #111; border-color: #ddd; }
+        .tiptap-wrap.dark .html-warning-actions .btn-warning.secondary { background: #222; color: #eee; border-color: #444; }
+        .tiptap-wrap.light .html-warning-actions .btn-warning.danger { background: #c62828; color: #fff; border-color: #c62828; }
+        .tiptap-wrap.dark .html-warning-actions .btn-warning.danger { background: #de5454; color: #2a1717; border-color: #de5454; }
+        .tiptap-wrap .html-warning-actions .btn-warning:disabled { opacity: .6; cursor: not-allowed; }
+        .tiptap-wrap .html-preview-notice { margin: 0; padding: 9px 10px; border-radius: 8px; border: 1px solid; font-size: 12px; line-height: 1.4; }
+        .tiptap-wrap.light .html-preview-notice { background: #fffbe7; color: #4c3b13; border-color: #efd98f; }
+        .tiptap-wrap.dark .html-preview-notice { background: #3a321b; color: #ffe8a3; border-color: #8b7740; }
       `}</style>
       <div className="rte">
         {showHeader && isEditable && (
@@ -1586,6 +1925,8 @@ export default function RichEditor({
               onClick={async () => {
                 if (!editor) return;
                 if (!isHtmlView) {
+                  setHtmlRoundtripWarning(null);
+                  setHtmlPreviewNotice('');
                   syncContentHeightFromElement(editorContainerRef.current);
                   // 진입: 에디터의 현재 HTML을 로드하고(필요 시) 포맷한 뒤 표시
                   let raw = '';
@@ -1603,30 +1944,29 @@ export default function RichEditor({
                 } else {
                   // 복귀: 수정된 HTML을 적용(편집 허용 시)
                   if (allowHtmlEdit) {
-                    let sourceToApply = htmlSource;
-                    if (autoFormatHtmlOnApply) {
-                      sourceToApply = await formatHtmlString(sourceToApply);
-                    }
-                    try {
-                      editor.commands.setContent(sourceToApply || '', false);
-                      syncContentHeightFromElement(htmlViewContainerRef.current);
-                      setIsHtmlView(false);
-                    } catch (e) {
-                      console.warn(
-                        '[RichEditor] setContent failed, stay in HTML view:',
-                        e
-                      );
-                      // 적용 실패 시 HTML 보기 유지
-                    }
+                    await applyHtmlSourceToEditor();
                   } else {
+                    setHtmlRoundtripWarning(null);
+                    setHtmlPreviewNotice('');
                     syncContentHeightFromElement(htmlViewContainerRef.current);
                     setIsHtmlView(false);
                   }
                 }
               }}
-              disabled={!editor || isFormatting}
+              disabled={!editor || isBusy}
             >
               <Icon.Code />
+            </button>
+          )}
+          {showHtmlPreviewPopup && isHtmlView && (
+            <button
+              className="btn wide"
+              title="새 탭 미리보기"
+              aria-label="Open HTML preview in a new tab"
+              onClick={openHtmlPreviewPopup}
+              disabled={isBusy || !hasHtmlSource}
+            >
+              <span style={{ fontSize: 12 }}>미리보기</span>
             </button>
           )}
           {showHtmlFormat && (
@@ -1637,7 +1977,7 @@ export default function RichEditor({
               onClick={async () => {
                 if (isHtmlView && allowHtmlEdit) await formatHtmlSource();
               }}
-              disabled={!isHtmlView || !allowHtmlEdit || isFormatting}
+              disabled={!isHtmlView || !allowHtmlEdit || isBusy}
             >
               {/* 간단한 마법봉 아이콘 */}
               <svg
@@ -2122,13 +2462,83 @@ export default function RichEditor({
             style={resolvedContentStyle}
             ref={htmlViewContainerRef}
           >
+            {(htmlPreviewNotice || htmlRoundtripWarning?.hasLoss) && (
+              <div className="html-alert-stack">
+                {htmlPreviewNotice && (
+                  <div
+                    className="html-preview-notice"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {htmlPreviewNotice}
+                  </div>
+                )}
+                {htmlRoundtripWarning?.hasLoss && (
+                  <div className="html-warning" role="alert" aria-live="polite">
+                    <p className="html-warning-title">
+                      WYSIWYG 복귀 시 일부 HTML이 유실될 수 있습니다.
+                    </p>
+                    <p className="html-warning-desc">
+                      스키마 변환 결과, 아래 항목 손실이 감지되어 적용을
+                      차단했습니다.
+                    </p>
+                    <div className="html-warning-grid">
+                      <p className="html-warning-row">
+                        <strong>삭제 태그</strong>
+                        <span>
+                          {summarizeLossItems(htmlRoundtripWarning.removedTags)}
+                        </span>
+                      </p>
+                      <p className="html-warning-row">
+                        <strong>삭제 속성</strong>
+                        <span>
+                          {summarizeLossItems(htmlRoundtripWarning.removedAttrs)}
+                        </span>
+                      </p>
+                      <p className="html-warning-row">
+                        <strong>삭제 스타일</strong>
+                        <span>
+                          {summarizeLossItems(
+                            htmlRoundtripWarning.removedStyleProps
+                          )}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="html-warning-actions">
+                      <button
+                        className="btn-warning secondary"
+                        onClick={() => setHtmlRoundtripWarning(null)}
+                        disabled={isBusy}
+                      >
+                        HTML 보기 유지
+                      </button>
+                      <button
+                        className="btn-warning danger"
+                        onClick={async () =>
+                          applyHtmlSourceToEditor({ force: true })
+                        }
+                        disabled={!editor || isBusy}
+                      >
+                        유실 감수하고 복귀
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             <label htmlFor="html-source" className="sr-only">
               HTML source
             </label>
             <textarea
               id="html-source"
               value={htmlSource}
-              onChange={(e) => setHtmlSource(e.target.value)}
+              onChange={(e) => {
+                const nextHtml = e.target.value;
+                setHtmlSource(nextHtml);
+                emitChangeValue(nextHtml);
+                if (htmlRoundtripWarning) setHtmlRoundtripWarning(null);
+                if (htmlPreviewNotice) setHtmlPreviewNotice('');
+              }}
               onKeyDown={async (e) => {
                 const isMac = navigator.platform.toUpperCase().includes('MAC');
                 const mod = isMac ? e.metaKey : e.ctrlKey;
