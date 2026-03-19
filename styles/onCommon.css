@@ -1294,14 +1294,12 @@ button.btn.color-light_gray:hover {
 
 /* button color disabled */
 button.btn.disabled {
-  min-width: 64px;
   color: #A7A7A7;
   font-weight: 600;
   padding: 7px 8px;
   background: #E5E7EB;
   cursor: default;
 }
-
 
 /* radio button css */
 .onradiobtns {
