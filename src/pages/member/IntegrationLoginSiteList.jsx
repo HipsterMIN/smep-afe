@@ -321,7 +321,7 @@ export default function IntegrationLoginSiteList() {
               <div
                 ref={gridViewportRef}
                 style={{
-                  height: 'max(420px, calc(100dvh - 390px))',
+                  height: 'max(420px, calc(100dvh - 400px))',
                   overflow: 'hidden',
                 }}
               >
