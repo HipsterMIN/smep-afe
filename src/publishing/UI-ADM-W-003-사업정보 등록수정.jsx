@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import MenuInputBox from "../components/ui/MenuInputBox.jsx";
 import RadioButton  from "../components/ui/RadioButton.jsx";
 import Button  from "../components/ui/Button.jsx";
+import Essential  from "../components/ui/Essential.jsx";
 import FileUpload  from "../components/ui/FileUpload.jsx";
 import CheckBox  from "../components/ui/CheckBox.jsx";
 
@@ -31,13 +32,13 @@ export default function CommonCode() {
                       </colgroup>
                       <tbody>
                         <tr>
-                          <td>사업ID</td>
+                          <td>사업ID <Essential /></td>
                           <td>ABC1234</td>
                           <td>스크랩수</td>
                           <td>2</td>
                         </tr>
                         <tr>
-                          <td>사업년도</td>
+                          <td>사업년도 <Essential /></td>
                           <td>
                             <MenuInputBox menuType="select" selectOption="2025" />
                           </td>

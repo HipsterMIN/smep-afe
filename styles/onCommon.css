@@ -1325,7 +1325,14 @@ button.btn.disabled {
   color: #3150E5;
 }
 
-
+/* Essential css */
+.essential {
+  color: #AB2B36;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
 /* SearchBox input css */
 input.searchBox {
   position: relative;
