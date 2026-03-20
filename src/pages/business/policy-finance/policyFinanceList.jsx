@@ -38,6 +38,14 @@ const toDisplayText = (value) => {
   return value;
 };
 
+const joinRoutePath = (basePath, subPath = '') => {
+  if (!subPath) return basePath;
+  return `${String(basePath).replace(/\/+$/, '')}/${String(subPath).replace(
+    /^\/+/,
+    ''
+  )}`;
+};
+
 export default function PolicyFinanceList() {
   const navigate = useNavigate();
   const { getFullPath } = useUserMenu();
@@ -323,11 +331,11 @@ export default function PolicyFinanceList() {
     handleSearch();
   };
 
-  const handleMoveByMenuId = (menuId, menuName) => {
-    const routePath = menuId ? getFullPath(menuId) : null;
+  const handleMoveByMenuId = (menuId, menuName, subPath = '') => {
+    const basePath = menuId ? getFullPath(menuId) : null;
 
-    if (routePath) {
-      navigate(routePath);
+    if (basePath) {
+      navigate(joinRoutePath(basePath, subPath));
       return;
     }
 
@@ -486,14 +494,14 @@ export default function PolicyFinanceList() {
                 btnType="add"
                 btnNames="메세지 작성"
                 onClick={() =>
-                  handleMoveByMenuId(MENU_ID_SMS_SEND, 'SMS 발송')
+                  handleMoveByMenuId(MENU_ID_SMS_SEND, 'SMS 발송', 'create')
                 }
               />
               <Button
                 btnType="add"
                 btnNames="이메일 작성"
                 onClick={() =>
-                  handleMoveByMenuId(MENU_ID_EMAIL_SEND, '이메일 발송')
+                  handleMoveByMenuId(MENU_ID_EMAIL_SEND, '이메일 발송', 'create')
                 }
               />
               <Button btnType="list" btnNames="이용 가이드" />
