@@ -1,4 +1,6 @@
 import { AdminLayoutWithAuth } from '@layouts';
+import EmailFormCreate from '@pages/notification/email/form/EmailFormCreate.jsx';
+import EmailFormUpdate from '@pages/notification/email/form/EmailFormUpdate.jsx';
 import { lazy } from 'react';
 
 // Lazy import (필요할 때 로드)
@@ -96,16 +98,42 @@ const BannerManagement = lazy(
 const RlvntSysMng = lazy(() => import('@pages/portalMng/RlvntSysMng.jsx'));
 
 const SmsFormList = lazy(
-  () => import('@pages/notification/sms/SmsFormList.jsx')
+  () => import('@pages/notification/sms/form/SmsFormList.jsx')
 );
+
+const SmsFormCreate = lazy(
+  () => import('@pages/notification/sms/form/SmsFormCreate.jsx')
+);
+
+const SmsFormUpdate = lazy(
+  () => import('@pages/notification/sms/form/SmsFormUpdate.jsx')
+);
+
 const SmsSendList = lazy(
-  () => import('@pages/notification/sms/SmsSendList.jsx')
+  () => import('@pages/notification/sms/send/SmsSendList.jsx')
 );
+
+const SmsSendDetail = lazy(
+  () => import('@pages/notification/sms/send/SmsSendDetail.jsx')
+);
+
+const SmsSendCreate = lazy(
+  () => import('@pages/notification/sms/send/SmsSendCreate.jsx')
+);
+
 const EmailFormList = lazy(
-  () => import('@pages/notification/email/EmailFormList.jsx')
+  () => import('@pages/notification/email/form/EmailFormList.jsx')
 );
 const EmailSendList = lazy(
-  () => import('@pages/notification/email/EmailSendList.jsx')
+  () => import('@pages/notification/email/send/EmailSendList.jsx')
+);
+
+const EmailSendDetail = lazy(
+  () => import('@pages/notification/email/send/EmailSendDetail.jsx')
+);
+
+const EmailSendCreate = lazy(
+  () => import('@pages/notification/email/send/EmailSendCreate.jsx')
 );
 
 /**
@@ -352,21 +380,61 @@ export const componentMap = {
   M_PIIO_00130: {
     component: SmsSendList,
     layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: ':id',
+        component: SmsSendDetail, // SMS발송상세
+      },
+      {
+        path: 'create',
+        component: SmsSendCreate, // SMS발송등록
+      },
+    ],
   },
   // 이메일 발송
   M_PIIO_00131: {
     component: EmailSendList,
     layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: ':id',
+        component: EmailSendDetail, // 이메일발송상세
+      },
+      {
+        path: 'create',
+        component: EmailSendCreate, // 이메일발송등록
+      },
+    ],
   },
   // SMS 양식
   M_PIIO_00132: {
     component: SmsFormList,
     layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: ':id/update',
+        component: SmsFormUpdate, // SMS 양식 수정
+      },
+      {
+        path: 'create',
+        component: SmsFormCreate, // SMS 양식 등록
+      },
+    ],
   },
   // 이메일 양식
   M_PIIO_00133: {
     component: EmailFormList,
     layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: ':id/update',
+        component: EmailFormUpdate, // SMS 양식 수정
+      },
+      {
+        path: 'create',
+        component: EmailFormCreate, // SMS 양식 등록
+      },
+    ],
   },
   // ---------- 포털 관리 ----------
   // 중소기업 통합플랫폼 소개
