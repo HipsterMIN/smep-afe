@@ -3,6 +3,7 @@ import { createGridValueActionCell } from '@components/ui/createGridValueActionC
 import GridTable from '@components/ui/GridTable';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
+import { useUserMenu } from '@context/UserMenuContext';
 import http from '@lib/http.js';
 import { Willow } from '@svar-ui/react-grid';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
@@ -11,6 +12,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const PAGE_SIZE = 20;
+const MENU_ID_SMS_SEND = 'M_PIIO_00130';
+const MENU_ID_EMAIL_SEND = 'M_PIIO_00131';
 const POLICY_FINANCE_COMMON_CODE_GROUPS = [
   'PLCY_FNNC_GDS_TYPE_CD',
   'PLCY_FNNC_STTS_CD',
@@ -37,6 +40,7 @@ const toDisplayText = (value) => {
 
 export default function PolicyFinanceList() {
   const navigate = useNavigate();
+  const { getFullPath } = useUserMenu();
   const gridViewportRef = useRef(null);
   const loadingRef = useRef(false);
   const rowsRef = useRef([]);
@@ -319,6 +323,17 @@ export default function PolicyFinanceList() {
     handleSearch();
   };
 
+  const handleMoveByMenuId = (menuId, menuName) => {
+    const routePath = menuId ? getFullPath(menuId) : null;
+
+    if (routePath) {
+      navigate(routePath);
+      return;
+    }
+
+    alert(`${menuName} 메뉴 경로를 찾을 수 없습니다.`);
+  };
+
   const loadCommonCodeOptions = async () => {
     try {
       const codes = await fetchAndConvertCommonCodes(
@@ -467,8 +482,20 @@ export default function PolicyFinanceList() {
               총 <b>{totalCount.toLocaleString()}</b>건
             </span>
             <div className="onbtns">
-              <Button btnType="add" btnNames="메세지 작성" />
-              <Button btnType="add" btnNames="이메일 작성" />
+              <Button
+                btnType="add"
+                btnNames="메세지 작성"
+                onClick={() =>
+                  handleMoveByMenuId(MENU_ID_SMS_SEND, 'SMS 발송')
+                }
+              />
+              <Button
+                btnType="add"
+                btnNames="이메일 작성"
+                onClick={() =>
+                  handleMoveByMenuId(MENU_ID_EMAIL_SEND, '이메일 발송')
+                }
+              />
               <Button btnType="list" btnNames="이용 가이드" />
               <Button
                 btnType="add"
