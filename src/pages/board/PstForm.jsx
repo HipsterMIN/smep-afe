@@ -176,8 +176,9 @@ export default function PstForm() {
       .some((token) => token === 'IMG' || token === 'VDO');
   }, [bbsInfo, bbsTypeLabel]);
 
+  const isLinkType = bbsInfo?.bbsTypeCd === 'LNK';
   const isCategoryRequired =
-    bbsInfo?.ctgryUseYn === 'Y' && categoryOptions.length > 0;
+    !isLinkType && bbsInfo?.ctgryUseYn === 'Y' && categoryOptions.length > 0;
 
   useEffect(() => {
     if (isEdit) return;
@@ -335,6 +336,15 @@ export default function PstForm() {
     if (isCategoryRequired && formData.ctgryNo === '') {
       alert('카테고리를 선택해주세요.');
       return false;
+    }
+
+    if (isLinkType && formData.pstUrlAddr.trim() === '') {
+      alert('Please enter the post URL.');
+      return false;
+    }
+
+    if (isLinkType) {
+      return true;
     }
 
     const startDate = normalizeYmd(formData.pstgBgngYmd);
@@ -536,7 +546,7 @@ export default function PstForm() {
                     />
                   </td>
                 </tr>
-                <tr>
+                <tr hidden={isLinkType}>
                   <td>내용</td>
                   <td colSpan={3}>
                     <RichEditor
@@ -546,7 +556,7 @@ export default function PstForm() {
                     />
                   </td>
                 </tr>
-                <tr>
+                <tr hidden={isLinkType}>
                   <td>출처</td>
                   <td colSpan={3}>
                     <MenuInputBox
@@ -592,8 +602,8 @@ export default function PstForm() {
                       />
                     </div>
                   </td>
-                  <td>상단 고정</td>
-                  <td>
+                  <td hidden={isLinkType}>상단 고정</td>
+                  <td hidden={isLinkType}>
                     <div className="onradioBox">
                       <RadioButton
                         groupId="upendPstgYn_y"
@@ -614,7 +624,7 @@ export default function PstForm() {
                     </div>
                   </td>
                 </tr>
-                <tr>
+                <tr hidden={isLinkType}>
                   <td>카테고리</td>
                   <td>
                     <MenuInputBox
@@ -644,7 +654,7 @@ export default function PstForm() {
                     </div>
                   </td>
                 </tr>
-                <tr>
+                <tr hidden={isLinkType}>
                   <td>첨부파일</td>
                   <td colSpan={3}>
                     <FileUpload
@@ -656,7 +666,7 @@ export default function PstForm() {
                     />
                   </td>
                 </tr>
-                {canShowThumbnailImage && (
+                {!isLinkType && canShowThumbnailImage && (
                   <tr>
                     <td>썸네일 이미지</td>
                     <td colSpan={3}>
@@ -704,7 +714,7 @@ export default function PstForm() {
             </table>
           </div>
 
-          {canWriteAnswer && (
+          {!isLinkType && canWriteAnswer && (
             <>
               <h4 className="ontableTitle">답글 작성</h4>
               <div className="ontableBox">

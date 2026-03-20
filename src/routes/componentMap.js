@@ -333,10 +333,35 @@ export const componentMap = {
   //   component: TODO_M_PIIO_00033,
   //   layout: AdminLayoutWithAuth,
   // },
-  // 기업가정신 콘텐츠 관리
-  M_PIIO_00034: {
+  // 기업가정신 관리 - 공지사항
+  M_PIIO_00147: {
     component: PstList,
     layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
+  // 기업가정신 관리 - 언론보도
+  M_PIIO_00148: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
   },
   // 팝업관리
   M_PIIO_00035: {
