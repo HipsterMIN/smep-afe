@@ -191,7 +191,7 @@ caption {
 
 .onlayout {
   display: flex;
-  height: calc(100vh - 73px);
+  height: calc(100vh - 60px);
 }
 .onlayout main {
   position: relative;
@@ -1009,7 +1009,7 @@ caption {
 
 
 /* leftbar css */
-.onleftbar { width: 240px; min-width: 240px; height: 100vh; background: #03409d; background: linear-gradient(272deg, #03409D -16.91%, #01346B 108.02%); backdrop-filter: blur(15px); padding-left: 15px; padding-right: 20px; overflow-y: auto; }
+.onleftbar { width: 240px; min-width: 240px; height: 100%; background: #03409d; background: linear-gradient(272deg, #03409D -16.91%, #01346B 108.02%); backdrop-filter: blur(15px); padding-left: 15px; padding-right: 20px; overflow-y: auto; }
 .onleftbar.close { display: none;}
 .onlinksystem { width: calc(100% - 16px); height: 60px; display: flex; align-items: center; font-weight: 700; color: #fff; font-size: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-left: 3px; }
 .navdepth1-list { border-bottom: 1px dashed rgba(255, 255, 255, 0.15); }
@@ -1020,7 +1020,7 @@ caption {
 .navdepth1-list.on > a, .navdepth1-list.on > button { color: #78ffff; }
 .navdepth1-list.on > button { background: url("../src/assets/images/common/ico_minus.svg") right center no-repeat; }
 .navdepth2 { background: #283685; border-radius: 10px; padding: 19px 14px; margin-bottom: 14px; display: none; flex-direction: column; gap: 14px; }
-.navdepth2-list > a { color: rgba(255, 255, 255, 0.8); font-size: 14px; font-weight: 400; display: block; position: relative; transition: color 0.3s; }
+.navdepth2-list > a { color: rgba(255, 255, 255, 0.8); font-size: 14px; font-weight: 400; display: block; position: relative; padding-right: 10px; transition: color 0.3s; }
 .navdepth2-list > a:after { content: ""; position: absolute; width: 8px; height: 13px; right: 0; top: 50%; transform: translate(-5px, -50%); transition: 0.3s; opacity: 0; background: url("../src/assets/images/common/ico_arrow.svg") right center no-repeat; }
 .navdepth2-list > a:hover:after, .navdepth2-list.on > a:after { opacity: 1; transform: translate(0, -50%); }
 .navdepth2-list:hover > a, .navdepth2-list.on > a { color: #78ffff; font-weight: 500; }
