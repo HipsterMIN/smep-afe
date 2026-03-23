@@ -300,7 +300,7 @@ export default function PolicyFinanceList() {
       setTotalCount(
         Number.isFinite(nextTotalCount) && nextTotalCount >= 0
           ? nextTotalCount
-          : numberedRows.length
+          : 0
       );
       setCursor(page?.nextCursor ?? null);
       setHasNext(Boolean(page?.hasNext));
