@@ -3,6 +3,7 @@ import { createGridValueActionCell } from '@components/ui/createGridValueActionC
 import GridTable from '@components/ui/GridTable';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
+import { useUserMenu } from '@context/UserMenuContext';
 import http from '@lib/http.js';
 import { Willow } from '@svar-ui/react-grid';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
@@ -11,6 +12,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const PAGE_SIZE = 20;
+const MENU_ID_SMS_SEND = 'M_PIIO_00130';
+const MENU_ID_EMAIL_SEND = 'M_PIIO_00131';
 const POLICY_FINANCE_COMMON_CODE_GROUPS = [
   'PLCY_FNNC_GDS_TYPE_CD',
   'PLCY_FNNC_STTS_CD',
@@ -35,8 +38,17 @@ const toDisplayText = (value) => {
   return value;
 };
 
+const joinRoutePath = (basePath, subPath = '') => {
+  if (!subPath) return basePath;
+  return `${String(basePath).replace(/\/+$/, '')}/${String(subPath).replace(
+    /^\/+/,
+    ''
+  )}`;
+};
+
 export default function PolicyFinanceList() {
   const navigate = useNavigate();
+  const { getFullPath } = useUserMenu();
   const gridViewportRef = useRef(null);
   const loadingRef = useRef(false);
   const rowsRef = useRef([]);
@@ -319,6 +331,17 @@ export default function PolicyFinanceList() {
     handleSearch();
   };
 
+  const handleMoveByMenuId = (menuId, menuName, subPath = '') => {
+    const basePath = menuId ? getFullPath(menuId) : null;
+
+    if (basePath) {
+      navigate(joinRoutePath(basePath, subPath));
+      return;
+    }
+
+    alert(`${menuName} 메뉴 경로를 찾을 수 없습니다.`);
+  };
+
   const loadCommonCodeOptions = async () => {
     try {
       const codes = await fetchAndConvertCommonCodes(
@@ -467,8 +490,20 @@ export default function PolicyFinanceList() {
               총 <b>{totalCount.toLocaleString()}</b>건
             </span>
             <div className="onbtns">
-              <Button btnType="add" btnNames="메세지 작성" />
-              <Button btnType="add" btnNames="이메일 작성" />
+              <Button
+                btnType="add"
+                btnNames="메세지 작성"
+                onClick={() =>
+                  handleMoveByMenuId(MENU_ID_SMS_SEND, 'SMS 발송', 'create')
+                }
+              />
+              <Button
+                btnType="add"
+                btnNames="이메일 작성"
+                onClick={() =>
+                  handleMoveByMenuId(MENU_ID_EMAIL_SEND, '이메일 발송', 'create')
+                }
+              />
               <Button btnType="list" btnNames="이용 가이드" />
               <Button
                 btnType="add"
@@ -480,9 +515,19 @@ export default function PolicyFinanceList() {
 
           <div className="ongrid-tableform">
             <Willow>
+              {/* Grid 내부 스크롤/헤더 고정을 위해 viewport 높이를 "반응형 고정값"으로 관리한다.
+                  clamp(min, preferred, max) 동작:
+                  1) min(420px): 작은 화면에서도 그리드가 너무 눌리지 않게 최소 높이 보장
+                  2) preferred(calc(100dvh - Npx)): 화면 높이에서 상단 UI(타이틀/검색영역/여백) 공간을 뺀 값
+                  3) max(760px): 큰 화면에서 과도하게 늘어 행 간격 체감이 커지는 것을 방지
+                  결과적으로 화면 크기에 따라 유연하게 변하지만, 항상 "내부 스크롤 가능한 고정 높이 박스"를 유지한다.
+                  overflow: hidden은 외부(div) 스크롤을 막고, 실제 스크롤 주체를 Grid 내부(.wx-scroll)로 고정한다. */}
               <div
                 ref={gridViewportRef}
-                style={{ height: 480, overflow: 'hidden' }}
+                style={{
+                  height: 'max(420px, calc(100dvh - 430px))',
+                  overflow: 'hidden',
+                }}
               >
                 <GridTable data={rows} columns={columns} useWillow={false} />
               </div>

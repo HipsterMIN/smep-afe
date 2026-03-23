@@ -2,12 +2,19 @@ import Button from '@components/ui/Button.jsx';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
 import { useMenuStore } from '@store/useMenuStore';
+import { Willow } from '@svar-ui/react-grid';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useMatches, useNavigate, useParams } from 'react-router-dom';
+import {
+  useLocation,
+  useMatches,
+  useNavigate,
+  useParams,
+} from 'react-router-dom';
 
 const formatYmd = (date) => {
   const year = date.getFullYear();
@@ -89,7 +96,8 @@ export default function PstList() {
   );
   const [bbsTypeCdList, setBbsTypeCdList] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
-  const observerRef = useRef(null);
+  const gridViewportRef = useRef(null);
+  const loadingRef = useRef(false);
   const appliedSearchParamsRef = useRef(createDefaultSearchParams());
   const clearBoardState = useCallback(() => {
     const resetSearchParams = createDefaultSearchParams();
@@ -142,9 +150,10 @@ export default function PstList() {
     forcedSearchParams = null
   ) => {
     if (!bbsNo) return;
-    if (loading) return;
+    if (loadingRef.current) return;
     if (!hasNext && !reset) return;
 
+    loadingRef.current = true;
     setLoading(true);
     const currentSearchParams = forcedSearchParams || searchParams;
     if (reset) {
@@ -221,6 +230,7 @@ export default function PstList() {
       setHasNext(false);
       setCursor(null);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -239,9 +249,7 @@ export default function PstList() {
       alert('게시판 번호가 없습니다.');
       return;
     }
-    navigate(
-      `${pstNoValue}?bbsNo=${encodeURIComponent(String(targetBbsNo))}`
-    );
+    navigate(`${pstNoValue}?bbsNo=${encodeURIComponent(String(targetBbsNo))}`);
   };
 
   const handleGoToList = () => {
@@ -251,8 +259,8 @@ export default function PstList() {
   const pstColumns = [
     { id: 'no', width: 40, header: 'No' },
     { id: 'pstNo', width: 110, header: '게시물 ID' },
-    { id: 'pstTtl', width: 220, header: '게시물 제목', dataAlign: 'left' },
-    { id: 'pstCn', flexgrow: 1, header: '게시물 내용', dataAlign: 'left' },
+    { id: 'pstTtl', width: 260, header: '게시물 제목', dataAlign: 'left' },
+    { id: 'pstCn', header: '게시물 내용', dataAlign: 'left', flexgrow: 1 },
     {
       id: 'ctgryNo',
       width: 160,
@@ -352,22 +360,13 @@ export default function PstList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bbsNo, clearBoardState, refreshListAt]);
 
-  useEffect(() => {
-    if (!observerRef.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNext && !loading) {
-          fetchPstList(cursor, false);
-        }
-      },
-      { threshold: 1 }
-    );
-
-    observer.observe(observerRef.current);
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, hasNext, loading]);
+  useGridInfiniteScroll({
+    viewportRef: gridViewportRef,
+    loading,
+    loadingRef,
+    hasNext,
+    onLoadMore: () => fetchPstList(cursor, false),
+  });
 
   return (
     <div className="oncontentbox full">
@@ -506,15 +505,24 @@ export default function PstList() {
             className="ongrid-tableform"
             style={{ scrollbarGutter: 'stable' }}
           >
-            <GridTable
-              data={pstData}
-              columns={pstColumns}
-              gridProps={{
-                selection: true,
-                autoHeight: true,
-              }}
-            />
-            <div ref={observerRef} style={{ height: 40 }} />
+            <Willow>
+              <div
+                ref={gridViewportRef}
+                style={{
+                  height: 'max(300px, calc(100dvh - 570px))',
+                  overflow: 'hidden',
+                }}
+              >
+                <GridTable
+                  data={pstData}
+                  columns={pstColumns}
+                  gridProps={{
+                    selection: true,
+                  }}
+                  useWillow={false}
+                />
+              </div>
+            </Willow>
             <div
               className="loading"
               style={{

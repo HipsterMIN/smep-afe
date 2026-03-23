@@ -1,8 +1,8 @@
+import { useAuth } from '@context/AuthContext'; // AuthContext import
 import { useMenuStore } from '@store/useMenuStore';
-import { buildFullPath } from '@utils/menuUtils';
+import { buildFullPath, extractExternalUrl } from '@utils/menuUtils';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@context/AuthContext'; // AuthContext import
 
 import icoVatar from '../../assets/images/common/ico_avatar.svg';
 import icoLogout from '../../assets/images/common/ico_logout.svg';
@@ -34,6 +34,9 @@ export default function Header() {
         menuId: menu.menuId,
         menuNm: menu.menuNm,
         fullPath: basePath + buildFullPath(menu, flatMenuMap),
+        externalUrl: extractExternalUrl(
+          basePath + buildFullPath(menu, flatMenuMap),
+        ),
       }));
   }, [menuTree, flatMenuMap]);
 
@@ -58,9 +61,21 @@ export default function Header() {
       </div>
       <div className="onheader-ctr">
         {depth1Menus.map((menu) => (
-          <Link key={menu.menuId} to={menu.fullPath} className="onnavlink">
-            {menu.menuNm}
-          </Link>
+          menu.externalUrl ? (
+            <a
+              key={menu.menuId}
+              href={menu.externalUrl}
+              className="onnavlink"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {menu.menuNm}
+            </a>
+          ) : (
+            <Link key={menu.menuId} to={menu.fullPath} className="onnavlink">
+              {menu.menuNm}
+            </Link>
+          )
         ))}
       </div>
       <div className="onheader-rht">

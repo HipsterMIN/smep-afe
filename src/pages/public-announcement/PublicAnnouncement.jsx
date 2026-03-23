@@ -4,7 +4,9 @@ import CheckBox from '@components/ui/CheckBox.jsx';
 import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.jsx';
 import GridTable from '@components/ui/GridTable';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
+import { Willow } from '@svar-ui/react-grid';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import PropTypes from 'prop-types';
 import React, { useEffect, useRef, useState } from 'react';
@@ -24,7 +26,8 @@ export default function PublicAnnouncement({
   bizPbancTypeCd = PUBLIC_ANNOUNCEMENT_TYPE.BUSINESS,
 }) {
   const navigate = useNavigate();
-  const observerRef = useRef(null);
+  const gridViewportRef = useRef(null);
+  const loadingRef = useRef(false);
 
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
@@ -170,9 +173,10 @@ export default function PublicAnnouncement({
   };
 
   const fetchList = async (nextCursor = null, reset = false) => {
-    if (loading) return;
+    if (loadingRef.current) return;
     if (!hasNext && !reset) return;
 
+    loadingRef.current = true;
     setLoading(true);
     try {
       const res = await http.get('/api/v1/public-announcement', {
@@ -199,6 +203,7 @@ export default function PublicAnnouncement({
       setHasNext(false);
       alert('공고 목록을 불러오는 중 오류가 발생했습니다.');
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -223,22 +228,13 @@ export default function PublicAnnouncement({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!observerRef.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNext && !loading) {
-          fetchList(cursor);
-        }
-      },
-      { threshold: 1 }
-    );
-
-    observer.observe(observerRef.current);
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, hasNext, loading]);
+  useGridInfiniteScroll({
+    viewportRef: gridViewportRef,
+    loading,
+    loadingRef,
+    hasNext,
+    onLoadMore: () => fetchList(cursor, false),
+  });
 
   useEffect(() => {
     const handler = (e) => {
@@ -397,8 +393,17 @@ export default function PublicAnnouncement({
           </div>
 
           <div className="ongrid-tableform">
-            <GridTable columns={columns} data={rows} />
-            <div ref={observerRef} style={{ height: 40 }} />
+            <Willow>
+              <div
+                ref={gridViewportRef}
+                style={{
+                  height: 'max(420px, calc(100dvh - 450px))',
+                  overflow: 'hidden',
+                }}
+              >
+                <GridTable columns={columns} data={rows} useWillow={false} />
+              </div>
+            </Willow>
           </div>
         </div>
       </div>

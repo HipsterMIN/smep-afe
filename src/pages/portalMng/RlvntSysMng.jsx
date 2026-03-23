@@ -8,6 +8,7 @@ import http from '@lib/http.js';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMatches } from 'react-router-dom';
+import {Willow} from "@svar-ui/react-grid";
 
 const API_BASE_URL = '/api/v1/portal-mng/rlvnt-sys';
 const RLVNT_SYS_BIZ_TYPE_CODE_GROUP = 'RLVNT_INST_SYS_BIZ_TYPE_CD';
@@ -529,13 +530,18 @@ export default function RlvntSysMng() {
             <Button btnType="add" btnNames="신규" onClick={resetForm} />
           </div>
 
-          <div className="ongrid-tableform onSCrollBox">
-            <GridTable columns={columns} data={rows} gridProps={{ init: initGrid }} />
-            {loading && (
-              <div className="loading" style={{ marginTop: 8 }}>
-                목록 조회 중...
+          <div className="ongrid-tableform">
+            <Willow>
+              <div
+                style={{
+                  height: 'max(420px, calc(100dvh - 430px))',
+                  overflow: 'hidden',
+                }}
+              >
+                <GridTable columns={columns} data={rows} gridProps={{ init: initGrid }}
+                           useWillow={false}/>
               </div>
-            )}
+            </Willow>
           </div>
         </div>
 
