@@ -4,8 +4,10 @@ import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
+import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import { formatDate } from '@utils/stringUtils.js';
 import { useEffect, useRef, useState } from 'react';
+import {Willow} from "@svar-ui/react-grid";
 
 const PAGE_SIZE = 20;
 const FIXED_APPLY_BIZ_SE_CD = 'BIZP';
@@ -13,6 +15,8 @@ const FIXED_APPLY_BIZ_SE_CD = 'BIZP';
 export default function ApplicationCompanyInfoList() {
   const observerRef = useRef(null);
   const [isDetailOpen] = useState(true);
+  const gridViewportRef = useRef(null);
+  const loadingRef = useRef(false);
 
   const [rows, setRows] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -47,7 +51,7 @@ export default function ApplicationCompanyInfoList() {
       width: 100,
       cell: ({ row }) => row?.aplyBizSeNm || '외부연계',
     },
-    { id: 'bizPbancNm', header: '사업공고명', dataAlign: 'left', width: 300 },
+    { id: 'bizPbancNm', header: '사업공고명', dataAlign: 'left', flexgrow: 1},
     { id: 'mbrNm', header: '신청자명', width: 120 },
     {
       id: 'cmpnyNm',
@@ -64,10 +68,10 @@ export default function ApplicationCompanyInfoList() {
     },
     { id: 'bizPbancLinkInstCdNm', header: '연계기관명', width: 130 },
     {
-      id: 'regDt',
+      id: 'reqstDt',
       header: '신청일시',
       width: 180,
-      cell: ({ row }) => formatDate(row?.regDt, 'yyyy-MM-dd HH:mm:ss'),
+      cell: ({ row }) => row?.reqstDt,
     },
   ];
 
@@ -103,6 +107,7 @@ export default function ApplicationCompanyInfoList() {
     if (loading) return;
     if (!hasNext && !reset) return;
 
+    loadingRef.current = true;
     setLoading(true);
     try {
       const res = await http.get('/api/v1/biz-applications/companies', {
@@ -124,6 +129,7 @@ export default function ApplicationCompanyInfoList() {
       if (reset) setRows([]);
       alert('신청기업정보 목록 조회 중 오류가 발생했습니다.');
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -174,6 +180,14 @@ export default function ApplicationCompanyInfoList() {
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cursor, hasNext, loading]);
+
+  useGridInfiniteScroll({
+    viewportRef: gridViewportRef,
+    loading,
+    loadingRef,
+    hasNext,
+    onLoadMore: () => fetchList(cursor, false),
+  });
 
   return (
     <div className="oncontentbox full">
@@ -267,8 +281,19 @@ export default function ApplicationCompanyInfoList() {
             </span>
           </div>
           <div className="ongrid-tableform">
-            <GridTable columns={columns} data={rows} />
+            <Willow>
+              <div
+                ref={gridViewportRef}
+                style={{
+                  height: 'max(420px, calc(100dvh - 420px))',
+                  overflow: 'hidden',
+                }}
+              >
+            <GridTable columns={columns} data={rows}
+                       useWillow={false} />
             <div ref={observerRef} style={{ height: 40 }} />
+              </div>
+            </Willow>
           </div>
         </div>
       </div>
