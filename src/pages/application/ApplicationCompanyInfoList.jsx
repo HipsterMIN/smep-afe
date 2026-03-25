@@ -52,14 +52,14 @@ export default function ApplicationCompanyInfoList() {
       cell: ({ row }) => row?.aplyBizSeNm || '외부연계',
     },
     { id: 'bizPbancNm', header: '사업공고명', dataAlign: 'left', flexgrow: 1},
-    { id: 'mbrNm', header: '신청자명', width: 120 },
+    /*{ id: 'mbrNm', header: '신청자명', width: 120 },*/
     {
       id: 'cmpnyNm',
       header: '기업명',
-      width: 120,
+      width: 200,
       cell: ({ row }) => row?.cmpnyNm || row?.mbrNm || '',
     },
-    { id: 'bizAplyPrgrsSttsNm', header: '신청상태명', width: 120 },
+    /*{ id: 'bizAplyPrgrsSttsNm', header: '신청상태명', width: 120 },*/
     {
       id: 'bizAplyRsltNm',
       header: '신청결과',
