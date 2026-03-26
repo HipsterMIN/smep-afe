@@ -42,7 +42,7 @@ export default function MenuInputBox({
         </div>
       ) : /* select 타입: 드롭다운 선택 필드 */
       menuType === 'select' ? (
-        <div className={`onmenubox${menuSize === '100%' ? ' fullSize' : ''}`}>
+        <div className={`onmenubox${menuSize === '100%' ? ' fullSize' : ''} onSel`}>
           {/* 라벨이 있으면 표시 */}
           {menuName ? <span className="onmenunames">{menuName}</span> : null}
           <select

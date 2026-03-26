@@ -1,5 +1,31 @@
 import Button from "../components/ui/Button.jsx";
+import DateBarChart from "../components/ui/DateBarChart.jsx";
 export default function CommonCode() {
+  const dailyData = [
+  { date: '11-1', value: 5 },
+  { date: '11-2', value: 52 },
+  { date: '11-3', value: 45 },
+  { date: '11-4', value: 38 },
+  { date: '11-5', value: 55 },
+  { date: '11-6', value: 55 },
+  { date: '11-7', value: 55 },
+  { date: '11-8', value: 55 },
+  { date: '11-9', value: 5 },
+  { date: '11-10', value: 52 },
+  { date: '11-18', value: 45 },
+  { date: '11-19', value: 38 },
+  { date: '11-20', value: 55 },
+  { date: '11-21', value: 55 },
+  { date: '11-22', value: 55 },
+  { date: '11-23', value: 55 },
+  { date: '11-24', value: 55 },
+  { date: '11-25', value: 55 },
+  { date: '11-26', value: 55 },
+  { date: '11-27', value: 55 },
+  { date: '11-28', value: 55 },
+  { date: '11-29', value: 55 },
+  { date: '11-30', value: 55 },
+];
 
   return (
     <div className="oncontentbox full">
@@ -127,6 +153,21 @@ export default function CommonCode() {
                 </tr>
               </tbody>
             </table>
+          </div>
+          <div style={{ display : 'flex', justifyContent : 'space-between', alignItems : 'center' }}>
+            <div style={{ width : '100%' }}>
+              <h3 className="onsubtitle mb-24">개인회원 운영지표</h3>
+              <div>
+                  <DateBarChart data={dailyData} legend="개인회원 운영지표" />
+              </div>
+            </div>
+
+            <div style={{ width : '100%' }}>
+              <h3 className="onsubtitle mb-24">기업회원 운영지표</h3>
+              <div>
+                  <DateBarChart data={dailyData} legend="기업회원 운영지표" />
+              </div>
+            </div>
           </div>
       </div>
     </div>

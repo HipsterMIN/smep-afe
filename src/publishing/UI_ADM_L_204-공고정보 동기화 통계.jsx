@@ -2,9 +2,26 @@ import { useState } from 'react';
 import Button from "../components/ui/Button.jsx";
 import MenuInputBox from "../components/ui/MenuInputBox.jsx";
 import GridTable from '../components/ui/GridTable';
-
+import DateBarChart from "../components/ui/DateBarChart.jsx";
 
 export default function CommonCode() {
+  const dailyData = [
+    { date: '중소가업기술정보진흥원1', value: 20 },
+    { date: '중소가업기술정보진흥원2', value: 38 },
+    { date: '중소가업기술정보진흥원3', value: 62 },
+    { date: '중소가업기술정보진흥원4', value: 41 },
+    { date: '중소가업기술정보진흥원5', value: 17 },
+    { date: '중소가업기술정보진흥원6', value: 80 },
+    { date: '중소가업기술정보진흥원7', value: 80 },
+    { date: '중소가업기술정보진흥원8', value: 80 },
+    { date: '중소가업기술정보진흥원9', value: 80 },
+    { date: '중소가업기술정보진흥원10', value: 80 },
+    { date: '중소가업기술정보진흥원11', value: 32 },
+    { date: '중소가업기술정보진흥원12', value: 42 },
+    { date: '중소가업기술정보진흥원13', value: 11 },
+    { date: '중소가업기술정보진흥원14', value: 2 },
+    { date: '중소가업기술정보진흥원15', value: 5 },
+  ];
 
   return (
     <div className="oncontentbox full">
@@ -68,6 +85,13 @@ export default function CommonCode() {
             </div>
           </div>
 
+          <div className="onsection">
+            <h3 className="onsubtitle mb-24">기관별 공고 현황</h3>
+            <div>
+              <DateBarChart data={dailyData} />
+            </div>
+          </div>
+          
         </div>
       </div>
     </div>

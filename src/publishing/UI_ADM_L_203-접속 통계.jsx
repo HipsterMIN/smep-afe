@@ -116,11 +116,10 @@ export default function CommonCode() {
               </div>
             </div>
             <div className="ondividegroup-item">
-              <StackedBarChart
-                data={chartData}
-                legend={["방문자수", "페이지뷰"]}
-                chartTitle="방문 페이지별"
-              />
+              <div style={{ marginLeft : '40px' }}>
+                <MenuInputBox menuType="select" menuName="방문 페이지별" selectOption="일별" menuSize="200px" />
+              </div>
+              <StackedBarChart data={chartData} legend={["방문자수", "페이지뷰"]} />
             </div>
           </div>
           
