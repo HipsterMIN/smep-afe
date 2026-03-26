@@ -871,6 +871,7 @@ caption {
   justify-content: flex-end;
 }
 .onmenubox {
+  position: relative;
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
@@ -902,7 +903,9 @@ caption {
   color: #555;
 }
 
+.onSel{ position: relative; }
 .onmenubox select {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -918,7 +921,24 @@ caption {
   border: 1px solid #D7D7D7;
   background: #FFF;
   font-weight: 500;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 20px;
 }
+
+.onSel::after {
+  content: '';
+  position: absolute;
+  right: 12px; /* ← 여기서 위치 조절 */
+  top: 50%;
+  width: 12px;
+  height: 7px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  background: url("../src/assets/images/common/ico_arrow_down.svg") center center / cover no-repeat;
+}
+
 .onmenunames {
   flex: 0 0 auto;
   color: #333;
