@@ -7,7 +7,6 @@ import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
 import AccessAllowIpAddModal from '@pages/access/AccessAllowIpAddModal.jsx';
 import { Willow } from '@svar-ui/react-grid';
-// import GridTable from '@pages/access/Grid.jsx';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 const createSearchParams = () => ({
@@ -190,10 +189,7 @@ export default function AccessAllowIp() {
 
   const handleSave = async (formData) => {
     try {
-      await http.post(
-        `/api/v1/access-allowIp/${formData.mngrPrmIpNo}/ips`,
-        formData
-      );
+      await http.post(`/api/v1/access-allowIp/ips`, formData);
       alert('접속 허용 IP가 등록되었습니다.');
 
       setIsAddOpen(false);
