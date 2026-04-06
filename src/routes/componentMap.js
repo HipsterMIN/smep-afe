@@ -15,6 +15,9 @@ const BbsInfoList = lazy(() => import('@pages/board/BbsInfoList'));
 const PstList = lazy(() => import('@pages/board/PstList'));
 const PstForm = lazy(() => import('@pages/board/PstForm'));
 const MemberList = lazy(() => import('@pages/member/MemberList'));
+const ManagerList = lazy(() => import(`@pages/member/ManagerList`));
+const ManagerCreate = lazy(() => import('@pages/member/ManagerCreate.jsx'));
+const ManagerUpdate = lazy(() => import('@pages/member/ManagerUpdate.jsx'));
 const MenuUserMng = lazy(() => import('@pages/menu/MenuUser.jsx'));
 const MenuAdminMng = lazy(() => import('@pages/menu/MenuAdmin.jsx'));
 const SupportBusiness = lazy(
@@ -287,10 +290,20 @@ export const componentMap = {
   //   layout: AdminLayoutWithAuth,
   // },
   // 관리자계정 관리
-  // 'M_PIIO_00054': {
-  //   component: TODO_M_PIIO_00054,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00054: {
+    component: ManagerList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create',
+        component: ManagerCreate,
+      },
+      {
+        path: ':mbrNo/update',
+        component: ManagerUpdate,
+      },
+    ],
+  },
   // 권한관리
   // 'M_PIIO_00055': {
   //   component: TODO_M_PIIO_00055,
