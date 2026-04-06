@@ -1,4 +1,4 @@
-import ManagerForm from '@pages/member/components/ManagerForm.jsx';
+import ManagerForm from '@pages/member/manager/components/ManagerForm.jsx';
 
 export default function ManagerUpdate() {
   return <ManagerForm mode="update" />;
