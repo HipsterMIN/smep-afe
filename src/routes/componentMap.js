@@ -22,6 +22,12 @@ const ManagerCreate = lazy(
 const ManagerUpdate = lazy(
   () => import('@pages/member/manager/ManagerUpdate.jsx')
 );
+
+const RoleList = lazy(() => import('@pages/member/role/RoleList.jsx'));
+const RoleMenuAssigner = lazy(
+  () => import('@pages/member/role/RoleMenuAssigner.jsx')
+);
+
 const MenuUserMng = lazy(() => import('@pages/menu/MenuUser.jsx'));
 const MenuAdminMng = lazy(() => import('@pages/menu/MenuAdmin.jsx'));
 const SupportBusiness = lazy(
@@ -314,10 +320,16 @@ export const componentMap = {
     ],
   },
   // 권한관리
-  // 'M_PIIO_00055': {
-  //   component: TODO_M_PIIO_00055,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00055: {
+    component: RoleList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: ':roleNo',
+        component: RoleMenuAssigner, // 역할 메뉴 할당
+      },
+    ],
+  },
   // 통합로그인 사이트 관리
   M_PIIO_00056: {
     component: IntegrationLoginSiteList,
