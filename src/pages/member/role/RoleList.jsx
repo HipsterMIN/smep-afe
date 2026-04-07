@@ -13,6 +13,7 @@ const DEFAULT_SEARCH_KEYWORD = '';
 const DEFAULT_MEMBER_SEARCH_KEYWORD = '';
 const DEFAULT_MEMBER_ORG_NAME = '-';
 const DEFAULT_MEMBER_FETCH_SIZE = 100;
+const GRID_SCROLL_HEIGHT = '620px';
 
 function resolvePayload(response) {
   if (response && typeof response === 'object' && !Array.isArray(response)) {
@@ -219,7 +220,12 @@ export default function RoleList() {
       return;
     }
 
-    navigate(`${row.roleId}`);
+    navigate('menu', {
+      state: {
+        initialRoleId: row.roleId,
+        initialRoleNm: row.roleNm,
+      },
+    });
   }
 
   function handleOpenRoleForm(event, row) {
@@ -285,7 +291,8 @@ export default function RoleList() {
   }
 
   async function handleMemberSearch() {
-    if (!selectedRole?.roleId) {
+    // 소속인원 검색 버튼은 로딩 중에도 외형을 유지하고, 중복 조회만 핸들러 내부에서 막는다.
+    if (!selectedRole?.roleId || memberLoading) {
       return;
     }
 
@@ -409,7 +416,7 @@ export default function RoleList() {
     {
       id: 'orgNm',
       header: '기관명',
-      width: 322,
+      width: 302,
       cell: ({ row }) => row?.orgNm || DEFAULT_MEMBER_ORG_NAME,
     },
   ];
@@ -451,7 +458,11 @@ export default function RoleList() {
               />
             </div>
           </div>
-          <div className="ongrid-tableform">
+          <div
+            className="ongrid-tableform onSCrollBox"
+            // 이 화면도 페이지 전체보다 각 grid wrapper가 스크롤을 가져가야 좌우 영역이 덜 흔들린다.
+            style={{ height: GRID_SCROLL_HEIGHT }}
+          >
             <GridTable
               columns={roleColumns}
               data={roleList}
@@ -476,7 +487,7 @@ export default function RoleList() {
                 btnType="search"
                 btnNames="검색"
                 onClick={handleMemberSearch}
-                disabled={!selectedRole?.roleId || memberLoading}
+                disabled={!selectedRole?.roleId}
               />
               <Button
                 btnType="del"
@@ -496,7 +507,10 @@ export default function RoleList() {
               />
             </div>
           </div>
-          <div className="ongrid-tableform">
+          <div
+            className="ongrid-tableform onSCrollBox"
+            style={{ height: GRID_SCROLL_HEIGHT }}
+          >
             <GridTable columns={memberColumns} data={memberList} />
           </div>
         </div>
