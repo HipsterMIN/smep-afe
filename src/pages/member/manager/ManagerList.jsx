@@ -147,7 +147,14 @@ export default function ManagerList() {
   async function fetchRoleOptions() {
     try {
       setRoleLoading(true);
-      const response = await http.get('/api/v1/roles');
+      // roles API는 더 이상 기본 범위를 주입하지 않으므로, 관리자 권한 선택 옵션은 화면이 PIIO/MNG/Y를 명시한다.
+      const response = await http.get('/api/v1/roles', {
+        params: {
+          intgSysSeCd: 'PIIO',
+          mbrTypeCd: 'MNG',
+          useYn: 'Y',
+        },
+      });
       const payload = resolvePayload(response);
       const sourceList = Array.isArray(payload)
         ? payload

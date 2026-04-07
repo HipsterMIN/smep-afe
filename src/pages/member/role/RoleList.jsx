@@ -1,15 +1,18 @@
 import Button from '@components/ui/Button.jsx';
+import CheckBox from '@components/ui/CheckBox.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import SearchBox from '@components/ui/SearchBox.jsx';
 import http from '@lib/http.js';
 import RoleForm from '@pages/member/role/components/RoleForm.jsx';
+import RoleManagerSelector from '@pages/member/role/components/RoleManagerSelector.jsx';
 import { formatDate } from '@utils/stringUtils.js';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const DEFAULT_SEARCH_KEYWORD = '';
-const ROLE_USE_YN_REQUESTS = ['Y', 'N'];
-const EMPTY_MEMBER_COLUMNS = [];
+const DEFAULT_MEMBER_SEARCH_KEYWORD = '';
+const DEFAULT_MEMBER_ORG_NAME = '-';
+const DEFAULT_MEMBER_FETCH_SIZE = 100;
 
 function resolvePayload(response) {
   if (response && typeof response === 'object' && !Array.isArray(response)) {
@@ -53,7 +56,6 @@ function normalizeRoleRow(item, index) {
 
   return {
     id: roleId,
-    no: index + 1,
     roleId,
     roleNm,
     useYn,
@@ -76,47 +78,45 @@ export default function RoleList() {
   const [keyword, setKeyword] = useState(DEFAULT_SEARCH_KEYWORD);
   const [roleList, setRoleList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(null);
+  const [memberKeyword, setMemberKeyword] = useState(
+    DEFAULT_MEMBER_SEARCH_KEYWORD
+  );
+  const [memberList, setMemberList] = useState([]);
+  const [memberLoading, setMemberLoading] = useState(false);
+  const [selectedMemberNos, setSelectedMemberNos] = useState([]);
+  const [isRoleManagerSelectorOpen, setIsRoleManagerSelectorOpen] =
+    useState(false);
   const [isRoleFormOpen, setIsRoleFormOpen] = useState(false);
   const [roleFormMode, setRoleFormMode] = useState(null);
   const [selectedRoleId, setSelectedRoleId] = useState(null);
+  const roleRowsRef = useRef(roleList);
 
   async function fetchRoleList(nextKeyword = '') {
     setLoading(true);
 
     try {
       const normalizedKeyword = nextKeyword.trim();
-
-      // 현재 roles API는 useYn을 한 번에 하나만 받으므로,
-      // 관리 화면에서는 Y/N를 각각 조회한 뒤 합쳐 전체 권한 목록처럼 사용한다.
-      const responses = await Promise.all(
-        ROLE_USE_YN_REQUESTS.map((useYn) =>
-          http.get('/api/v1/roles', {
-            params: {
-              intgSysSeCd: 'PIIO',
-              mbrTypeCd: 'MNG',
-              useYn,
-              ...(normalizedKeyword ? { roleNm: normalizedKeyword } : {}),
-            },
-          })
-        )
-      );
-
-      const mergedMap = new Map();
-
-      responses.forEach((response) => {
-        const payload = resolvePayload(response);
-        const items = Array.isArray(payload) ? payload : [];
-
-        items.forEach((item, index) => {
-          const row = normalizeRoleRow(item, index);
-          mergedMap.set(row.roleId, row);
-        });
+      // 권한 관리 목록은 전체 장부를 봐야 하므로, useYn 기본값에 기대지 않고 화면이 필요한 범위만 명시해 단일 조회한다.
+      const response = await http.get('/api/v1/roles', {
+        params: {
+          intgSysSeCd: 'PIIO',
+          mbrTypeCd: 'MNG',
+          ...(normalizedKeyword ? { roleNm: normalizedKeyword } : {}),
+        },
       });
+      const payload = resolvePayload(response);
+      const items = Array.isArray(payload) ? payload : [];
 
-      const mergedRows = [...mergedMap.values()]
+      const normalizedRows = items.map((item, index) =>
+        normalizeRoleRow(item, index)
+      );
+      const mergedRows = normalizedRows
         .sort(sortRoleRows)
-        .map((row) => ({
+        .map((row, index) => ({
           ...row,
+          // 번호는 최종 정렬이 끝난 화면 순서 기준으로 다시 매긴다.
+          no: index + 1,
         }));
 
       setRoleList(mergedRows);
@@ -132,6 +132,10 @@ export default function RoleList() {
     fetchRoleList(DEFAULT_SEARCH_KEYWORD);
   }, []);
 
+  useEffect(() => {
+    roleRowsRef.current = roleList;
+  }, [roleList]);
+
   function handleSearch() {
     fetchRoleList(keyword);
   }
@@ -145,7 +149,72 @@ export default function RoleList() {
     handleSearch();
   }
 
-  function handleMoveToMenu(row) {
+  async function fetchAssignedMembers(
+    roleId,
+    nextKeyword = DEFAULT_MEMBER_SEARCH_KEYWORD
+  ) {
+    if (!roleId) {
+      setMemberList([]);
+      setSelectedMemberNos([]);
+      return;
+    }
+
+    setMemberLoading(true);
+
+    try {
+      const normalizedKeyword = nextKeyword.trim();
+      const response = await http.post(
+        `/api/v1/roles/${roleId}/members/search`,
+        {
+          keyword: normalizedKeyword || null,
+          size: DEFAULT_MEMBER_FETCH_SIZE,
+        }
+      );
+      const payload = resolvePayload(response);
+      const items = Array.isArray(payload) ? payload : [];
+
+      setMemberList(
+        items.map((item, index) => ({
+          id: item?.mbrNo ?? `member-${index}`,
+          mbrNo: item?.mbrNo ?? null,
+          lgnId: item?.lgnId ?? '-',
+          mbrNm: item?.mbrNm ?? '-',
+          orgNm: item?.orgNm ?? DEFAULT_MEMBER_ORG_NAME,
+        }))
+      );
+      setSelectedMemberNos([]);
+    } catch (error) {
+      console.error('[RoleList] 권한 소속인원 조회 실패', error);
+      setMemberList([]);
+      setSelectedMemberNos([]);
+    } finally {
+      setMemberLoading(false);
+    }
+  }
+
+  function handleRoleRowClick(row) {
+    if (!row?.roleId) {
+      return;
+    }
+
+    setSelectedRole(row);
+    setMemberKeyword(DEFAULT_MEMBER_SEARCH_KEYWORD);
+    void fetchAssignedMembers(row.roleId, DEFAULT_MEMBER_SEARCH_KEYWORD);
+  }
+
+  function handleRoleGridInit(api) {
+    api.on('select-row', (event) => {
+      const rowData = roleRowsRef.current.find((item) => item.id === event.id);
+
+      if (rowData) {
+        handleRoleRowClick(rowData);
+      }
+    });
+  }
+
+  function handleMoveToMenu(event, row) {
+    event.stopPropagation();
+
     if (!row?.roleId) {
       return;
     }
@@ -153,7 +222,9 @@ export default function RoleList() {
     navigate(`${row.roleId}`);
   }
 
-  function handleOpenRoleForm(row) {
+  function handleOpenRoleForm(event, row) {
+    event.stopPropagation();
+
     if (!row?.roleId) {
       return;
     }
@@ -186,6 +257,83 @@ export default function RoleList() {
     handleCloseRoleForm();
   }
 
+  function isMemberSelected(mbrNo) {
+    return selectedMemberNos.includes(mbrNo);
+  }
+
+  function handleToggleMember(mbrNo, checked) {
+    if (!mbrNo) {
+      return;
+    }
+
+    setSelectedMemberNos((prev) => {
+      if (checked) {
+        return prev.includes(mbrNo) ? prev : [...prev, mbrNo];
+      }
+
+      return prev.filter((value) => value !== mbrNo);
+    });
+  }
+
+  function handleMemberSearchKeyDown(event) {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    event.preventDefault();
+    void handleMemberSearch();
+  }
+
+  async function handleMemberSearch() {
+    if (!selectedRole?.roleId) {
+      return;
+    }
+
+    await fetchAssignedMembers(selectedRole.roleId, memberKeyword);
+  }
+
+  async function handleDeleteMembers() {
+    if (!selectedRole?.roleId || selectedMemberNos.length === 0) {
+      return;
+    }
+
+    if (!window.confirm('선택한 소속인원을 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      await http.post(`/api/v1/roles/${selectedRole.roleId}/members/unassign`, {
+        mbrNos: selectedMemberNos,
+      });
+      alert('삭제되었습니다.');
+      await fetchAssignedMembers(selectedRole.roleId, memberKeyword);
+    } catch (error) {
+      console.error('[RoleList] 권한 소속인원 삭제 실패', error);
+      alert(error?.response?.data?.message || '소속인원 삭제에 실패했습니다.');
+    }
+  }
+
+  function handleOpenRoleManagerSelector() {
+    if (!selectedRole?.roleId) {
+      return;
+    }
+
+    setIsRoleManagerSelectorOpen(true);
+  }
+
+  function handleCloseRoleManagerSelector() {
+    setIsRoleManagerSelectorOpen(false);
+  }
+
+  async function handleAddedRoleMembers() {
+    if (!selectedRole?.roleId) {
+      return;
+    }
+
+    await fetchAssignedMembers(selectedRole.roleId, memberKeyword);
+    handleCloseRoleManagerSelector();
+  }
+
   const roleColumns = [
     { id: 'no', header: '번호', width: 50 },
     { id: 'roleId', header: '권한ID', width: 120 },
@@ -214,7 +362,7 @@ export default function RoleList() {
           <Button
             btnType="edit small"
             btnNames="메뉴"
-            onClick={() => handleMoveToMenu(row)}
+            onClick={(event) => handleMoveToMenu(event, row)}
           />
         </div>
       ),
@@ -227,9 +375,42 @@ export default function RoleList() {
         <Button
           btnType="edit small"
           btnNames="수정"
-          onClick={() => handleOpenRoleForm(row)}
+          onClick={(event) => handleOpenRoleForm(event, row)}
         />
       ),
+    },
+  ];
+
+  const memberColumns = [
+    {
+      id: 'checkbox',
+      header: '선택',
+      width: 60,
+      cell: ({ row }) => (
+        <div
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <CheckBox
+            chkId={`role-member-${row?.mbrNo ?? row?.id}`}
+            value={row?.mbrNo}
+            checked={isMemberSelected(row?.mbrNo)}
+            onChange={({ checked }) => handleToggleMember(row?.mbrNo, checked)}
+          />
+        </div>
+      ),
+    },
+    { id: 'lgnId', header: 'ID', width: 200 },
+    { id: 'mbrNm', header: '이름', width: 200 },
+    {
+      id: 'orgNm',
+      header: '기관명',
+      width: 322,
+      cell: ({ row }) => row?.orgNm || DEFAULT_MEMBER_ORG_NAME,
     },
   ];
 
@@ -246,7 +427,7 @@ export default function RoleList() {
       </div>
 
       <div className="oncontents space" style={{ alignItems: 'flex-start' }}>
-        <div className="oncontent">
+        <div className="oncontent" style={{ alignSelf: 'flex-start' }}>
           <div className="ongrid-form">
             <h4>권한그룹</h4>
             <div className="ongrid-btnbox">
@@ -263,11 +444,19 @@ export default function RoleList() {
                 onClick={handleSearch}
                 disabled={loading}
               />
-              <Button btnType="add" btnNames="추가" onClick={handleOpenRoleCreate} />
+              <Button
+                btnType="add"
+                btnNames="추가"
+                onClick={handleOpenRoleCreate}
+              />
             </div>
           </div>
           <div className="ongrid-tableform">
-            <GridTable columns={roleColumns} data={roleList} />
+            <GridTable
+              columns={roleColumns}
+              data={roleList}
+              gridProps={{ init: handleRoleGridInit }}
+            />
           </div>
         </div>
 
@@ -278,14 +467,37 @@ export default function RoleList() {
               <SearchBox
                 inputId="searchFormChild"
                 placeholder="검색어를 입력하세요."
+                value={memberKeyword}
+                onChange={(event) => setMemberKeyword(event.target.value)}
+                onKeyDown={handleMemberSearchKeyDown}
+                disabled={!selectedRole?.roleId}
               />
-              <Button btnType="search" btnNames="검색" />
-              <Button btnType="del" btnNames="삭제" />
-              <Button btnType="add" btnNames="추가" />
+              <Button
+                btnType="search"
+                btnNames="검색"
+                onClick={handleMemberSearch}
+                disabled={!selectedRole?.roleId || memberLoading}
+              />
+              <Button
+                btnType="del"
+                btnNames="삭제"
+                onClick={handleDeleteMembers}
+                disabled={
+                  !selectedRole?.roleId ||
+                  selectedMemberNos.length === 0 ||
+                  memberLoading
+                }
+              />
+              <Button
+                btnType="add"
+                btnNames="추가"
+                onClick={handleOpenRoleManagerSelector}
+                disabled={!selectedRole?.roleId}
+              />
             </div>
           </div>
           <div className="ongrid-tableform">
-            <GridTable columns={EMPTY_MEMBER_COLUMNS} data={[]} />
+            <GridTable columns={memberColumns} data={memberList} />
           </div>
         </div>
       </div>
@@ -296,6 +508,14 @@ export default function RoleList() {
           roleId={selectedRoleId}
           onClose={handleCloseRoleForm}
           onSaved={handleSavedRole}
+        />
+      )}
+
+      {isRoleManagerSelectorOpen && selectedRole?.roleId && (
+        <RoleManagerSelector
+          roleId={selectedRole.roleId}
+          onClose={handleCloseRoleManagerSelector}
+          onAdded={handleAddedRoleMembers}
         />
       )}
     </div>
