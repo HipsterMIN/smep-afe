@@ -119,7 +119,14 @@ function ManagerForm({ mode }) {
   const fetchRoleOptions = async () => {
     try {
       setRoleLoading(true);
-      const response = await http.get('/api/v1/roles');
+      // 관리자 폼의 권한 선택은 "현재 사용 가능한 PIIO/MNG 권한"만 보여야 하므로 조회 범위를 명시적으로 고정한다.
+      const response = await http.get('/api/v1/roles', {
+        params: {
+          intgSysSeCd: DEFAULT_INTG_SYS_SE_CD,
+          mbrTypeCd: 'MNG',
+          useYn: 'Y',
+        },
+      });
       const data = resolvePayload(response);
       const sourceList = Array.isArray(data)
         ? data
