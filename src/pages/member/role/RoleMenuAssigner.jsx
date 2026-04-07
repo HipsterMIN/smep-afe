@@ -4,11 +4,19 @@ import GridTable from '@components/ui/GridTable.jsx';
 import SearchBox from '@components/ui/SearchBox.jsx';
 import http from '@lib/http.js';
 import { formatDate } from '@utils/stringUtils.js';
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 const DEFAULT_ROLE_KEYWORD = '';
 const DEFAULT_MENU_KEYWORD = '';
+const GRID_SCROLL_HEIGHT = '620px';
+const ROLE_SELECTABLE_COLUMN_IDS = new Set([
+  'roleId',
+  'roleNm',
+  'useYnNm',
+  'mdfcnDtText',
+]);
 
 function resolvePayload(response) {
   if (response && typeof response === 'object' && !Array.isArray(response)) {
@@ -56,6 +64,7 @@ function normalizeRoleRow(item, index) {
     useYnNm: normalizeUseYnLabel(item?.useYn),
     sortSeq: Number.isFinite(sortSeq) ? sortSeq : Number.MAX_SAFE_INTEGER,
     mdfcnDt: item?.mdfcnDt ?? item?.regDt ?? null,
+    mdfcnDtText: formatTimestamp(item?.mdfcnDt ?? item?.regDt ?? null),
   };
 }
 
@@ -151,12 +160,15 @@ function areSameMenuSelections(leftMenuIds, rightMenuIds) {
 }
 
 export default function RoleMenuAssigner() {
-  const navigate = useNavigate();
-  const { roleNo } = useParams();
-  const [roleKeyword, setRoleKeyword] = useState(DEFAULT_ROLE_KEYWORD);
+  const location = useLocation();
+  const initialRoleId = location.state?.initialRoleId ?? null;
+  const initialRoleNm = location.state?.initialRoleNm ?? DEFAULT_ROLE_KEYWORD;
+  const [roleKeyword, setRoleKeyword] = useState(initialRoleNm);
   const [roleList, setRoleList] = useState([]);
   const [roleLoading, setRoleLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
+  const [pendingInitialRoleId, setPendingInitialRoleId] =
+    useState(initialRoleId);
   const [menuKeyword, setMenuKeyword] = useState(DEFAULT_MENU_KEYWORD);
   const [appliedMenuKeyword, setAppliedMenuKeyword] =
     useState(DEFAULT_MENU_KEYWORD);
@@ -165,6 +177,7 @@ export default function RoleMenuAssigner() {
   const [initialCheckedMenuIds, setInitialCheckedMenuIds] = useState([]);
   const [menuLoading, setMenuLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const roleGridWrapperRef = useRef(null);
 
   async function fetchRoleList(nextKeyword = DEFAULT_ROLE_KEYWORD) {
     setRoleLoading(true);
@@ -195,20 +208,32 @@ export default function RoleMenuAssigner() {
   }
 
   useEffect(() => {
-    void fetchRoleList(DEFAULT_ROLE_KEYWORD);
-  }, []);
+    // 메뉴 버튼에서 넘어온 초기 권한명은 검색어에도 그대로 반영해, 화면 진입 맥락을 사용자가 바로 확인할 수 있게 한다.
+    setRoleKeyword(initialRoleNm);
+    void fetchRoleList(initialRoleNm);
+  }, [initialRoleNm]);
 
   useEffect(() => {
-    if (!roleNo) {
-      setSelectedRole(null);
+    if (!pendingInitialRoleId) {
       return;
     }
 
-    const matchedRole = roleList.find((row) => row.roleId === roleNo);
-    setSelectedRole(matchedRole ?? null);
-  }, [roleNo, roleList]);
+    const matchedRole = roleList.find(
+      (row) => row.roleId === pendingInitialRoleId
+    );
 
-  async function fetchRoleMenus(roleId) {
+    if (!matchedRole) {
+      if (!roleLoading) {
+        setPendingInitialRoleId(null);
+      }
+      return;
+    }
+
+    setSelectedRole(matchedRole);
+    setPendingInitialRoleId(null);
+  }, [pendingInitialRoleId, roleList, roleLoading]);
+
+  const fetchRoleMenus = useCallback(async (roleId) => {
     if (!roleId) {
       setAllMenuRows([]);
       setCheckedMenuIds([]);
@@ -251,11 +276,79 @@ export default function RoleMenuAssigner() {
     } finally {
       setMenuLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     void fetchRoleMenus(selectedRole?.roleId);
-  }, [selectedRole?.roleId]);
+  }, [fetchRoleMenus, selectedRole?.roleId]);
+
+  const handleSelectRole = useCallback(
+    (rowData) => {
+      if (!rowData?.roleId) {
+        return;
+      }
+
+      const isSameRole = selectedRole?.roleId === rowData.roleId;
+
+      setMenuKeyword(DEFAULT_MENU_KEYWORD);
+      setAppliedMenuKeyword(DEFAULT_MENU_KEYWORD);
+
+      // Grid selection 이벤트가 화면별로 일관되지 않아, 같은 권한을 다시 눌렀을 때도 메뉴 권한을 즉시 다시 읽는다.
+      if (isSameRole) {
+        setSelectedRole(rowData);
+        void fetchRoleMenus(rowData.roleId);
+        return;
+      }
+
+      setSelectedRole(rowData);
+    },
+    [fetchRoleMenus, selectedRole?.roleId]
+  );
+
+  const handleRoleGridClick = useCallback(
+    (event) => {
+      const gridCell = event.target.closest('div[data-row-id][data-col-id]');
+
+      if (!gridCell) {
+        return;
+      }
+
+      const columnId = gridCell.getAttribute('data-col-id');
+
+      if (!ROLE_SELECTABLE_COLUMN_IDS.has(columnId)) {
+        return;
+      }
+
+      const roleId = gridCell.getAttribute('data-row-id');
+      const rowData = roleList.find((row) => row.roleId === roleId);
+
+      if (!rowData) {
+        return;
+      }
+
+      handleSelectRole(rowData);
+    },
+    [handleSelectRole, roleList]
+  );
+
+  useEffect(() => {
+    const wrapper = roleGridWrapperRef.current;
+
+    if (!wrapper) {
+      return undefined;
+    }
+
+    // 권한그룹은 셀 내용뿐 아니라 gridcell padding을 눌러도 반응해야 하므로, wrapper에서 실제 clicked cell을 해석한다.
+    function handleWrapperClick(event) {
+      handleRoleGridClick(event);
+    }
+
+    wrapper.addEventListener('click', handleWrapperClick);
+
+    return () => {
+      wrapper.removeEventListener('click', handleWrapperClick);
+    };
+  }, [handleRoleGridClick]);
 
   function handleRoleSearch() {
     void fetchRoleList(roleKeyword);
@@ -270,19 +363,45 @@ export default function RoleMenuAssigner() {
     handleRoleSearch();
   }
 
-  function handleRoleGridInit(api) {
-    api.on('select-row', (event) => {
-      const rowData = roleList.find((item) => item.id === event.id);
+  function buildRoleDisplayCell(renderValue, textAlign = 'center') {
+    function RoleDisplayCell({ row }) {
+      const justifyContent =
+        textAlign === 'left' ? 'flex-start' : 'center';
 
-      if (!rowData?.roleId) {
-        return;
-      }
+      return (
+        <div
+          role="button"
+          tabIndex={0}
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent,
+            textAlign,
+            cursor: 'pointer',
+            color: 'inherit',
+            background: 'transparent',
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+              return;
+            }
 
-      setSelectedRole(rowData);
-      setMenuKeyword(DEFAULT_MENU_KEYWORD);
-      setAppliedMenuKeyword(DEFAULT_MENU_KEYWORD);
-      navigate(`../${rowData.roleId}`, { relative: 'path' });
-    });
+            event.preventDefault();
+            handleSelectRole(row);
+          }}
+        >
+          {renderValue(row)}
+        </div>
+      );
+    }
+
+    RoleDisplayCell.propTypes = {
+      row: PropTypes.object,
+    };
+
+    return RoleDisplayCell;
   }
 
   function handleMenuSearch() {
@@ -347,14 +466,30 @@ export default function RoleMenuAssigner() {
   }
 
   const roleColumns = [
-    { id: 'roleId', header: 'ID', width: 150 },
-    { id: 'roleNm', header: '권한명', width: 170, dataAlign: 'left' },
-    { id: 'useYnNm', header: '사용여부', width: 90 },
     {
-      id: 'mdfcnDt',
+      id: 'roleId',
+      header: 'ID',
+      width: 150,
+      cell: buildRoleDisplayCell((row) => row?.roleId ?? '-'),
+    },
+    {
+      id: 'roleNm',
+      header: '권한명',
+      width: 170,
+      dataAlign: 'left',
+      cell: buildRoleDisplayCell((row) => row?.roleNm ?? '-', 'left'),
+    },
+    {
+      id: 'useYnNm',
+      header: '사용여부',
+      width: 90,
+      cell: buildRoleDisplayCell((row) => row?.useYnNm ?? '-'),
+    },
+    {
+      id: 'mdfcnDtText',
       header: '최종수정일',
       width: 180,
-      cell: ({ row }) => formatTimestamp(row?.mdfcnDt),
+      cell: buildRoleDisplayCell((row) => row?.mdfcnDtText ?? '-'),
     },
   ];
 
@@ -428,12 +563,13 @@ export default function RoleMenuAssigner() {
               />
             </div>
           </div>
-          <div className="ongrid-tableform">
-            <GridTable
-              columns={roleColumns}
-              data={roleList}
-              gridProps={{ init: handleRoleGridInit }}
-            />
+          <div
+            ref={roleGridWrapperRef}
+            className="ongrid-tableform onSCrollBox"
+            // 이 화면은 페이지 전체보다 각 grid wrapper가 스크롤을 가져가는 쪽이 기존 화면 컨벤션과 더 잘 맞는다.
+            style={{ height: GRID_SCROLL_HEIGHT }}
+          >
+            <GridTable columns={roleColumns} data={roleList} />
           </div>
         </div>
 
@@ -442,7 +578,10 @@ export default function RoleMenuAssigner() {
           style={{ minWidth: 0, alignSelf: 'flex-start' }}
         >
           <div className="ongrid-form">
-            <h4>메뉴 권한</h4>
+            <h4>
+              메뉴 권한
+              {selectedRole?.roleNm ? ` (${selectedRole.roleNm})` : ''}
+            </h4>
             <div className="ongrid-btnbox">
               <SearchBox
                 inputId="searchFormChild"
@@ -456,7 +595,7 @@ export default function RoleMenuAssigner() {
                 btnType="search"
                 btnNames="검색"
                 onClick={handleMenuSearch}
-                disabled={!selectedRole?.roleId || menuLoading}
+                disabled={!selectedRole?.roleId}
               />
               <Button
                 btnType="add"
@@ -468,7 +607,10 @@ export default function RoleMenuAssigner() {
               />
             </div>
           </div>
-          <div className="ongrid-tableform" style={{ overflowX: 'auto' }}>
+          <div
+            className="ongrid-tableform onSCrollBox"
+            style={{ height: GRID_SCROLL_HEIGHT, overflowX: 'auto' }}
+          >
             <GridTable columns={menuColumns} data={filteredMenuRows} />
           </div>
         </div>

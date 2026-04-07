@@ -325,7 +325,7 @@ export const componentMap = {
     layout: AdminLayoutWithAuth,
     children: [
       {
-        path: ':roleNo',
+        path: 'menu',
         component: RoleMenuAssigner, // 역할 메뉴 할당
       },
     ],
