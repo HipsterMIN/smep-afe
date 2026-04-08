@@ -10,7 +10,7 @@ import ButtonCell2 from '../custom/ButtonCell2';
 import CheckBox from './CheckBox';
 
 const DEFAULT_ALIGN = 'center';
-const VALID_ALIGNMENTS = ['left', 'center', 'right'];
+const VALID_ALIGNMENTS = ['left', 'center', 'right', 'height-center'];
 
 const mergeClassNames = (...classNames) => classNames.filter(Boolean).join(' ');
 
@@ -48,7 +48,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12302',
+    id: 'admin12302',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -56,7 +56,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12303',
+    id: 'admin12303',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -64,7 +64,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12304',
+    id: 'admin12304',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -72,7 +72,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12305',
+    id: 'admin12305',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -80,7 +80,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12306',
+    id: 'admin12306',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -88,7 +88,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12307',
+    id: 'admin12307',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -96,7 +96,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12308',
+    id: 'admin12308',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -104,7 +104,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12309',
+    id: 'admin12309',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -112,7 +112,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12310',
+    id: 'admin12310',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -120,7 +120,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12311',
+    id: 'admin12311',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -128,7 +128,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12312',
+    id: 'admin12312',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -136,7 +136,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12313',
+    id: 'admin12313',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -144,7 +144,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12314',
+    id: 'admin12314',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -152,7 +152,7 @@ export const defaultData = [
   },
   {
     cell: CheckBox,
-      id: 'admin12315',
+    id: 'admin12315',
     name: '홍길동',
     organ: '기관명',
     management: '버튼1',
@@ -169,7 +169,11 @@ export default function GridTable({
   gridProps = {},
   useWillow = true,
 }) {
-  const { columnStyle: customColumnStyle, cellStyle: customCellStyle, ...restGridProps } = gridProps;
+  const {
+    columnStyle: customColumnStyle,
+    cellStyle: customCellStyle,
+    ...restGridProps
+  } = gridProps;
 
   const columnStyle = (column) =>
     mergeClassNames(

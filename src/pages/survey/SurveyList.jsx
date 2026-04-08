@@ -1,154 +1,228 @@
-import { useEffect, useState } from 'react';
+﻿import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import Button  from "../../components/ui/Button.jsx";
-import DatepickerBox  from "../../components/ui/DatepickerBox.jsx";
-import GridTable from '../../components/ui/GridTable';
-import MenuInputBox from "../../components/ui/MenuInputBox.jsx";
+import Button from '../../components/ui/Button.jsx';
+import { createGridValueActionCell } from '../../components/ui/createGridValueActionCell.jsx';
+import DatepickerBox from '../../components/ui/DatepickerBox.jsx';
+import GridTable from '../../components/ui/GridTable.jsx';
+import MenuInputBox from '../../components/ui/MenuInputBox.jsx';
 import http from '../../lib/http.js';
+
+const STATUS_LABELS = {
+  UPCOMING: '진행예정',
+  ONGOING: '진행중',
+  COMPLETED: '완료',
+};
+
+const normalizeProgressStatus = (value) => {
+  const raw = String(value ?? '')
+    .trim()
+    .toUpperCase();
+  if (!raw) return '';
+
+  const compact = raw.replace(/[^A-Z]/g, '');
+  if (compact === 'INPROGRESS') return 'ONGOING';
+  if (compact === 'PLANNED') return 'UPCOMING';
+  if (compact === 'DONE' || compact === 'CLOSED') return 'COMPLETED';
+  return compact;
+};
+
+const unwrapApiResponse = (payload) => {
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    Object.prototype.hasOwnProperty.call(payload, 'success') &&
+    Object.prototype.hasOwnProperty.call(payload, 'data')
+  ) {
+    return payload.data;
+  }
+  return payload;
+};
+
+const formatDateTime = (value) => {
+  if (!value) return '-';
+  return String(value).replace('T', ' ').slice(0, 16);
+};
+
+const formatNumber = (value) => {
+  if (value == null) return '0';
+  return Number(value).toLocaleString();
+};
+
+const withDisplayNo = (data = []) =>
+  data.map((item, index) => ({
+    ...item,
+    progressStatus: normalizeProgressStatus(item.progressStatus),
+    no: index + 1,
+  }));
 
 export default function SurveyList() {
   const navigate = useNavigate();
-  const [surveys, setSurveys] = useState([]);
+
+  const [rows, setRows] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // 검색 필터 상태
-  const [searchStatus, setSearchStatus] = useState('');
-  const [searchKeyword, setSearchKeyword] = useState('');
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
+  const [progressStatus, setProgressStatus] = useState('');
+  const [title, setTitle] = useState('');
+  const [fromYmd, setFromYmd] = useState('');
+  const [toYmd, setToYmd] = useState('');
+  const [searchParams, setSearchParams] = useState({
+    progressStatus: '',
+    title: '',
+    fromYmd: '',
+    toYmd: '',
+  });
 
-  const fetchSurveys = async () => {
-    setLoading(true);
+  const fetchSurveys = useCallback(async () => {
+    setIsLoading(true);
     try {
       const params = {
-        q: searchKeyword,
-        page: 0,
-        size: 100, 
+        size: 200,
       };
-      if (searchStatus) {
-        params.status = searchStatus;
+
+      if (searchParams.progressStatus) {
+        params.progressStatus = searchParams.progressStatus;
       }
-      const res = await http.get('/api/v1/surveys', { 
-        params,
-        headers: {
-          'X-Member-No': '10001'
-        }
-      });
-      // API 응답 형식이 SurveyListItem[] 라면 바로 설정, 
-      // 만약 { data, total } 형태라면 그에 맞게 수정 필요.
-      const data = res.data?.data || res.data || [];
-      setSurveys(data);
-      setTotalCount(data.length);
+      if (searchParams.title?.trim()) params.title = searchParams.title.trim();
+      if (searchParams.fromYmd) params.fromYmd = searchParams.fromYmd;
+      if (searchParams.toYmd) params.toYmd = searchParams.toYmd;
+
+      const response = await http.get('/api/v1/admin/surveys', { params });
+      const page = unwrapApiResponse(response);
+      const data = Array.isArray(page?.data) ? page.data : [];
+
+      setRows(withDisplayNo(data));
+      setTotalCount(
+        typeof page?.totalCount === 'number' ? page.totalCount : data.length
+      );
     } catch (error) {
-      console.error('설문 목록 조회 실패:', error);
-      // 에러 처리 (토스트 등)
+      console.error('설문 목록 조회 실패', error);
+      setRows([]);
+      setTotalCount(0);
+      alert('설문 목록을 조회하지 못했습니다.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  };
+  }, [searchParams]);
 
   useEffect(() => {
     fetchSurveys();
-  }, []);
+  }, [fetchSurveys]);
 
-  const handleSearch = () => {
-    fetchSurveys();
-  };
+  const handleSearch = useCallback(() => {
+    setSearchParams({
+      progressStatus,
+      title,
+      fromYmd,
+      toYmd,
+    });
+  }, [fromYmd, progressStatus, title, toYmd]);
 
-  const handleRegister = () => {
-    navigate('create');
-  };
+  const handleSearchKeyDown = useCallback(
+    (event) => {
+      if (event.key !== 'Enter' || event.nativeEvent?.isComposing) {
+        return;
+      }
+      event.preventDefault();
+      handleSearch();
+    },
+    [handleSearch]
+  );
 
-  const formatDate = (date) => {
-    if (!date) return '';
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+  const surveyTitleActionCell = createGridValueActionCell({
+    valueKey: 'srvyTtl',
+    fallback: '-',
+    onClick: (row) => {
+      if (!row?.srvyNo) return;
+      navigate(`${row.srvyNo}`);
+    },
+    variant: 'link',
+    style: { textAlign: 'left' },
+    buttonProps: {
+      title: '설문지 관리 이동',
+    },
+  });
+
+  const questionManageActionCell = createGridValueActionCell({
+    getValue: () => '보기',
+    fallback: '보기',
+    onClick: (row) => {
+      if (!row?.srvyNo) return;
+      navigate(`${row.srvyNo}`);
+    },
+    variant: 'button',
+    className: 'defaultbutton edit',
+    buttonProps: {
+      title: '설문문항 보기',
+    },
+  });
+
+  const resultManageActionCell = createGridValueActionCell({
+    getValue: () => '보기',
+    fallback: '보기',
+    onClick: (row) => {
+      if (!row?.srvyNo) return;
+      navigate(`${row.srvyNo}/results`);
+    },
+    variant: 'button',
+    className: 'defaultbutton edit',
+    buttonProps: {
+      title: '설문결과 보기',
+    },
+  });
 
   const columns = [
-    { id: 'srvyNo', header: '번호', width: 80 },
-    { 
-      id: 'srvyTtl', 
-      header: '제목', 
+    { id: 'no', header: '번호', width: 80 },
+    {
+      id: 'srvyTtl',
+      header: '설문 제목',
       flexgrow: 1,
-      cell: ({ row }) => (
-        <span 
-          style={{ cursor: 'pointer', color: '#007bff', textDecoration: 'underline' }}
-          onClick={() => navigate(`${row.srvyNo}`)}
-        >
-          {row.srvyTtl}
-        </span>
-      )
+      dataAlign: 'left',
+      cell: surveyTitleActionCell,
     },
-    { 
-      id: 'period', 
-      header: '설문기간', 
-      width: 200,
-      cell: ({ row }) => {
-        const start = row.bgngYmd || row.bgngDt || row.srvy_bgng_ymd || '-';
-        const end = row.endYmd || row.endDt || row.srvy_end_ymd || '-';
-        return `${start} ~ ${end}`;
-      }
+    {
+      id: 'progressStatus',
+      header: '진행여부',
+      width: 110,
+      cell: ({ row }) =>
+        STATUS_LABELS[normalizeProgressStatus(row.progressStatus)] || '-',
     },
-    { 
-      id: 'sttusCd', 
-      header: '진행상태', 
-      width: 100,
-      cell: ({ row: obj }) => {
-        const statusCode = obj.sttusCd || obj.sttus_cd;
-        if (statusCode) {
-          const mapping = {
-            'DRAFT': '임시저장',
-            'PUBLISHED': '게시',
-            'CLOSED': '마감'
-          };
-          return mapping[statusCode] || statusCode;
-        }
-        
-        // sttusCd가 없을 경우 날짜와 useYn으로 계산 (Spec 3.1 호환)
-        const active = obj.useYn || obj.use_yn;
-        if (active === 'N') return '미사용';
-        
-        const todayStr = formatDate(new Date()); // YYYY-MM-DD
-        const bgng = obj.bgngYmd || obj.bgngDt || obj.srvy_bgng_ymd || '';
-        const end = obj.endYmd || obj.endDt || obj.srvy_end_ymd || '';
-        
-        if (bgng && todayStr < bgng) return '대기';
-        if (end && todayStr > end) return '마감';
-        return '진행중';
-      }
+    {
+      id: 'period',
+      header: '설문 기간',
+      width: 210,
+      cell: ({ row }) => `${row.srvyBgngYmd || '-'} ~ ${row.srvyEndYmd || '-'}`,
     },
-    { 
-      id: 'manage', 
-      header: '관리', 
+    {
+      id: 'respondentCount',
+      header: '설문 응답자',
       width: 120,
-      cell: ({ row }) => {
-        return (
-          <div style={{ display: 'flex', gap: '4px', alignItems: 'center', height: '100%' }}>
-            <button 
-              onClick={(e) => { e.stopPropagation(); navigate(`/survey-result?srvyNo=${row.srvyNo}`); }}
-              style={{ padding: '2px 4px', fontSize: '11px', cursor: 'pointer' }}
-            >
-              결과
-            </button>
-            <button 
-              onClick={(e) => { e.stopPropagation(); navigate(`${row.srvyNo}`); }}
-              style={{ padding: '2px 4px', fontSize: '11px', cursor: 'pointer' }}
-            >
-              수정
-            </button>
-          </div>
-        );
-      }
-    }
+      cell: ({ row }) => formatNumber(row.respondentCount),
+    },
+    {
+      id: 'management',
+      header: '설문문항',
+      width: 90,
+      cell: questionManageActionCell,
+    },
+    {
+      id: 'edit',
+      header: '설문 결과',
+      width: 90,
+      cell: resultManageActionCell,
+    },
+    { id: 'rgtrId', header: '등록자', width: 100 },
+    {
+      id: 'regDt',
+      header: '등록일시',
+      width: 150,
+      cell: ({ row }) => formatDateTime(row.regDt),
+    },
   ];
 
   return (
-     <div className="oncontentbox full">
+    <div className="oncontentbox full">
       <div className="oncontentTitle">
         <h2>설문 목록</h2>
         <ul className="onbreadcrumb">
@@ -161,60 +235,74 @@ export default function SurveyList() {
 
       <div className="oncontents">
         <div className="oncontent">
-          <div className="onselect-form open" style={{ minHeight : 'auto' }}>
-            <div className="onparagraph">
-              <MenuInputBox 
-                menuType="select" 
-                menuName="진행여부" 
-                value={searchStatus}
-                onChange={(e) => setSearchStatus(e.target.value)}
+          <div className="onselect-form open" style={{ minHeight: 'auto' }}>
+            <div className="onparagraph" onKeyDown={handleSearchKeyDown}>
+              <MenuInputBox
+                menuType="select"
+                menuName="진행여부"
+                value={progressStatus}
+                onChange={(event) => setProgressStatus(event.target.value)}
                 options={[
-                  { label: '전체', value: '' },
-                  { label: '진행중 (ONGOING)', value: 'ONGOING' },
-                  { label: '대기 (UPCOMING)', value: 'UPCOMING' },
-                  { label: '마감 (CLOSED)', value: 'CLOSED' },
+                  { label: '진행중', value: 'ONGOING' },
+                  { label: '진행예정', value: 'UPCOMING' },
+                  { label: '완료', value: 'COMPLETED' },
                 ]}
               />
-              <MenuInputBox 
-                menuType="input" 
-                menuName="제목" 
-                menuSize="300px" 
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
-                placeholder="검색어를 입력하세요."
+
+              <MenuInputBox
+                menuType="input"
+                menuName="제목"
+                menuSize="300px"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="설문 제목을 입력하세요"
               />
 
               <div className="ondatepickerbox">
-                <DatepickerBox 
-                  menuName="설문기간" 
-                  value={startDate}
-                  onChange={setStartDate}
+                <DatepickerBox
+                  menuName="설문기간"
+                  outputFormat="dash"
+                  value={fromYmd}
+                  onChange={setFromYmd}
                 />
                 <span className="onunit">~</span>
-                <DatepickerBox 
-                  value={endDate}
-                  onChange={setEndDate}
+                <DatepickerBox
+                  outputFormat="dash"
+                  value={toYmd}
+                  onChange={setToYmd}
                 />
               </div>
 
-              <div className="onbtn"  style={{ marginLeft: 'auto' }}>
-                <Button btnType="menuSearch" btnNames="검색" onClick={handleSearch} />
+              <div className="onbtn" style={{ marginLeft: 'auto' }}>
+                <Button
+                  btnType="menuSearch"
+                  btnNames="검색"
+                  onClick={handleSearch}
+                />
               </div>
             </div>
           </div>
 
           <div className="ontable-legend">
             <span>
-              총 <b>{totalCount}</b>건
+              총 <b>{formatNumber(totalCount)}</b>건
             </span>
-            <Button btnType="add" btnNames="등록" onClick={handleRegister} />
+            <Button
+              btnType="add"
+              btnNames="등록"
+              onClick={() => navigate('create')}
+            />
           </div>
 
           <div className="ongrid-tableform">
-            <GridTable data={surveys} columns={columns} />
+            <GridTable data={rows} columns={columns} />
           </div>
+
+          {isLoading && (
+            <div style={{ marginTop: '12px' }}>조회 중입니다...</div>
+          )}
         </div>
       </div>
     </div>
-    );
+  );
 }

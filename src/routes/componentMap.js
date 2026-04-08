@@ -288,6 +288,14 @@ export const componentMap = {
     layout: AdminLayoutWithAuth,
     children: [
       {
+        path: 'create',
+        component: SurveyManage,
+      },
+      {
+        path: ':surveyNo/results',
+        component: SurveyResult,
+      },
+      {
         path: ':surveyNo',
         component: SurveyManage,
       },
