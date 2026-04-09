@@ -9,7 +9,7 @@ export default function MenuAdmin() {
       '관리자 메뉴관리',
       '관리자 메뉴목록',
     ],
-    mbrTypeCd: 'MNG',
+    menuUseTrgtSeCd: 'MNG',
     maxDepth: 3,
     showBoardOption: true,
   });
