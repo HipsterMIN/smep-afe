@@ -1,8 +1,10 @@
 import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button.jsx';
+import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import RadioButton from '@components/ui/RadioButton.jsx';
 import http from '@lib/http.js';
+import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';
 import { formatDate } from '@utils/stringUtils.js';
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
@@ -10,25 +12,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 const DEFAULT_ROLE_OPTIONS = [{ value: '', label: '선택' }];
 
-const USE_YN_OPTIONS = [
-  { value: 'Y', label: '유효' },
-  { value: 'N', label: '폐기' },
-  { value: 'S', label: '정지', disabled: true },
-];
-
-const APPROVAL_OPTIONS = [
-  { value: 'approved', label: '승인', disabled: true },
-  { value: 'rejected', label: '미승인', disabled: true },
-  { value: 'pending', label: '승인대기', disabled: true },
-];
-
-const EXPIRE_OPTIONS = [
-  { value: '6m', label: '6개월(2026-06-10)', disabled: true },
-  { value: '1y', label: '1년(2026-12-10)', disabled: true },
-  { value: '2y', label: '2년(2027-12-10)', disabled: true },
-];
-
 const DEFAULT_INTG_SYS_SE_CD = 'PIIO';
+const MANAGER_USE_STATUS_GROUP = 'MNG_MBR_USE_STTS_CD';
+const MANAGER_APPROVAL_STATUS_GROUP = 'MNG_MBR_APRV_STTS_CD';
 
 const DEFAULT_FORM_DATA = {
   mbrNo: '',
@@ -39,6 +25,13 @@ const DEFAULT_FORM_DATA = {
   roleId: '',
   intgSysSeCd: DEFAULT_INTG_SYS_SE_CD,
   useYn: 'Y',
+  mngrTelno: '',
+  mngrMblTelno: '',
+  mngrAcntUseSttsCd: '',
+  mngrAcntAprvSttsCd: '',
+  mngrAcntExpryDt: '',
+  excptnMttrCn: '',
+  prcsRsnCn: '',
   pswdErrNmtm: 0,
   mdfcnDt: null,
   mdfrId: '',
@@ -70,6 +63,14 @@ function formatTimestamp(value) {
   return value ? formatDate(value, 'yyyy-MM-dd HH:mm:ss') : '-';
 }
 
+function normalizeOptionalText(value) {
+  if (value == null) {
+    return '';
+  }
+
+  return String(value);
+}
+
 function normalizeUseYn(value) {
   return value === 'N' ? 'N' : 'Y';
 }
@@ -83,7 +84,11 @@ function ManagerForm({ mode }) {
   const [loading, setLoading] = useState(isUpdateMode);
   const [saving, setSaving] = useState(false);
   const [roleLoading, setRoleLoading] = useState(true);
+  const [codeLoading, setCodeLoading] = useState(true);
   const [roleOptions, setRoleOptions] = useState(DEFAULT_ROLE_OPTIONS);
+  const [managerUseStatusOptions, setManagerUseStatusOptions] = useState([]);
+  const [managerApprovalStatusOptions, setManagerApprovalStatusOptions] =
+    useState([]);
   const [formData, setFormData] = useState(DEFAULT_FORM_DATA);
   const [lgnIdValidation, setLgnIdValidation] = useState(
     DEFAULT_LGN_ID_VALIDATION
@@ -101,6 +106,8 @@ function ManagerForm({ mode }) {
 
   const applyDetailToForm = (data) => {
     // 수정 화면은 비밀번호를 절대 재노출하지 않고, 상세 응답에서 내려오는 현재 상태 값만 복원한다.
+    // 특이사항/처리사유는 latest history replay 값이라 별도 이력 화면에서 다루고,
+    // 관리자 폼에서는 "이번 저장행위의 메모 입력"으로만 취급하므로 상세 조회 시 되살리지 않는다.
     setFormData({
       mbrNo: data?.mbrNo ?? mbrNo ?? '',
       lgnId: data?.lgnId ?? '',
@@ -110,6 +117,13 @@ function ManagerForm({ mode }) {
       roleId: data?.roleId ?? '',
       intgSysSeCd: data?.intgSysSeCd ?? DEFAULT_INTG_SYS_SE_CD,
       useYn: normalizeUseYn(data?.useYn),
+      mngrTelno: normalizeOptionalText(data?.mngrTelno),
+      mngrMblTelno: normalizeOptionalText(data?.mngrMblTelno),
+      mngrAcntUseSttsCd: normalizeOptionalText(data?.mngrAcntUseSttsCd),
+      mngrAcntAprvSttsCd: normalizeOptionalText(data?.mngrAcntAprvSttsCd),
+      mngrAcntExpryDt: data?.mngrAcntExpryDt ?? '',
+      excptnMttrCn: '',
+      prcsRsnCn: '',
       pswdErrNmtm: data?.pswdErrNmtm ?? 0,
       mdfcnDt: data?.mdfcnDt ?? data?.mdfcnDtm ?? data?.modifyDt ?? null,
       mdfrId: data?.mdfrId ?? data?.mdfrNm ?? data?.modifierName ?? '',
@@ -147,6 +161,26 @@ function ManagerForm({ mode }) {
       setRoleOptions(DEFAULT_ROLE_OPTIONS);
     } finally {
       setRoleLoading(false);
+    }
+  };
+
+  const fetchManagerStatusCodes = async () => {
+    try {
+      setCodeLoading(true);
+      const codeOptions = await fetchAndConvertCommonCodes([
+        MANAGER_USE_STATUS_GROUP,
+        MANAGER_APPROVAL_STATUS_GROUP,
+      ]);
+      setManagerUseStatusOptions(codeOptions[MANAGER_USE_STATUS_GROUP] ?? []);
+      setManagerApprovalStatusOptions(
+        codeOptions[MANAGER_APPROVAL_STATUS_GROUP] ?? []
+      );
+    } catch (error) {
+      console.error('[ManagerForm] 관리자 상태 공통코드 조회 실패', error);
+      setManagerUseStatusOptions([]);
+      setManagerApprovalStatusOptions([]);
+    } finally {
+      setCodeLoading(false);
     }
   };
 
@@ -233,6 +267,7 @@ function ManagerForm({ mode }) {
 
   useEffect(() => {
     fetchRoleOptions();
+    fetchManagerStatusCodes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -260,14 +295,17 @@ function ManagerForm({ mode }) {
     }
   };
 
-  const handleUseYnChange = (value) => {
-    if (value === 'S') {
-      return;
-    }
-
+  const handleRadioChange = (field) => (value) => {
     setFormData((prev) => ({
       ...prev,
-      useYn: value,
+      [field]: value,
+    }));
+  };
+
+  const handleDateChange = (field) => (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value || '',
     }));
   };
 
@@ -295,6 +333,10 @@ function ManagerForm({ mode }) {
     const trimmedLgnPswdConfirm = formData.lgnPswdConfirm.trim();
     const trimmedMbrNm = formData.mbrNm.trim();
     const trimmedRoleId = formData.roleId.trim();
+    const trimmedMngrTelno = formData.mngrTelno.trim();
+    const trimmedMngrMblTelno = formData.mngrMblTelno.trim();
+    const trimmedExcptnMttrCn = formData.excptnMttrCn.trim();
+    const trimmedPrcsRsnCn = formData.prcsRsnCn.trim();
 
     if (isCreateMode && !trimmedLgnId) {
       alert('아이디를 입력해주세요.');
@@ -344,7 +386,13 @@ function ManagerForm({ mode }) {
       mbrNm: trimmedMbrNm,
       roleId: trimmedRoleId || null,
       intgSysSeCd: formData.intgSysSeCd || DEFAULT_INTG_SYS_SE_CD,
-      useYn: formData.useYn,
+      mngrTelno: trimmedMngrTelno || null,
+      mngrMblTelno: trimmedMngrMblTelno || null,
+      mngrAcntUseSttsCd: formData.mngrAcntUseSttsCd || null,
+      mngrAcntAprvSttsCd: formData.mngrAcntAprvSttsCd || null,
+      mngrAcntExpryDt: formData.mngrAcntExpryDt || null,
+      excptnMttrCn: trimmedExcptnMttrCn || null,
+      prcsRsnCn: trimmedPrcsRsnCn || null,
     };
 
     if (isCreateMode) {
@@ -515,8 +563,9 @@ function ManagerForm({ mode }) {
                     <MenuInputBox
                       menuType="input"
                       menuSize="100%"
-                      value="-"
-                      disabled
+                      value={formData.mngrTelno}
+                      onChange={handleTextChange('mngrTelno')}
+                      placeholder="전화번호를 입력해주세요."
                     />
                   </td>
                 </tr>
@@ -526,8 +575,9 @@ function ManagerForm({ mode }) {
                     <MenuInputBox
                       menuType="input"
                       menuSize="100%"
-                      value="-"
-                      disabled
+                      value={formData.mngrMblTelno}
+                      onChange={handleTextChange('mngrMblTelno')}
+                      placeholder="휴대폰번호를 입력해주세요."
                     />
                   </td>
                 </tr>
@@ -535,16 +585,16 @@ function ManagerForm({ mode }) {
                   <td>승인여부</td>
                   <td>
                     <div className="onradioBox">
-                      {APPROVAL_OPTIONS.map((option) => (
+                      {managerApprovalStatusOptions.map((option) => (
                         <RadioButton
                           key={option.value}
                           groupId={`manager-approval-${option.value}`}
                           radioGroup="managerApproval"
                           radioValue={option.value}
                           radioName={option.label}
-                          selectedValue=""
-                          onChange={() => {}}
-                          disabled={option.disabled}
+                          selectedValue={formData.mngrAcntAprvSttsCd}
+                          onChange={handleRadioChange('mngrAcntAprvSttsCd')}
+                          disabled={codeLoading}
                         />
                       ))}
                     </div>
@@ -554,16 +604,16 @@ function ManagerForm({ mode }) {
                   <td>사용여부</td>
                   <td>
                     <div className="onradioBox">
-                      {USE_YN_OPTIONS.map((option) => (
+                      {managerUseStatusOptions.map((option) => (
                         <RadioButton
                           key={option.value}
-                          groupId={`manager-use-yn-${option.value.toLowerCase()}`}
-                          radioGroup="managerUseYn"
+                          groupId={`manager-account-use-${option.value}`}
+                          radioGroup="managerAccountUseStatus"
                           radioValue={option.value}
                           radioName={option.label}
-                          selectedValue={formData.useYn}
-                          onChange={handleUseYnChange}
-                          disabled={option.disabled}
+                          selectedValue={formData.mngrAcntUseSttsCd}
+                          onChange={handleRadioChange('mngrAcntUseSttsCd')}
+                          disabled={codeLoading}
                         />
                       ))}
                     </div>
@@ -572,20 +622,12 @@ function ManagerForm({ mode }) {
                 <tr>
                   <td>만료일</td>
                   <td>
-                    <div className="onradioBox">
-                      {EXPIRE_OPTIONS.map((option) => (
-                        <RadioButton
-                          key={option.value}
-                          groupId={`manager-expire-${option.value}`}
-                          radioGroup="managerExpire"
-                          radioValue={option.value}
-                          radioName={option.label}
-                          selectedValue=""
-                          onChange={() => {}}
-                          disabled={option.disabled}
-                        />
-                      ))}
-                    </div>
+                    <DatepickerBox
+                      value={formData.mngrAcntExpryDt}
+                      onChange={handleDateChange('mngrAcntExpryDt')}
+                      outputFormat="datetime"
+                      placeholder="yyyy-mm-dd"
+                    />
                   </td>
                 </tr>
                 <tr>
@@ -594,8 +636,9 @@ function ManagerForm({ mode }) {
                     <MenuInputBox
                       menuType="input"
                       menuSize="500px"
-                      value="-"
-                      disabled
+                      value={formData.excptnMttrCn}
+                      onChange={handleTextChange('excptnMttrCn')}
+                      placeholder="특이사항을 입력해주세요."
                     />
                   </td>
                 </tr>
@@ -605,8 +648,9 @@ function ManagerForm({ mode }) {
                     <MenuInputBox
                       menuType="input"
                       menuSize="500px"
-                      value="-"
-                      disabled
+                      value={formData.prcsRsnCn}
+                      onChange={handleTextChange('prcsRsnCn')}
+                      placeholder="처리사유를 입력해주세요."
                     />
                   </td>
                 </tr>

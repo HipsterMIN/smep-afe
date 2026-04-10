@@ -27,7 +27,13 @@ const RoleList = lazy(() => import('@pages/member/role/RoleList.jsx'));
 const RoleMenuAssigner = lazy(
   () => import('@pages/member/role/RoleMenuAssigner.jsx')
 );
+const ManagerChangedHistory = lazy(
+  () => import('@pages/member/history/ManagerChangedHistory.jsx')
+);
 
+const ManagerChangedHistoryDetail = lazy(
+  () => import('@pages/member/history/ManagerChangedHistoryDetail.jsx')
+);
 const MenuUserMng = lazy(() => import('@pages/menu/MenuUser.jsx'));
 const MenuAdminMng = lazy(() => import('@pages/menu/MenuAdmin.jsx'));
 const SupportBusiness = lazy(
@@ -324,6 +330,17 @@ export const componentMap = {
       {
         path: ':mbrNo/update',
         component: ManagerUpdate,
+      },
+    ],
+  },
+  // 관리자 권한 변경 이력
+  M_PIIO_00162: {
+    component: ManagerChangedHistory,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: ':id',
+        component: ManagerChangedHistoryDetail,
       },
     ],
   },
