@@ -1,4 +1,14 @@
-import React, { createContext, useCallback, useContext, useEffect, useState, useRef } from 'react';
+/* eslint-disable react-refresh/only-export-components, simple-import-sort/imports */
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import PropTypes from 'prop-types';
+
 import http from '../lib/http';
 
 /**
@@ -6,10 +16,11 @@ import http from '../lib/http';
  *
  * 사용자 인증 상태 및 토큰 관리용 context입니다.
  * JWT 기반으로 수정되어 Pod 오토 스케일링 환경에서도 로그인 상태가 유지됩니다.
- * 
+ *
  * [추가 기능]
  * - 세션 타이머 관리 (30분)
  * - 리프레시 토큰을 이용한 시간 연장 기능
+ * - 새로고침 시 현재 사용자 profile 재조회로 user state 복원
  * - 유휴 시간(Idle Time) 감지 모드 지원
  *   - 활동 중: 타이머 일시 정지
  *   - 활동 중단(10초): 타이머 재개
@@ -27,7 +38,47 @@ const SESSION_TIMEOUT_SECONDS = 1800;
 const IDLE_THRESHOLD_MS = 10000;
 
 // 타이머 모드 설정 ('ABSOLUTE' | 'IDLE')
-const TIMER_MODE = 'IDLE'; 
+const TIMER_MODE = 'IDLE';
+
+function extractResponsePayload(response) {
+  if (!response || typeof response !== 'object' || Array.isArray(response)) {
+    return {};
+  }
+
+  const responseData = response.data;
+
+  if (
+    responseData &&
+    typeof responseData === 'object' &&
+    !Array.isArray(responseData)
+  ) {
+    return responseData.data ?? responseData;
+  }
+
+  return response;
+}
+
+function normalizeUserData(userData) {
+  if (!userData || typeof userData !== 'object' || Array.isArray(userData)) {
+    return null;
+  }
+
+  const normalizedData = { ...userData };
+  const normalizedUsername =
+    normalizedData.username || normalizedData.lgnId || normalizedData.loginId;
+  const normalizedName =
+    normalizedData.name || normalizedData.mbrNm || normalizedData.userNm;
+
+  if (normalizedUsername) {
+    normalizedData.username = normalizedUsername;
+  }
+
+  if (normalizedName) {
+    normalizedData.name = normalizedName;
+  }
+
+  return normalizedData;
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -43,6 +94,12 @@ export function AuthProvider({ children }) {
   
   // 활동 중단 감지용 Timeout ID 저장용 Ref
   const idleTimeoutRef = useRef(null);
+
+  // user는 storage에 따로 저장하지 않고, 토큰이 유효할 때만 서버 profile로 재수화한다.
+  const fetchCurrentUserProfile = useCallback(async () => {
+    const response = await http.get('/api/v1/account/profile');
+    return normalizeUserData(extractResponsePayload(response));
+  }, []);
 
   /**
    * 로그아웃 (내부용)
@@ -66,6 +123,7 @@ export function AuthProvider({ children }) {
       const normalizedBase = base.endsWith('/') ? base : `${base}/`;
       window.location.replace(`${normalizedBase}login`);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- removeActivityListeners는 아래에서 생성되지만 내부 참조는 안정적이다.
   }, []); 
 
   /**
@@ -194,26 +252,55 @@ export function AuthProvider({ children }) {
     return () => clearInterval(intervalId);
   }, [token, isPaused, handleLogout]); // isPaused가 변경될 때마다 타이머 재설정 (올바른 동작)
 
-  // 초기 로드 및 리스너 등록
+  // 초기 로드 시 토큰을 복원하고, user는 profile 재조회로 다시 채운다.
   useEffect(() => {
-    const savedToken = localStorage.getItem('access_token');
-    const savedRefreshToken = localStorage.getItem('refresh_token');
-    
-    if (savedToken) {
+    let isMounted = true;
+
+    const bootstrapAuthState = async () => {
+      const savedToken = localStorage.getItem('access_token');
+      const savedRefreshToken = localStorage.getItem('refresh_token');
+
+      if (!savedToken) {
+        if (isMounted) {
+          setLoading(false);
+        }
+        return;
+      }
+
       setToken(savedToken);
       if (savedRefreshToken) {
         setRefreshToken(savedRefreshToken);
       }
+
       if (TIMER_MODE === 'IDLE') {
         addActivityListeners();
       }
-    }
-    setLoading(false);
-    
+
+      try {
+        const nextUser = await fetchCurrentUserProfile();
+
+        if (isMounted) {
+          setUser(nextUser);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setUser(null);
+          console.error('Failed to restore current user profile:', error);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    bootstrapAuthState();
+
     return () => {
+      isMounted = false;
       removeActivityListeners();
     };
-  }, [addActivityListeners, removeActivityListeners]);
+  }, [addActivityListeners, removeActivityListeners, fetchCurrentUserProfile]);
 
 
   /**
@@ -235,8 +322,8 @@ export function AuthProvider({ children }) {
           localStorage.setItem('refresh_token', newRefreshToken);
           setRefreshToken(newRefreshToken);
         }
-        
-        setUser(userData);
+
+        setUser(normalizeUserData(userData));
         // 타이머 초기화
         setRemainingTime(SESSION_TIMEOUT_SECONDS);
         setIsPaused(false);
@@ -271,8 +358,8 @@ export function AuthProvider({ children }) {
           localStorage.setItem('refresh_token', newRefreshToken);
           setRefreshToken(newRefreshToken);
         }
-        
-        setUser({ username });
+
+        setUser(normalizeUserData({ username }));
         // 타이머 초기화
         setRemainingTime(SESSION_TIMEOUT_SECONDS);
         setIsPaused(false);
@@ -312,6 +399,21 @@ export function AuthProvider({ children }) {
     return { Authorization: `Bearer ${token}` };
   }, [token]);
 
+  const syncUserProfile = useCallback((nextUserData) => {
+    const normalizedNextUserData = normalizeUserData(nextUserData);
+
+    if (!normalizedNextUserData) {
+      return;
+    }
+
+    setUser((prev) =>
+      normalizeUserData({
+        ...(prev || {}),
+        ...normalizedNextUserData,
+      })
+    );
+  }, []);
+
   const value = {
     user,
     token,
@@ -321,6 +423,7 @@ export function AuthProvider({ children }) {
     logout,
     getToken,
     getAuthHeaders,
+    syncUserProfile,
     isAuthenticated: !!token,
     
     // 세션 관련 추가 값
@@ -345,3 +448,7 @@ export function useAuth() {
 }
 
 export default AuthContext;
+
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};
