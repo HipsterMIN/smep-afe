@@ -1,22 +1,23 @@
-import { useAuth } from '@context/AuthContext'; // AuthContext import
+import { useAuth } from '@context/AuthContext';
+import LoginInfoPopup from '@pages/member/login-info/LoginInfoPopup.jsx';
 import { useMenuStore } from '@store/useMenuStore';
 import { buildFullPath, extractExternalUrl } from '@utils/menuUtils';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import icoVatar from '../../assets/images/common/ico_avatar.svg';
 import icoLogout from '../../assets/images/common/ico_logout.svg';
 import icoLogo from '../../assets/images/common/logo.svg';
 
-// BASE URL 상수
 const BASE_URL = import.meta.env.VITE_BASE || '/';
 
-// 관리자 - 상단 메뉴
 export default function Header() {
   const { menuTree, flatMenuMap } = useMenuStore();
-  const { remainingTime, extendSession, logout } = useAuth(); // AuthContext에서 필요한 값 가져오기
+  const { user, remainingTime, extendSession, logout } = useAuth();
+  const [isLoginInfoPopupOpen, setIsLoginInfoPopupOpen] = useState(false);
 
-  // depth1 메뉴만 동적으로 구성
+  const displayUserName = user?.name?.trim() || user?.username?.trim() || '-';
+
   const depth1Menus = useMemo(() => {
     if (!menuTree || !menuTree.children) return [];
 
@@ -40,11 +41,18 @@ export default function Header() {
       }));
   }, [menuTree, flatMenuMap]);
 
-  // 남은 시간을 MM:SS 형식으로 변환하는 함수
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+  };
+
+  const handleOpenLoginInfo = () => {
+    setIsLoginInfoPopupOpen(true);
+  };
+
+  const handleCloseLoginInfo = () => {
+    setIsLoginInfoPopupOpen(false);
   };
 
   return (
@@ -83,14 +91,20 @@ export default function Header() {
           <span className="onavatar-thumb">
             <img src={icoVatar} alt="아바타이미지" />
           </span>
-          <span className="onavatar-name">홍길동</span>
+          <span className="onavatar-name">{displayUserName}</span>
         </div>
         <div className="onsessiontime-box">
           {/* 남은 시간 표시 */}
           <span className="time">{formatTime(remainingTime)}</span>
           {/* 시간 연장 버튼 */}
           <button className="onbtn-blue" onClick={extendSession}>시간연장</button>
-          <button className="onbtn-gray" />
+          <button
+            type="button"
+            className="onbtn-gray"
+            onClick={handleOpenLoginInfo}
+            aria-label="로그인 정보 수정"
+            title="로그인 정보 수정"
+          />
         </div>
         <div className="onlog-box">
           {/* 로그아웃 버튼 */}
@@ -100,6 +114,7 @@ export default function Header() {
           </button>
         </div>
       </div>
+      {isLoginInfoPopupOpen && <LoginInfoPopup onClose={handleCloseLoginInfo} />}
     </header>
   );
 }
