@@ -5,6 +5,7 @@ import AdminLayout from '@layouts/AdminLayout.jsx';
 import Login from '@pages/Login.jsx';
 import LoginView from '@pages/LoginView.jsx';
 import MainPage from '@pages/MainPage.jsx';
+import LoginInfoUpdate from '@pages/member/login-info/LoginInfoUpdate.jsx';
 import PublishingMain from '@publishing/PublishingMain.jsx';
 import { autoPublishingRoutes } from '@routes/autoRoutes.jsx';
 
@@ -47,6 +48,7 @@ export const staticRoutes = [
   */
   { path: '/login', element: <Login /> },
   { path: '/LoginView', element: <LoginView /> },
+  { path: '/login-info', element: <LoginInfoUpdate /> },
 
   //=============================================================================
   // 퍼블리싱 관련 라우트

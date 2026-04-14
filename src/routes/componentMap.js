@@ -14,7 +14,26 @@ const BbsForm = lazy(() => import('@pages/board/BbsForm'));
 const BbsInfoList = lazy(() => import('@pages/board/BbsInfoList'));
 const PstList = lazy(() => import('@pages/board/PstList'));
 const PstForm = lazy(() => import('@pages/board/PstForm'));
-const MemberList = lazy(() => import('@pages/member/MemberList'));
+const MemberList = lazy(() => import('@pages/member/manager/MemberList.jsx'));
+const ManagerList = lazy(() => import(`@pages/member/manager/ManagerList`));
+const ManagerCreate = lazy(
+  () => import('@pages/member/manager/ManagerCreate.jsx')
+);
+const ManagerUpdate = lazy(
+  () => import('@pages/member/manager/ManagerUpdate.jsx')
+);
+
+const RoleList = lazy(() => import('@pages/member/role/RoleList.jsx'));
+const RoleMenuAssigner = lazy(
+  () => import('@pages/member/role/RoleMenuAssigner.jsx')
+);
+const ManagerChangedHistory = lazy(
+  () => import('@pages/member/history/ManagerChangedHistory.jsx')
+);
+
+const ManagerChangedHistoryDetail = lazy(
+  () => import('@pages/member/history/ManagerChangedHistoryDetail.jsx')
+);
 const MenuUserMng = lazy(() => import('@pages/menu/MenuUser.jsx'));
 const MenuAdminMng = lazy(() => import('@pages/menu/MenuAdmin.jsx'));
 const SupportBusiness = lazy(
@@ -47,19 +66,24 @@ const SurveyList = lazy(() => import('@pages/survey/SurveyList'));
 const SurveyManage = lazy(() => import('@pages/survey/SurveyManage'));
 const SurveyResult = lazy(() => import('@pages/survey/SurveyResult'));
 const IntegrationLoginSiteList = lazy(
-  () => import('@pages/member/IntegrationLoginSiteList.jsx')
+  () =>
+    import('@pages/member/integration-login-site/IntegrationLoginSiteList.jsx')
 );
 const IntegrationLoginSiteDetail = lazy(
-  () => import('@pages/member/IntegrationLoginSiteDetail.jsx')
+  () =>
+    import('@pages/member/integration-login-site/IntegrationLoginSiteDetail.jsx')
 );
 const IntegrationLoginSiteUpdate = lazy(
-  () => import('@pages/member/IntegrationLoginSiteUpdate.jsx')
+  () =>
+    import('@pages/member/integration-login-site/IntegrationLoginSiteUpdate.jsx')
 );
 const IntegrationLoginSiteCreate = lazy(
-  () => import('@pages/member/IntegrationLoginSiteCreate.jsx')
+  () =>
+    import('@pages/member/integration-login-site/IntegrationLoginSiteCreate.jsx')
 );
 const IntegrationLoginSiteSort = lazy(
-  () => import('@pages/member/IntegrationLoginSiteSort.jsx')
+  () =>
+    import('@pages/member/integration-login-site/IntegrationLoginSiteSort.jsx')
 );
 const PolicyFinanceList = lazy(
   () => import('@pages/business/policy-finance/policyFinanceList.jsx')
@@ -270,6 +294,14 @@ export const componentMap = {
     layout: AdminLayoutWithAuth,
     children: [
       {
+        path: 'create',
+        component: SurveyManage,
+      },
+      {
+        path: ':surveyNo/results',
+        component: SurveyResult,
+      },
+      {
         path: ':surveyNo',
         component: SurveyManage,
       },
@@ -287,15 +319,42 @@ export const componentMap = {
   //   layout: AdminLayoutWithAuth,
   // },
   // 관리자계정 관리
-  // 'M_PIIO_00054': {
-  //   component: TODO_M_PIIO_00054,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00054: {
+    component: ManagerList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create',
+        component: ManagerCreate,
+      },
+      {
+        path: ':mbrNo/update',
+        component: ManagerUpdate,
+      },
+    ],
+  },
+  // 관리자 권한 변경 이력
+  M_PIIO_00162: {
+    component: ManagerChangedHistory,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: ':id',
+        component: ManagerChangedHistoryDetail,
+      },
+    ],
+  },
   // 권한관리
-  // 'M_PIIO_00055': {
-  //   component: TODO_M_PIIO_00055,
-  //   layout: AdminLayoutWithAuth,
-  // },
+  M_PIIO_00055: {
+    component: RoleList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'menu',
+        component: RoleMenuAssigner, // 역할 메뉴 할당
+      },
+    ],
+  },
   // 통합로그인 사이트 관리
   M_PIIO_00056: {
     component: IntegrationLoginSiteList,

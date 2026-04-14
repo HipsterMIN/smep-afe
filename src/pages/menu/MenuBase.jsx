@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 export default function MenuBase({
   pageTitle,
   breadcrumb,
-  mbrTypeCd,
+  menuUseTrgtSeCd,
   maxDepth,
   showBoardOption,
 }) {
@@ -21,7 +21,7 @@ export default function MenuBase({
   const apiRef = useRef(null);
 
   const [params, setParams] = useState({
-    mbrTypeCd,
+    menuUseTrgtSeCd,
     menuId: '',
     menuNm: '',
     upMenuId: '',
@@ -42,7 +42,7 @@ export default function MenuBase({
     upMenuId: null,
     upScrnId: null,
     intgSysSeCd: 'PIIO',
-    mbrTypeCd,
+    menuUseTrgtSeCd,
     upendMenuExpsrYn: '',
     lfsdMenuExpsrYn: '',
     mdfrId: '',
@@ -196,7 +196,7 @@ export default function MenuBase({
       upMenuId: row.upMenuId,
       upScrnId: row.upScrnId,
       intgSysSeCd: 'PIIO',
-      mbrTypeCd,
+      menuUseTrgtSeCd,
       upendMenuExpsrYn: row.upendMenuExpsrYn,
       lfsdMenuExpsrYn: row.lfsdMenuExpsrYn,
       mdfrId: row.mdfrId ?? '',
@@ -217,7 +217,7 @@ export default function MenuBase({
       upMenuId: row?.menuId ?? null,
       upScrnId: row?.scrnId ?? null,
       intgSysSeCd: 'PIIO',
-      mbrTypeCd,
+      menuUseTrgtSeCd,
       upendMenuExpsrYn: 'Y',
       lfsdMenuExpsrYn: 'Y',
       mdfrId: '',
@@ -281,7 +281,7 @@ export default function MenuBase({
       upMenuId: null,
       upScrnId: null,
       intgSysSeCd: 'PIIO',
-      mbrTypeCd,
+      menuUseTrgtSeCd,
       upendMenuExpsrYn: '',
       lfsdMenuExpsrYn: '',
       mdfrId: '',
@@ -617,7 +617,7 @@ export default function MenuBase({
                     </div>
                   </td>
                 </tr>
-                {mbrTypeCd === 'USR' && (
+                {menuUseTrgtSeCd === 'USR' && (
                   <>
                     <tr>
                       <td>GNB 노출 여부</td>
@@ -723,7 +723,7 @@ export default function MenuBase({
 MenuBase.propTypes = {
   pageTitle: PropTypes.string.isRequired,
   breadcrumb: PropTypes.arrayOf(PropTypes.string).isRequired,
-  mbrTypeCd: PropTypes.string.isRequired,
+  menuUseTrgtSeCd: PropTypes.string.isRequired,
   maxDepth: PropTypes.number,
   showBoardOption: PropTypes.bool,
 };

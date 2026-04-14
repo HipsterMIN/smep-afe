@@ -21,6 +21,16 @@ export default function CertificateList() {
   const [elpblYn, setElpblYn] = useState('');
   const [regDtFrom, setRegDtFrom] = useState('');
   const [regDtTo, setRegDtTo] = useState('');
+  // 날짜 유효성 검사 (시작일과 종료일 비교)
+  useEffect(() => {
+    if (regDtFrom && regDtTo) {
+      if (regDtFrom > regDtTo) {
+        alert('종료일은 시작일보다 빠를 수 없습니다.');
+        setRegDtTo(''); // 종료일을 초기화하거나
+        // setRegDtTo(regDtFrom); //시작일과 동일하게 맞춤
+      }
+    }
+  }, [regDtFrom, regDtTo]);
 
   useEffect(() => {
     fetchCertificates();

@@ -1,6 +1,6 @@
 import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button.jsx';
-import GridTable from '@components/ui/GridTable';
+import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
