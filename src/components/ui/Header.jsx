@@ -16,7 +16,7 @@ export default function Header() {
   const { user, remainingTime, extendSession, logout } = useAuth();
   const [isLoginInfoPopupOpen, setIsLoginInfoPopupOpen] = useState(false);
 
-  const displayUserName = user?.name?.trim() || user?.username?.trim() || '-';
+  const displayUserName = user?.username?.trim() || user?.name?.trim() || '-';
 
   const depth1Menus = useMemo(() => {
     if (!menuTree || !menuTree.children) return [];
