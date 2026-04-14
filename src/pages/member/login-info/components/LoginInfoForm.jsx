@@ -8,7 +8,8 @@ import { useEffect, useRef, useState } from 'react';
 
 const NAME_MAX_LENGTH = 100;
 const MOBILE_MAX_LENGTH = 11;
-const MOBILE_PHONE_PATTERN = /^01[0-9]\d{7,8}$/;
+const MOBILE_INPUT_MAX_LENGTH = 13;
+const MOBILE_PHONE_PATTERN = /^(01[0-9])-?([0-9]{3,4})-?([0-9]{4})$/;
 const NEW_PASSWORD_PATTERN =
   /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$/;
 
@@ -36,7 +37,14 @@ function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
-// 휴대폰은 백엔드 DTO가 최대 11자라, 화면에서도 숫자만 남겨 저장 호환 형태로 맞춘다.
+// 휴대폰은 입력 단계에서 하이픈 표기를 허용하되, 저장 payload는 숫자만 남겨 백엔드 호환 형태로 맞춘다.
+function normalizeMobileInput(value) {
+  return String(value ?? '')
+    .replace(/\s/g, '')
+    .replace(/[^\d-]/g, '')
+    .slice(0, MOBILE_INPUT_MAX_LENGTH);
+}
+
 function normalizeMobileDigits(value) {
   return String(value ?? '')
     .replace(/\D/g, '')
@@ -207,14 +215,14 @@ export default function LoginInfoForm({ onClose, isPopup }) {
       ...prev,
       [field]:
         field === 'mngrMblTelno'
-          ? normalizeMobileDigits(nextValue)
+          ? normalizeMobileInput(nextValue)
           : nextValue,
     }));
   };
 
   const validateForm = () => {
     const trimmedName = normalizeText(formData.mbrNm);
-    const normalizedMobile = normalizeMobileDigits(formData.mngrMblTelno);
+    const mobileInputValue = normalizeText(formData.mngrMblTelno);
     const trimmedCurrentPassword = normalizeText(formData.currentPassword);
     const trimmedNewPassword = normalizeText(formData.newPassword);
     const trimmedNewPasswordConfirm = normalizeText(
@@ -237,12 +245,12 @@ export default function LoginInfoForm({ onClose, isPopup }) {
       return '이름은 100자 이하로 입력해주세요.';
     }
 
-    if (!normalizedMobile) {
+    if (!mobileInputValue) {
       return '휴대폰번호를 입력해주세요.';
     }
 
-    if (!MOBILE_PHONE_PATTERN.test(normalizedMobile)) {
-      return '휴대폰번호 형식이 올바르지 않습니다. 숫자만 01012345678 형식으로 입력해주세요.';
+    if (!MOBILE_PHONE_PATTERN.test(mobileInputValue)) {
+      return '휴대폰번호 형식이 올바르지 않습니다. 01012345678 또는 010-1234-5678 형식으로 입력해주세요.';
     }
 
     if (!hasPasswordChangeInput) {
@@ -422,7 +430,7 @@ export default function LoginInfoForm({ onClose, isPopup }) {
                     menuSize="100%"
                     value={formData.mngrMblTelno}
                     onChange={handleTextChange('mngrMblTelno')}
-                    placeholder="휴대폰번호를 입력해주세요. (숫자만)"
+                    placeholder="휴대폰번호를 입력해주세요. (010-1234-5678 또는 숫자만)"
                   />
                 </td>
               </tr>
