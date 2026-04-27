@@ -160,6 +160,12 @@ const EmailSendCreate = lazy(
   () => import('@pages/notification/email/send/EmailSendCreate.jsx')
 );
 
+const EventInfoList = lazy(() => import('@pages/event-info/EventInfoList.jsx'));
+const EventInfoForm = lazy(() => import('@pages/event-info/EventInfoForm.jsx'));
+const EventInfoDetail = lazy(
+  () => import('@pages/event-info/EventInfoDetail.jsx')
+);
+
 /**
  * =============================================================================
  * Component Map - menuId와 실제 컴포넌트 매핑
@@ -579,16 +585,20 @@ export const componentMap = {
   // ---------- 활용정보 관리 ----------
   // 행사정보
   M_PIIO_00023: {
-    component: PstList,
+    component: EventInfoList,
     layout: AdminLayoutWithAuth,
     children: [
       {
-        path: 'create', //
-        component: PstForm, // 게시물 등록
+        path: 'create', // 신규 등록: /event-info/create
+        component: EventInfoForm,
       },
       {
-        path: ':pstNo',
-        component: PstForm,
+        path: ':evntInfoId', //
+        component: EventInfoDetail, // 상세조회
+      },
+      {
+        path: ':evntInfoId/edit',
+        component: EventInfoForm,
       },
     ],
   },
