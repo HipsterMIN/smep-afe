@@ -1,8 +1,8 @@
 import PopupDetail from '@components/popup/PopupDetail';
 import PopupForm from '@components/popup/PopupForm';
-import PopupGrid from '@components/popup/PopupGrid';
 import Button from '@components/ui/Button.jsx';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
+import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
 import { useEffect, useState } from 'react';
@@ -17,6 +17,69 @@ const USE_YN_OPTIONS = [
   { value: 'Y', label: '사용' },
   { value: 'N', label: '사용안함' },
 ];
+
+function ImageCell({ row }) {
+  const [isError, setIsError] = useState(false);
+  if (!row.imgAtchFileId || isError) {
+    return (
+      <div
+        style={{
+          width: '82px',
+          height: '25px',
+          background: '#eee',
+          border: '1px solid #ddd',
+        }}
+      />
+    );
+  }
+  const baseUrl = import.meta.env.BASE_URL.endsWith('/')
+    ? import.meta.env.BASE_URL
+    : `${import.meta.env.BASE_URL}/`;
+
+  const imageSrc = `${baseUrl}api/v1/files/image/${row.imgAtchFileId}/${row.imgAtchFileSn}`;
+
+  return (
+    <img
+      src={imageSrc}
+      alt={row.popupTtl}
+      style={{ width: '82px', height: '25px', objectFit: 'cover' }}
+      onError={() => setIsError(true)}
+    />
+  );
+}
+
+const createManageCell =
+  (onEdit, onToggleUseYn, onPreview) =>
+  ({ row }) => {
+    return (
+      <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+        <Button
+          btnType="edit"
+          btnNames="수정"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(row);
+          }}
+        />
+        <Button
+          btnType="edit"
+          btnNames={row.useYn === 'Y' ? '사용안함' : '사용'}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleUseYn(row);
+          }}
+        />
+        <Button
+          btnType="edit"
+          btnNames="미리보기"
+          onClick={(e) => {
+            e.stopPropagation();
+            onPreview(row);
+          }}
+        />
+      </div>
+    );
+  };
 
 export default function PopupManagement() {
   const [popupList, setPopupList] = useState([]);
@@ -112,6 +175,27 @@ export default function PopupManagement() {
       'width=800,height=600'
     );
   };
+
+  // 팝업용 컬럼 정의 (GridTable에 전달할 목적)
+  const popupColumns = [
+    { id: 'popupId', width: 60, header: '번호' },
+    { id: 'image_col', width: 100, header: '이미지', cell: ImageCell },
+    { id: 'popupKndCdNm', width: 100, header: '팝업종류' },
+    { id: 'popupTtl', flexgrow: 1, header: '제목' },
+    {
+      id: 'pstgPeriod',
+      width: 200,
+      header: '게시기간',
+      cell: ({ row }) => `${row.pstgBgngYmd} ~ ${row.pstgEndYmd}`,
+    },
+    { id: 'useYn', width: 80, header: '사용여부' },
+    {
+      id: 'management',
+      width: 220,
+      header: '관리',
+      cell: createManageCell(handleEdit, handleToggleUseYn, handlePreview),
+    },
+  ];
 
   const handleFormSave = async (formData, newFile, fileStatusInfoJson) => {
     try {
@@ -260,12 +344,15 @@ export default function PopupManagement() {
             <Button btnType="add" btnNames="등록" onClick={handleRegister} />
           </div>
           <div className="ongrid-tableform onSCrollBox">
-            <PopupGrid
+            <GridTable
               data={popupList}
-              onRowClick={handleRowClick}
-              onEdit={handleEdit}
-              onToggleUseYn={handleToggleUseYn}
-              onPreview={handlePreview}
+              columns={popupColumns} // 주입할 컬럼 전달
+              gridProps={{
+                onSelectRow: (ev) => {
+                  const rowData = popupList.find((item) => item.id === ev.id);
+                  if (rowData) handleRowClick(rowData);
+                },
+              }}
             />
           </div>
         </div>
