@@ -319,11 +319,6 @@ export const componentMap = {
     component: MemberList,
     layout: AdminLayoutWithAuth,
   },
-  // 통합회원목록
-  // 'M_PIIO_00053': {
-  //   component: TODO_M_PIIO_00053,
-  //   layout: AdminLayoutWithAuth,
-  // },
   // 관리자계정 관리
   M_PIIO_00054: {
     component: ManagerList,
