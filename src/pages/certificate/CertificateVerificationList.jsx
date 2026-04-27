@@ -49,7 +49,7 @@ export default function CertificateVerificationList() {
     {
       id: 'rowNumber',
       header: '순번',
-      width: 70,
+      width: 120,
       cell: ({ row }) =>
         Number.isFinite(totalCount) && Number.isFinite(row?._rowIndex)
           ? totalCount - (row._rowIndex - 1)
@@ -59,7 +59,7 @@ export default function CertificateVerificationList() {
     { id: 'prdocTtl', header: '증명서명', flexgrow: 1, dataAlign: 'left' },
     {
       id: 'dmndDt',
-      header: '신청일시',
+      header: '요청일시',
       width: 170,
       template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm'),
     },
@@ -128,7 +128,7 @@ export default function CertificateVerificationList() {
         const unique = [];
         const seen = new Set();
         merged.forEach((row) => {
-          const key = `${row.brno}_${row.prdocCd}_${row.dmndDt}`;
+          const key = row?.prdocIdntyDmndNo;
           if (seen.has(key)) return;
           seen.add(key);
           unique.push(row);
@@ -148,8 +148,10 @@ export default function CertificateVerificationList() {
       setHasNext(false);
       setCursor(null);
     } finally {
-      loadingRef.current = false;
       setLoading(false);
+      setTimeout(() => {
+        loadingRef.current = false;
+      }, 0);
     }
   };
 
