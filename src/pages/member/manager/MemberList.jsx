@@ -1,6 +1,6 @@
 import ButtonCell from '@components/custom/ButtonCell.jsx';
 import Breadcrumb from '@components/ui/Breadcrumb.jsx';
-import Button from '@components/ui/Button';
+import Button from '@components/ui/Button.jsx';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';

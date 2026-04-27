@@ -26,6 +26,12 @@
   text-align: center;
 }
 
+.gridtable-data-align-height-center.wx-TSCaXsGV,
+.gridtable-data-align-height-center.wx-TSCaXsGV .wx-text {
+  text-align: center;
+  align-content: center;
+}
+
 .gridtable-data-align-right.wx-TSCaXsGV,
 .gridtable-data-align-right.wx-TSCaXsGV .wx-text {
   text-align: right;
