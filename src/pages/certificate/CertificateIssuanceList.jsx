@@ -1,99 +1,209 @@
-import CertificateIssuanceListGrid from '@components/certificate/CertificateIssuanceListGrid.jsx';
+import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button.jsx';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
+import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
+import { Willow } from '@svar-ui/react-grid';
 import { fetchCommonCodes } from '@utils/commonUtils.js';
-import { useEffect, useState } from 'react';
+import { formatDate } from '@utils/stringUtils.js';
+import { useEffect, useRef, useState } from 'react';
+import { useMatches } from 'react-router-dom';
+
+const createSearchParams = () => ({
+  prdocIssuAplyNo: '',
+  prdocCd: '',
+  brno: '',
+  cmpnyNm: '',
+  prdocIssuPrgrsSttsCd: '',
+  vldBgngYmdFrom: '',
+  vldBgngYmdTo: '',
+  aplyDtFrom: '',
+  aplyDtTo: '',
+});
 
 export default function CertificateIssuanceList() {
-  const [issuanceData, setIssuanceData] = useState([]);
+  const gridViewportRef = useRef(null);
+  const loadingRef = useRef(false);
+  const appliedSearchParamsRef = useRef(createSearchParams());
+
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
-
-  // 검색 조건
-  const [prdocIssuAplyNo, setPrdocIssuAplyNo] = useState('');
-  const [prdocCd, setPrdocCd] = useState('');
-  const [brno, setBrno] = useState(''); // TODO: 기업명 검색 방식 확정 후 교체
-  const [prdocIssuPrgrsSttsCd, setPrdocIssuPrgrsSttsCd] = useState('');
-  const [vldBgngYmdFrom, setVldBgngYmdFrom] = useState('');
-  const [vldBgngYmdTo, setVldBgngYmdTo] = useState('');
-  const [aplyDtFrom, setAplyDtFrom] = useState('');
-  const [aplyDtTo, setAplyDtTo] = useState('');
-
-  // 드롭다운 옵션
+  const [cursor, setCursor] = useState(null);
+  const [hasNext, setHasNext] = useState(true);
+  const [searchParams, setSearchParams] = useState(createSearchParams);
   const [prdocIssuPrgrsSttsCdList, setPrdocIssuPrgrsSttsCdList] = useState([]);
   const [certificateOptions, setCertificateOptions] = useState([]);
 
+  const matches = useMatches();
+  const routeMenuName =
+    [...matches]
+      .reverse()
+      .map((m) => m?.handle?.menuNm)
+      .find((menuNm) => typeof menuNm === 'string' && menuNm.trim()) || '';
+  const pageTitle = routeMenuName || '증명서 발급 이력';
+
+  const columns = [
+    {
+      id: 'rowNumber',
+      header: '순번',
+      width: 70,
+      cell: ({ row }) =>
+        Number.isFinite(totalCount) && Number.isFinite(row?._rowIndex)
+          ? totalCount - (row._rowIndex - 1)
+          : '-',
+    },
+    { id: 'prdocIssuAplyNo', header: '신청번호', width: 160 },
+    { id: 'prdocTtl', header: '증명서명', flexgrow: 1, dataAlign: 'left' },
+    { id: 'brno', header: '사업자등록번호', width: 130 },
+    { id: 'cmpnyNm', header: '기업명', width: 180 },
+    {
+      id: 'vldBgngYmd',
+      header: '유효시작일',
+      width: 110,
+      template: (value) => formatDate(value, 'yyyy-MM-dd'),
+    },
+    {
+      id: 'vldEndYmd',
+      header: '유효종료일',
+      width: 110,
+      template: (value) => formatDate(value, 'yyyy-MM-dd'),
+    },
+    {
+      id: 'aplyDt',
+      header: '신청일시',
+      width: 160,
+      template: (value) => formatDate(value, 'yyyy-MM-dd HH:mm'),
+    },
+    { id: 'prdocIssuPrgrsSttsCdNm', header: '발급상태', width: 120 },
+  ];
+
   useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const [commonCodeResponse, certificateResponse] = await Promise.all([
+          fetchCommonCodes(['PRDOC_ISSU_PRGRS_STTS_CD']),
+          http.get('/api/v1/certificates/options'),
+        ]);
+
+        const options = (commonCodeResponse.PRDOC_ISSU_PRGRS_STTS_CD || []).map(
+          (item) => ({
+            value: item.comCd,
+            label: item.comCdNm,
+          })
+        );
+
+        setPrdocIssuPrgrsSttsCdList(options);
+        setCertificateOptions(certificateResponse.data || []);
+      } catch (error) {
+        console.error('초기 데이터 조회 실패:', error);
+      }
+    };
+
     fetchInitialData();
-    fetchIssuances();
   }, []);
 
-  // 공통코드 + 증명서 옵션 병렬 조회
-  const fetchInitialData = async () => {
-    try {
-      const [commonCodeResponse, certificateResponse] = await Promise.all([
-        fetchCommonCodes(['PRDOC_ISSU_PRGRS_STTS_CD']),
-        http.get('/api/v1/certificates/options'),
-      ]);
+  useEffect(() => {
+    fetchList(null, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-      const prdocIssuPrgrsSttsCdOptions = (
-        commonCodeResponse.PRDOC_ISSU_PRGRS_STTS_CD || []
-      ).map((item) => ({
-        value: item.comCd,
-        label: item.comCdNm,
-      }));
-
-      setPrdocIssuPrgrsSttsCdList(prdocIssuPrgrsSttsCdOptions);
-      setCertificateOptions(certificateResponse.data || []);
-    } catch (error) {
-      console.error('초기 데이터 조회 실패:', error);
-    }
+  const buildParams = (baseParams) => {
+    const params = { size: 20, ...baseParams };
+    const filtered = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== '') {
+        filtered[key] = value;
+      }
+    });
+    return filtered;
   };
 
-  const fetchIssuances = async () => {
-    try {
-      const params = { size: 100 };
-      if (prdocIssuAplyNo) params.prdocIssuAplyNo = prdocIssuAplyNo;
-      if (prdocCd) params.prdocCd = prdocCd;
-      if (brno) params.brno = brno;
-      if (prdocIssuPrgrsSttsCd)
-        params.prdocIssuPrgrsSttsCd = prdocIssuPrgrsSttsCd;
-      if (vldBgngYmdFrom) params.vldBgngYmdFrom = vldBgngYmdFrom;
-      if (vldBgngYmdTo) params.vldBgngYmdTo = vldBgngYmdTo;
-      if (aplyDtFrom) params.aplyDtFrom = aplyDtFrom;
-      if (aplyDtTo) params.aplyDtTo = aplyDtTo;
+  const fetchList = async (nextCursor = null, reset = false) => {
+    if (loadingRef.current) return;
+    if (!hasNext && !reset) return;
 
-      const response = await http.get('/api/v1/certificate-issuances', {
-        params,
+    loadingRef.current = true;
+    setLoading(true);
+
+    if (reset) {
+      appliedSearchParamsRef.current = { ...searchParams };
+    }
+
+    try {
+      const params = reset ? searchParams : appliedSearchParamsRef.current;
+      const apiParams = buildParams(params);
+      if (nextCursor) apiParams.cursor = nextCursor;
+
+      const res = await http.get('/api/v1/certificate-issuances', {
+        params: apiParams,
       });
 
-      const data = (response.data?.data || []).map((item, index) => ({
-        ...item,
-        id: item.prdocIssuAplyNo,
-        no: index + 1,
-      }));
+      const page = res?.data ?? res ?? {};
+      const list = Array.isArray(page?.data) ? page.data : [];
 
-      setIssuanceData(data);
-      setTotalCount(data.length);
+      setRows((prev) => {
+        const merged = reset ? list : [...prev, ...list];
+        const unique = [];
+        const seen = new Set();
+        merged.forEach((row) => {
+          const key = row?.prdocIssuAplyNo;
+          if (!key || seen.has(key)) return;
+          seen.add(key);
+          unique.push(row);
+        });
+        return unique.map((row, idx) => ({ ...row, _rowIndex: idx + 1 }));
+      });
+
+      if (reset) {
+        setTotalCount(page?.totalCount ?? list.length);
+      }
+
+      setCursor(page?.nextCursor ?? null);
+      setHasNext(Boolean(page?.hasNext));
     } catch (error) {
       console.error('증명서 발급 이력 조회 실패:', error);
-      setIssuanceData([]);
-      setTotalCount(0);
+      if (reset) setRows([]);
+      setHasNext(false);
+      setCursor(null);
+    } finally {
+      setLoading(false);
+      setTimeout(() => {
+        loadingRef.current = false;
+      }, 0);
     }
   };
 
-  const handleSearch = () => fetchIssuances();
+  const handleInputChange = (key, valueOrEvent) => {
+    const value = valueOrEvent?.target
+      ? valueOrEvent.target.value
+      : valueOrEvent;
+    setSearchParams((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSearch = () => {
+    setCursor(null);
+    setHasNext(true);
+    fetchList(null, true);
+  };
+
+  useGridInfiniteScroll({
+    viewportRef: gridViewportRef,
+    loading,
+    loadingRef,
+    hasNext,
+    onLoadMore: () => fetchList(cursor, false),
+  });
 
   return (
     <div className="oncontentbox full">
       <div className="oncontentTitle">
-        <h2>증명서 발급 이력</h2>
-        <ul className="onbreadcrumb">
-          <li>증명서 발급 관리</li>
-          <li className="on">증명서 발급 이력</li>
-        </ul>
+        <h2>{pageTitle}</h2>
+        <Breadcrumb pageTitle={pageTitle} />
       </div>
+
       <div className="oncontents">
         <div className="oncontent">
           <div className="onselect-form open" style={{ minHeight: 'auto' }}>
@@ -102,8 +212,8 @@ export default function CertificateIssuanceList() {
                 menuType="input"
                 menuName="신청번호"
                 menuSize="150px"
-                value={prdocIssuAplyNo}
-                onChange={(e) => setPrdocIssuAplyNo(e.target.value)}
+                value={searchParams.prdocIssuAplyNo}
+                onChange={(e) => handleInputChange('prdocIssuAplyNo', e)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
               <MenuInputBox
@@ -111,31 +221,31 @@ export default function CertificateIssuanceList() {
                 menuName="증명서"
                 menuSize="150px"
                 options={certificateOptions}
-                value={prdocCd}
-                onChange={(e) => setPrdocCd(e.target.value)}
+                value={searchParams.prdocCd}
+                onChange={(e) => handleInputChange('prdocCd', e)}
               />
               <MenuInputBox
                 menuType="input"
                 menuName="기업명"
                 menuSize="300px"
-                value={brno}
-                onChange={(e) => setBrno(e.target.value)}
+                value={searchParams.cmpnyNm}
+                onChange={(e) => handleInputChange('cmpnyNm', e)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
-              {/* TODO: 기업명 검색 방식 확정 후 brno → cmpnyNm 검색으로 교체 */}
               <MenuInputBox
                 menuType="select"
                 menuName="발급상태"
                 menuSize="150px"
                 options={prdocIssuPrgrsSttsCdList}
-                value={prdocIssuPrgrsSttsCd}
-                onChange={(e) => setPrdocIssuPrgrsSttsCd(e.target.value)}
+                value={searchParams.prdocIssuPrgrsSttsCd}
+                onChange={(e) => handleInputChange('prdocIssuPrgrsSttsCd', e)}
               />
               <div style={{ marginLeft: 'auto' }}>
                 <Button
                   btnType="menuSearch"
                   btnNames="검색"
                   onClick={handleSearch}
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -143,28 +253,39 @@ export default function CertificateIssuanceList() {
               <div className="ondatepickerbox">
                 <DatepickerBox
                   menuName="유효기간"
-                  value={vldBgngYmdFrom}
-                  onChange={(date) => setVldBgngYmdFrom(date)}
+                  value={searchParams.vldBgngYmdFrom}
+                  onChange={(val) =>
+                    setSearchParams((prev) => ({
+                      ...prev,
+                      vldBgngYmdFrom: val,
+                    }))
+                  }
                   outputFormat="ymd"
                 />
                 <span className="onunit">~</span>
                 <DatepickerBox
-                  value={vldBgngYmdTo}
-                  onChange={(date) => setVldBgngYmdTo(date)}
+                  value={searchParams.vldBgngYmdTo}
+                  onChange={(val) =>
+                    setSearchParams((prev) => ({ ...prev, vldBgngYmdTo: val }))
+                  }
                   outputFormat="ymd"
                 />
               </div>
               <div className="ondatepickerbox">
                 <DatepickerBox
                   menuName="신청일"
-                  value={aplyDtFrom}
-                  onChange={(date) => setAplyDtFrom(date)}
+                  value={searchParams.aplyDtFrom}
+                  onChange={(val) =>
+                    setSearchParams((prev) => ({ ...prev, aplyDtFrom: val }))
+                  }
                   outputFormat="dash"
                 />
                 <span className="onunit">~</span>
                 <DatepickerBox
-                  value={aplyDtTo}
-                  onChange={(date) => setAplyDtTo(date)}
+                  value={searchParams.aplyDtTo}
+                  onChange={(val) =>
+                    setSearchParams((prev) => ({ ...prev, aplyDtTo: val }))
+                  }
                   outputFormat="dash"
                 />
               </div>
@@ -173,12 +294,22 @@ export default function CertificateIssuanceList() {
 
           <div className="ontable-legend">
             <span>
-              총 <b>{totalCount}</b>개
+              총 <b>{totalCount}</b>건
             </span>
           </div>
 
-          <div className="ongrid-tableform onSCrollBox">
-            <CertificateIssuanceListGrid data={issuanceData} />
+          <div className="ongrid-tableform">
+            <Willow>
+              <div
+                ref={gridViewportRef}
+                style={{
+                  height: 'max(420px, calc(100dvh - 410px))',
+                  overflow: 'hidden',
+                }}
+              >
+                <GridTable columns={columns} data={rows} useWillow={false} />
+              </div>
+            </Willow>
           </div>
         </div>
       </div>
