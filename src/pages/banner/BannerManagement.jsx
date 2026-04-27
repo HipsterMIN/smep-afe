@@ -1,8 +1,8 @@
 import BannerDetail from '@components/banner/BannerDetail';
 import BannerForm from '@components/banner/BannerForm';
-import BannerGrid from '@components/banner/BannerGrid';
 import Button from '@components/ui/Button.jsx';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
+import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import http from '@lib/http.js';
 import { useEffect, useState } from 'react';
@@ -17,6 +17,62 @@ const USE_YN_OPTIONS = [
   { value: 'Y', label: '사용' },
   { value: 'N', label: '사용안함' },
 ];
+
+function ImageCell({ row }) {
+  const [isError, setIsError] = useState(false);
+  if (!row.imgAtchFileId || isError) {
+    return (
+      <div
+        style={{
+          width: '82px',
+          height: '25px',
+          background: '#eee',
+          border: '1px solid #ddd',
+        }}
+      />
+    );
+  }
+  const baseUrl = import.meta.env.BASE_URL.endsWith('/')
+    ? import.meta.env.BASE_URL
+    : `${import.meta.env.BASE_URL}/`;
+
+  const imageSrc = `${baseUrl}api/v1/files/image/${row.imgAtchFileId}/${row.imgAtchFileSn}`;
+
+  return (
+    <img
+      src={imageSrc}
+      alt={row.bnrTtl}
+      style={{ width: '82px', height: '25px', objectFit: 'cover' }}
+      onError={() => setIsError(true)}
+    />
+  );
+}
+
+// 관리 버튼 생성기 (Popup과 동일한 구조)
+const createManageCell =
+  (onEdit, onToggleUseYn) =>
+  ({ row }) => {
+    return (
+      <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+        <Button
+          btnType="edit"
+          btnNames="수정"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(row);
+          }}
+        />
+        <Button
+          btnType="edit"
+          btnNames={row.useYn === 'Y' ? '사용안함' : '사용'}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleUseYn(row);
+          }}
+        />
+      </div>
+    );
+  };
 
 export default function BannerManagement() {
   const [bannerList, setBannerList] = useState([]);
@@ -51,7 +107,7 @@ export default function BannerManagement() {
       const response = await http.get('/api/v1/banners', { params });
       const data = (response.data?.data || []).map((item) => ({
         ...item,
-        id: item.bnrId,
+        id: item.bnrId, // GridTable용 고유 ID
       }));
       setBannerList(data);
       setTotalCount(data.length);
@@ -64,6 +120,8 @@ export default function BannerManagement() {
   const fetchBannerDetail = async (bnrId) => {
     try {
       const response = await http.get(`/api/v1/banners/${bnrId}`);
+      // 💡 핵심: 서버 응답 데이터 추출 구조를 Popup과 일치시킴
+      // const data = response.data?.data || response.data;
       setDetailData(response.data);
       return response.data;
     } catch (error) {
@@ -95,6 +153,7 @@ export default function BannerManagement() {
 
   const handleToggleUseYn = async (row) => {
     try {
+      // 💡 Popup과 동일하게 patch 호출
       await http.patch(`/api/v1/banners/${row.bnrId}/use-yn`);
       fetchBannerList();
       if (selectedBnrId === row.bnrId) {
@@ -106,6 +165,59 @@ export default function BannerManagement() {
     }
   };
 
+  // 💡 컬럼 정의 (Popup의 방식을 그대로 적용)
+  const bannerColumns = [
+    { id: 'bnrId', width: 60, header: '번호' },
+    { id: 'image_col', width: 100, header: '이미지', cell: ImageCell },
+    { id: 'bnrPstnSeCdNm', width: 100, header: '배너구분' },
+    { id: 'bnrTtl', flexgrow: 1, header: '제목' },
+    {
+      id: 'pstgPeriod',
+      width: 200,
+      header: '게시기간',
+      cell: ({ row }) => `${row.pstgBgngYmd} ~ ${row.pstgEndYmd}`,
+    },
+    { id: 'useYn', width: 80, header: '사용여부' },
+    {
+      id: 'management',
+      width: 160,
+      header: '관리',
+      cell: createManageCell(handleEdit, handleToggleUseYn),
+    },
+  ];
+
+  // const handleFormSave = async (
+  //   formData,
+  //   imgFile,
+  //   moblImgFile,
+  //   fileStatusInfoJson
+  // ) => {
+  //   try {
+  //     const fd = new FormData();
+  //     fd.append(
+  //       'request',
+  //       new Blob([JSON.stringify(formData)], { type: 'application/json' })
+  //     );
+  //     if (imgFile) fd.append('imgFile', imgFile);
+  //     if (moblImgFile) fd.append('moblImgFile', moblImgFile);
+  //     if (fileStatusInfoJson)
+  //       fd.append('fileStatusInfoJson', fileStatusInfoJson);
+  //
+  //     if (selectedBnrId) {
+  //       await http.put(`/api/v1/banners/${selectedBnrId}`, fd);
+  //       alert('배너가 수정되었습니다.');
+  //       await fetchBannerDetail(selectedBnrId);
+  //       setRightPanel('detail');
+  //     } else {
+  //       await http.post('/api/v1/banners', fd);
+  //       alert('배너가 등록되었습니다.');
+  //       setRightPanel(null);
+  //     }
+  //     fetchBannerList();
+  //   } catch (error) {
+  //     alert(error.response?.data?.message || '저장 실패');
+  //   }
+  // };
   const handleFormSave = async (
     formData,
     imgFile,
@@ -114,18 +226,39 @@ export default function BannerManagement() {
   ) => {
     try {
       const fd = new FormData();
+
+      // 1. DTO (Blob으로 감싸서 정확한 타입 명시)
       fd.append(
         'request',
-        new Blob([JSON.stringify(formData)], {
-          type: 'application/json',
-        })
+        new Blob([JSON.stringify(formData)], { type: 'application/json' })
       );
+
+      // 2. 파일 추가
       if (imgFile) fd.append('imgFile', imgFile);
       if (moblImgFile) fd.append('moblImgFile', moblImgFile);
-      if (fileStatusInfoJson)
+      if (fileStatusInfoJson) {
         fd.append('fileStatusInfoJson', fileStatusInfoJson);
+      }
+
+      // // 3. 삭제 정보 (문자열로 전송)
+      // if (fileStatusInfoJson) {
+      //   fd.append(
+      //     'fileStatusInfoJson',
+      //     typeof fileStatusInfoJson === 'string'
+      //       ? fileStatusInfoJson
+      //       : JSON.stringify(fileStatusInfoJson)
+      //   );
+      // }
+      //
+      // // 💡 수정 포인트: headers 추가
+      // const config = {
+      //   headers: {
+      //     'Content-Type': 'multipart/form-data',
+      //   },
+      // };
 
       if (selectedBnrId) {
+        // url, data, config 순서 확인
         await http.put(`/api/v1/banners/${selectedBnrId}`, fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
@@ -142,17 +275,16 @@ export default function BannerManagement() {
       }
       fetchBannerList();
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || '배너 저장에 실패했습니다.';
-      alert(errorMessage);
+      console.error('저장 실패:', error);
+      alert(error.response?.data?.message || '배너 저장에 실패했습니다.');
     }
   };
 
   const handleFormDelete = async () => {
-    if (!selectedBnrId) return;
+    if (!setSelectedBnrId) return;
     if (!window.confirm('배너를 삭제하시겠습니까?')) return;
     try {
-      await http.delete(`/api/v1/banners/${selectedBnrId}`);
+      await http.delete(`/api/v1/banners/${setSelectedBnrId}`);
       alert('배너가 삭제되었습니다.');
       setRightPanel(null);
       setSelectedBnrId(null);
@@ -168,27 +300,19 @@ export default function BannerManagement() {
     <div className="oncontentbox">
       <div className="oncontentTitle">
         <h2>배너 관리</h2>
-        <ul className="onbreadcrumb">
-          <li>정보제공</li>
-          <li>고객지원 관리</li>
-          <li className="on">배너 목록</li>
-        </ul>
       </div>
 
       <div
         className="oncontents space ondivide"
         style={{ alignItems: 'flex-start' }}
       >
-        {/* 좌측: 목록 */}
         <div className="oncontent">
           <div className="ongrid-form">
-            <h4>배너 목록</h4>
             <div className="onselect-form">
               <div className="onparagraph">
                 <MenuInputBox
                   menuType="select"
                   menuName="배너구분"
-                  menuSize="100px"
                   options={BNR_PSTN_OPTIONS}
                   value={search.bnrPstnSeCd}
                   onChange={(e) =>
@@ -201,7 +325,6 @@ export default function BannerManagement() {
                 <MenuInputBox
                   menuType="input"
                   menuName="제목"
-                  menuSize="200px"
                   value={search.bnrTtl}
                   onChange={(e) =>
                     setSearch((prev) => ({ ...prev, bnrTtl: e.target.value }))
@@ -211,7 +334,6 @@ export default function BannerManagement() {
                 <div className="ondatepickerbox">
                   <DatepickerBox
                     menuName="게시기간"
-                    outputFormat="ymd"
                     value={search.pstgBgngYmdFrom}
                     onChange={(val) =>
                       setSearch((prev) => ({ ...prev, pstgBgngYmdFrom: val }))
@@ -219,7 +341,6 @@ export default function BannerManagement() {
                   />
                   <span className="onunit">~</span>
                   <DatepickerBox
-                    outputFormat="ymd"
                     value={search.pstgEndYmdTo}
                     onChange={(val) =>
                       setSearch((prev) => ({ ...prev, pstgEndYmdTo: val }))
@@ -229,20 +350,17 @@ export default function BannerManagement() {
                 <MenuInputBox
                   menuType="select"
                   menuName="사용여부"
-                  menuSize="100px"
                   options={USE_YN_OPTIONS}
                   value={search.useYn}
                   onChange={(e) =>
                     setSearch((prev) => ({ ...prev, useYn: e.target.value }))
                   }
                 />
-                <div className="onbtn" style={{ marginLeft: 'auto' }}>
-                  <Button
-                    btnType="menuSearch"
-                    btnNames="검색"
-                    onClick={handleSearch}
-                  />
-                </div>
+                <Button
+                  btnType="menuSearch"
+                  btnNames="검색"
+                  onClick={handleSearch}
+                />
               </div>
             </div>
           </div>
@@ -255,20 +373,22 @@ export default function BannerManagement() {
           </div>
 
           <div className="ongrid-tableform onSCrollBox">
-            <BannerGrid
+            <GridTable
               data={bannerList}
-              onRowClick={handleRowClick}
-              onEdit={handleEdit}
-              onToggleUseYn={handleToggleUseYn}
+              columns={bannerColumns}
+              gridProps={{
+                onSelectRow: (ev) => {
+                  const rowData = bannerList.find((item) => item.id === ev.id);
+                  if (rowData) handleRowClick(rowData);
+                },
+              }}
             />
           </div>
         </div>
-
         {/* 우측: 상세조회 */}
         {rightPanel === 'detail' && detailData && (
           <BannerDetail data={detailData} onEdit={handleDetailEdit} />
         )}
-
         {/* 우측: 등록/수정 */}
         {rightPanel === 'form' && (
           <BannerForm

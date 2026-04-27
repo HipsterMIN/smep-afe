@@ -318,9 +318,7 @@ export default function BbsList() {
                 menuName="게시판 소개글"
                 menuSize="300px"
                 value={searchParams.bbsExplnCn}
-                onChange={(e) =>
-                  handleInputChange('bbsExplnCn', e.target.value)
-                }
+                onChange={(e) => handleInputChange('bbsExplnCn', e.target.value)}
                 onKeyDown={handleSearchKeyDown}
               />
               <MenuInputBox
@@ -350,11 +348,7 @@ export default function BbsList() {
             <span>
               총 <b>{totalCount}</b>건
             </span>
-            <Button
-              btnType="add"
-              btnNames="등록"
-              onClick={() => navigate('create')}
-            />
+            <Button btnType="add" btnNames="등록" onClick={() => navigate('create')} />
           </div>
 
           <div
@@ -378,10 +372,7 @@ export default function BbsList() {
             </Willow>
             <div
               className="loading"
-              style={{
-                minHeight: 20,
-                visibility: loading ? 'visible' : 'hidden',
-              }}
+              style={{ minHeight: 20, visibility: loading ? 'visible' : 'hidden' }}
             >
               데이터를 불러오는 중...
             </div>
