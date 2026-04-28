@@ -461,6 +461,22 @@ export const componentMap = {
     component: BannerManagement,
     layout: AdminLayoutWithAuth,
   },
+
+  // Q&A
+  M_PIIO_00168: {
+    component: PstList,
+    layout: AdminLayoutWithAuth,
+    children: [
+      {
+        path: 'create', //
+        component: PstForm, // 게시물 등록
+      },
+      {
+        path: ':pstNo',
+        component: PstForm,
+      },
+    ],
+  },
   // SMS 발송
   M_PIIO_00130: {
     component: SmsSendList,
