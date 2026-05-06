@@ -13,6 +13,7 @@ import { useMatches } from 'react-router-dom';
 
 import MemberDetailPanel from './components/MemberDetailPanel.jsx';
 import MemberEditPanel from './components/MemberEditPanel.jsx';
+import MemberScrapActivityPopup from './components/MemberScrapActivityPopup.jsx';
 
 const PAGE_SIZE = 20;
 const MEMBER_TYPE_CODES = ['IND', 'ENT'];
@@ -108,6 +109,7 @@ export default function MemberList() {
   const [cursor, setCursor] = useState(null);
   const [hasNext, setHasNext] = useState(true);
   const [selectedMember, setSelectedMember] = useState(null);
+  const [scrapPopupMember, setScrapPopupMember] = useState(null);
   const [rightMode, setRightMode] = useState('empty');
   const gridViewportRef = useRef(null);
   const loadingRef = useRef(false);
@@ -421,6 +423,7 @@ export default function MemberList() {
         error={detailError}
         panelStyle={SPLIT_PANEL_STYLE}
         onEdit={handleShowEdit}
+        onOpenScrapActivity={setScrapPopupMember}
       />
     );
 
@@ -549,6 +552,13 @@ export default function MemberList() {
 
         {rightPanel}
       </div>
+
+      {scrapPopupMember ? (
+        <MemberScrapActivityPopup
+          member={scrapPopupMember}
+          onClose={() => setScrapPopupMember(null)}
+        />
+      ) : null}
     </div>
   );
 }

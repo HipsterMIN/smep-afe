@@ -49,6 +49,32 @@ function resolvePayload(response) {
   return response ?? [];
 }
 
+function isCursorPagedPayload(value) {
+  return (
+    value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    Array.isArray(value.data) &&
+    ('hasNext' in value || 'nextCursor' in value || 'totalCount' in value)
+  );
+}
+
+function resolveCursorPagedPayload(response) {
+  if (isCursorPagedPayload(response)) {
+    return response;
+  }
+
+  if (response && typeof response === 'object' && !Array.isArray(response)) {
+    const responseData = response.data;
+
+    if (isCursorPagedPayload(responseData)) {
+      return responseData;
+    }
+  }
+
+  return {};
+}
+
 function normalizeHistoryRows(rows) {
   return rows.map((row, rowIndex) => ({
     ...row,
@@ -215,13 +241,18 @@ export default function MemberDetailPanel({
   error,
   panelStyle,
   onEdit,
+  onOpenScrapActivity,
 }) {
   const [historyRows, setHistoryRows] = useState([]);
   const [historyMemberNo, setHistoryMemberNo] = useState('');
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
+  const [scrapCount, setScrapCount] = useState(null);
+  const [scrapLoading, setScrapLoading] = useState(false);
+  const [scrapError, setScrapError] = useState('');
   const memberNo = member?.mbrNo;
   const memberModifiedAt = member?.mdfcnDt;
+  const isPersonalMember = member?.mbrTypeCd === 'IND';
 
   useEffect(() => {
     if (!memberNo) {
@@ -271,6 +302,55 @@ export default function MemberDetailPanel({
     };
   }, [memberNo, memberModifiedAt]);
 
+  useEffect(() => {
+    if (!memberNo || !isPersonalMember) {
+      setScrapCount(null);
+      setScrapError('');
+      setScrapLoading(false);
+      return undefined;
+    }
+
+    let ignore = false;
+
+    async function fetchScrapCount() {
+      try {
+        setScrapLoading(true);
+        setScrapError('');
+        setScrapCount(null);
+        const response = await http.post(
+          `/api/v1/member/${encodeURIComponent(memberNo)}/activity/scraps/search`,
+          {
+            cursorPageRequest: {
+              size: 1,
+              cursor: null,
+            },
+          }
+        );
+        const data = resolveCursorPagedPayload(response);
+
+        if (ignore) return;
+        setScrapCount(Number(data?.totalCount ?? 0));
+      } catch (fetchError) {
+        if (ignore) return;
+
+        console.error('[MemberDetailPanel] 스크랩 활동내역 건수 조회 실패', fetchError);
+        setScrapCount(null);
+        setScrapError('스크랩 건수를 불러오는데 실패했습니다.');
+      } finally {
+        if (!ignore) {
+          setScrapLoading(false);
+        }
+      }
+    }
+
+    // 선택 회원을 빠르게 바꿀 때 이전 스크랩 요약 응답이 새 상세를 덮지 않도록 history와 같은 guard를 둔다.
+    void fetchScrapCount();
+
+    return () => {
+      ignore = true;
+    };
+  }, [memberNo, isPersonalMember]);
+
   if (loading) {
     return (
       <div className="oncontent ontable-form" style={panelStyle}>
@@ -315,87 +395,97 @@ export default function MemberDetailPanel({
       ? '변경이력을 불러오는 중입니다.'
       : historyError ||
         (visibleHistoryRows.length === 0 ? '조회된 데이터가 없습니다.' : '');
+  const scrapCountText = scrapLoading
+    ? '조회 중'
+    : scrapError || `${scrapCount ?? 0} 건`;
 
   return (
-    <div className="oncontent ontable-form" style={panelStyle}>
-      <h4>{title}</h4>
-      <div className="ontableBox">
-        <table>
-          <colgroup>
-            <col style={{ width: '150px' }} />
-            <col style={{ width: 'auto' }} />
-          </colgroup>
-          <tbody>
-            {renderRows(rows)}
-            <tr>
-              <td>스마트 알림 사용 여부</td>
-              <td>
-                <div className="onflexrow">
-                  <span>{formatUseYn(member.smntUseYn)}</span>
-                  <Button btnType="search" btnNames="관심분야조회" disabled />
-                </div>
-              </td>
-            </tr>
-            {isEnterprise ? (
+    <>
+      <div className="oncontent ontable-form" style={panelStyle}>
+        <h4>{title}</h4>
+        <div className="ontableBox">
+          <table>
+            <colgroup>
+              <col style={{ width: '150px' }} />
+              <col style={{ width: 'auto' }} />
+            </colgroup>
+            <tbody>
+              {renderRows(rows)}
               <tr>
-                <td>증명(확인서) 신청 권한</td>
-                <td>{EMPTY_VALUE}</td>
+                <td>스마트 알림 사용 여부</td>
+                <td>
+                  <div className="onflexrow">
+                    <span>{formatUseYn(member.smntUseYn)}</span>
+                    <Button btnType="search" btnNames="관심분야조회" disabled />
+                  </div>
+                </td>
               </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
+              {isEnterprise ? (
+                <tr>
+                  <td>증명(확인서) 신청 권한</td>
+                  <td>{EMPTY_VALUE}</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="onflexbtns">
-        <div style={{ marginLeft: 'auto' }}>
-          <Button
-            btnType="edit"
-            btnNames="수정"
-            onClick={() => onEdit(member)}
-          />
+        <div className="onflexbtns">
+          <div style={{ marginLeft: 'auto' }}>
+            <Button
+              btnType="edit"
+              btnNames="수정"
+              onClick={() => onEdit(member)}
+            />
+          </div>
+        </div>
+
+        {!isEnterprise ? (
+          <>
+            <h4>활동내역</h4>
+            <div className="ontableBox" style={{ marginBottom: '30px' }}>
+              <table>
+                <colgroup>
+                  <col style={{ width: '150px' }} />
+                  <col style={{ width: 'auto' }} />
+                </colgroup>
+                <tbody>
+                  <tr>
+                    <td>스크랩</td>
+                    <td>
+                      <div className="onflexrow">
+                        <span>{scrapCountText}</span>
+                        <Button
+                          btnType="search"
+                          btnNames="상세보기"
+                          disabled={scrapLoading || Boolean(scrapError)}
+                          onClick={() => onOpenScrapActivity(member)}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>알림 수신</td>
+                    <td>
+                      <div className="onflexrow">
+                        <span>0 건</span>
+                        <Button btnType="search" btnNames="상세보기" disabled />
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : null}
+
+        <h4>회원정보 변경이력</h4>
+        {historyStatusText ? <p>{historyStatusText}</p> : null}
+        <div className="ongrid-tableform">
+          <GridTable data={visibleHistoryRows} columns={historyColumns} />
         </div>
       </div>
-
-      {!isEnterprise ? (
-        <>
-          <h4>활동내역</h4>
-          <div className="ontableBox" style={{ marginBottom: '30px' }}>
-            <table>
-              <colgroup>
-                <col style={{ width: '150px' }} />
-                <col style={{ width: 'auto' }} />
-              </colgroup>
-              <tbody>
-                <tr>
-                  <td>스크랩</td>
-                  <td>
-                    <div className="onflexrow">
-                      <span>0 건</span>
-                      <Button btnType="search" btnNames="상세보기" disabled />
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>알림 수신</td>
-                  <td>
-                    <div className="onflexrow">
-                      <span>0 건</span>
-                      <Button btnType="search" btnNames="상세보기" disabled />
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </>
-      ) : null}
-
-      <h4>회원정보 변경이력</h4>
-      {historyStatusText ? <p>{historyStatusText}</p> : null}
-      <div className="ongrid-tableform">
-        <GridTable data={visibleHistoryRows} columns={historyColumns} />
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -405,4 +495,5 @@ MemberDetailPanel.propTypes = {
   error: PropTypes.string,
   panelStyle: PropTypes.object,
   onEdit: PropTypes.func.isRequired,
+  onOpenScrapActivity: PropTypes.func.isRequired,
 };
