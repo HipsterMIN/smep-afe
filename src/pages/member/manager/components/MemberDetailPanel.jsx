@@ -242,6 +242,7 @@ export default function MemberDetailPanel({
   panelStyle,
   onEdit,
   onOpenScrapActivity,
+  onOpenNotificationActivity,
 }) {
   const [historyRows, setHistoryRows] = useState([]);
   const [historyMemberNo, setHistoryMemberNo] = useState('');
@@ -250,6 +251,9 @@ export default function MemberDetailPanel({
   const [scrapCount, setScrapCount] = useState(null);
   const [scrapLoading, setScrapLoading] = useState(false);
   const [scrapError, setScrapError] = useState('');
+  const [notificationCount, setNotificationCount] = useState(null);
+  const [notificationLoading, setNotificationLoading] = useState(false);
+  const [notificationError, setNotificationError] = useState('');
   const memberNo = member?.mbrNo;
   const memberModifiedAt = member?.mdfcnDt;
   const isPersonalMember = member?.mbrTypeCd === 'IND';
@@ -351,6 +355,58 @@ export default function MemberDetailPanel({
     };
   }, [memberNo, isPersonalMember]);
 
+  useEffect(() => {
+    if (!memberNo || !isPersonalMember) {
+      setNotificationCount(null);
+      setNotificationError('');
+      setNotificationLoading(false);
+      return undefined;
+    }
+
+    let ignore = false;
+
+    async function fetchNotificationCount() {
+      try {
+        setNotificationLoading(true);
+        setNotificationError('');
+        setNotificationCount(null);
+        const response = await http.post(
+          `/api/v1/member/${encodeURIComponent(memberNo)}/activity/notifications/search`,
+          {
+            cursorPageRequest: {
+              size: 1,
+              cursor: null,
+            },
+          }
+        );
+        const data = resolveCursorPagedPayload(response);
+
+        if (ignore) return;
+        setNotificationCount(Number(data?.totalCount ?? 0));
+      } catch (fetchError) {
+        if (ignore) return;
+
+        console.error(
+          '[MemberDetailPanel] 알림수신 활동내역 건수 조회 실패',
+          fetchError
+        );
+        setNotificationCount(null);
+        setNotificationError('알림수신 건수를 불러오는데 실패했습니다.');
+      } finally {
+        if (!ignore) {
+          setNotificationLoading(false);
+        }
+      }
+    }
+
+    // 선택 회원을 빠르게 바꿀 때 이전 알림수신 요약 응답이 새 상세를 덮지 않도록 guard를 둔다.
+    void fetchNotificationCount();
+
+    return () => {
+      ignore = true;
+    };
+  }, [memberNo, isPersonalMember]);
+
   if (loading) {
     return (
       <div className="oncontent ontable-form" style={panelStyle}>
@@ -398,6 +454,9 @@ export default function MemberDetailPanel({
   const scrapCountText = scrapLoading
     ? '조회 중'
     : scrapError || `${scrapCount ?? 0} 건`;
+  const notificationCountText = notificationLoading
+    ? '조회 중'
+    : notificationError || `${notificationCount ?? 0} 건`;
 
   return (
     <>
@@ -468,8 +527,15 @@ export default function MemberDetailPanel({
                     <td>알림 수신</td>
                     <td>
                       <div className="onflexrow">
-                        <span>0 건</span>
-                        <Button btnType="search" btnNames="상세보기" disabled />
+                        <span>{notificationCountText}</span>
+                        <Button
+                          btnType="search"
+                          btnNames="상세보기"
+                          disabled={
+                            notificationLoading || Boolean(notificationError)
+                          }
+                          onClick={() => onOpenNotificationActivity(member)}
+                        />
                       </div>
                     </td>
                   </tr>
@@ -496,4 +562,5 @@ MemberDetailPanel.propTypes = {
   panelStyle: PropTypes.object,
   onEdit: PropTypes.func.isRequired,
   onOpenScrapActivity: PropTypes.func.isRequired,
+  onOpenNotificationActivity: PropTypes.func.isRequired,
 };
