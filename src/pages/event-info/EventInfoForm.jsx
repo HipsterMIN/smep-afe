@@ -389,7 +389,7 @@ export default function EventInfoForm() {
                     />
                     {form.strmdcsId && (
                       <a
-                        href={`http://192.168.16.82:8088/venturein-pdf/view/sd;streamdocsId=${form.strmdcsId}`}
+                        href={`http://192.168.16.82:8088/e-paper/view/sd;streamdocsId=${form.strmdcsId}`}
                         target="_blank"
                         rel="noreferrer"
                       >

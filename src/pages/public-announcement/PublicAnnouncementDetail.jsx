@@ -731,7 +731,7 @@ export default function PublicAnnouncementDetail({
                     />
                     {form.strmdcsId && (
                       <a
-                        href={`http://192.168.16.82:8088/venturein-pdf/view/sd;streamdocsId=${form.strmdcsId}`}
+                        href={`http://192.168.16.82:8088/e-paper/view/sd;streamdocsId=${form.strmdcsId}`}
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -789,7 +789,7 @@ export default function PublicAnnouncementDetail({
                         flex-direction: column;
                         gap: 12px;
                       }
-                    
+
                       .save-loading-spinner {
                         width: 44px;
                         height: 44px;
@@ -798,13 +798,13 @@ export default function PublicAnnouncementDetail({
                         border-radius: 50%;
                         animation: save-spin 0.8s linear infinite;
                       }
-                    
+
                       .save-loading-text {
                         margin: 0;
                         font-size: 14px;
                         color: #333;
                       }
-                    
+
                       @keyframes save-spin {
                         to { transform: rotate(360deg); }
                       }`}
