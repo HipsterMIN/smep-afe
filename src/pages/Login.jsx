@@ -1,14 +1,45 @@
+import '@styles/onCommon.css';
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import icoLogo from '../assets/images/common/login_logo.svg';
+import CheckBox from '../components/ui/CheckBox.jsx';
 import { useAuth } from '../context/AuthContext';
 
+const SAVED_USERNAME_KEY = 'smep-admin:login:username';
+
+const getSavedUsername = () => {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  return window.localStorage.getItem(SAVED_USERNAME_KEY) || '';
+};
+
 export default function Login() {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(getSavedUsername);
   const [password, setPassword] = useState('');
+  const [isUsernameSaved, setIsUsernameSaved] = useState(
+    () => !!getSavedUsername()
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login, temporaryLogin } = useAuth();
+
+  const updateSavedUsername = (nextUsername) => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (isUsernameSaved) {
+      window.localStorage.setItem(SAVED_USERNAME_KEY, nextUsername);
+      return;
+    }
+
+    window.localStorage.removeItem(SAVED_USERNAME_KEY);
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -17,10 +48,19 @@ export default function Login() {
 
     const res = await login(username, password);
     if (res.success) {
+      updateSavedUsername(username);
       navigate('/');
     } else {
       setError(res.error || '로그인에 실패했습니다.');
       setIsSubmitting(false);
+    }
+  };
+
+  const onUsernameSaveChange = ({ checked }) => {
+    setIsUsernameSaved(checked);
+
+    if (!checked && typeof window !== 'undefined') {
+      window.localStorage.removeItem(SAVED_USERNAME_KEY);
     }
   };
 
@@ -38,66 +78,85 @@ export default function Login() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 380,
-        margin: '80px auto',
-        padding: 20,
-        border: '1px solid #eee',
-        borderRadius: 8,
-      }}
-    >
-      <h2 style={{ marginBottom: 16 }}>관리자 로그인</h2>
-      <form onSubmit={onSubmit}>
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ display: 'block', fontSize: 12, color: '#666' }}>
-            아이디
-          </label>
-          <input
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="admin"
-            style={{
-              width: '100%',
-              padding: '8px 10px',
-              border: '1px solid #ddd',
-              borderRadius: 4,
-            }}
-          />
+    <div className="wrapper">
+      <div className="onLoginInner">
+        <div className="onLoginViewBox">
+          <form className="onContents" onSubmit={onSubmit}>
+            <h1 className="onLoginlogo">
+              <a href="/" aria-label="중소기업통합플랫폼 홈">
+                <img src={icoLogo} alt="중소기업통합플랫폼" />
+              </a>
+            </h1>
+            <h4>관리자</h4>
+            <div className="loginform">
+              <label htmlFor="loginId" className="id">
+                <span className="sr-only">아이디</span>
+                <input
+                  type="text"
+                  id="loginId"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="아이디"
+                  autoComplete="username"
+                />
+              </label>
+
+              <label htmlFor="loginPw" className="pw">
+                <span className="sr-only">비밀번호</span>
+                <input
+                  type="password"
+                  id="loginPw"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="비밀번호"
+                  autoComplete="current-password"
+                />
+              </label>
+            </div>
+            {/* 퍼블리싱의 좌측 여백은 유지하되 모바일 수평 overflow가 생기지 않도록 폭만 줄인다. */}
+            <div className="autochkform" style={{ width: 'calc(100% - 18px)' }}>
+              <CheckBox
+                chkId="autoIdChk"
+                chkName="아이디 저장"
+                checked={isUsernameSaved}
+                onChange={onUsernameSaveChange}
+              />
+            </div>
+            {error && (
+              <p
+                role="alert"
+                style={{
+                  width: '100%',
+                  margin: '0 0 16px',
+                  color: '#BD2C0F',
+                  fontSize: 14,
+                  fontWeight: 500,
+                }}
+              >
+                {error}
+              </p>
+            )}
+            <div className="btnsform">
+              <button
+                className="loginBtn"
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? '로그인 중...' : '로그인'}
+              </button>
+              {/* 인증서 버튼 자리: 인증서 연계 전까지 같은 퍼블리싱 슬롯을 임시로그인에 사용한다. */}
+              <button
+                className="changeBtn"
+                type="button"
+                onClick={onTemporaryLogin}
+                disabled={isSubmitting}
+              >
+                임시로그인
+              </button>
+            </div>
+          </form>
         </div>
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', fontSize: 12, color: '#666' }}>
-            비밀번호
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••"
-            style={{
-              width: '100%',
-              padding: '8px 10px',
-              border: '1px solid #ddd',
-              borderRadius: 4,
-            }}
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          style={{ width: '100%', padding: '10px 14px' }}
-        >
-          {isSubmitting ? '로그인 중...' : '로그인'}
-        </button>
-      </form>
-      <button
-        onClick={onTemporaryLogin}
-        disabled={isSubmitting}
-        style={{ width: '100%', padding: '10px 14px', marginTop: 8 }}
-      >
-        임시로그인(아이디만)
-      </button>
-      {error && <p style={{ color: 'red', marginTop: 12 }}>{error}</p>}
+      </div>
     </div>
   );
 }

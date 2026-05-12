@@ -3,7 +3,6 @@ import AuthBar from '@components/AuthBar.jsx';
 import { UserMenuProvider } from '@context/UserMenuContext.jsx';
 import AdminLayout from '@layouts/AdminLayout.jsx';
 import Login from '@pages/Login.jsx';
-import LoginView from '@pages/LoginView.jsx';
 import MainPage from '@pages/MainPage.jsx';
 import LoginInfoUpdate from '@pages/member/login-info/LoginInfoUpdate.jsx';
 import PublishingMain from '@publishing/PublishingMain.jsx';
@@ -47,7 +46,6 @@ export const staticRoutes = [
     독립 Route (Layout 없음)
   */
   { path: '/login', element: <Login /> },
-  { path: '/LoginView', element: <LoginView /> },
   { path: '/login-info', element: <LoginInfoUpdate /> },
 
   //=============================================================================
