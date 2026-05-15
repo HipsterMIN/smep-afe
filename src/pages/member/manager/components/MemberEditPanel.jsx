@@ -6,6 +6,8 @@ import { formatDate } from '@utils/stringUtils.js';
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 
+import MemberItrstFldPopup from './MemberItrstFldPopup.jsx';
+
 const DEFAULT_FORM = {
   mbrNo: '',
   lgnId: '',
@@ -107,9 +109,11 @@ export default function MemberEditPanel({
   onSavingChange,
 }) {
   const [formData, setFormData] = useState(DEFAULT_FORM);
+  const [interestPopupOpen, setInterestPopupOpen] = useState(false);
 
   useEffect(() => {
     setFormData(buildInitialForm(member));
+    setInterestPopupOpen(false);
   }, [member]);
 
   if (!member) {
@@ -244,7 +248,8 @@ export default function MemberEditPanel({
   const statusSelectOptions = statusOptions.length > 0 ? statusOptions : [];
 
   return (
-    <div className="oncontent ontable-form" style={panelStyle}>
+    <>
+      <div className="oncontent ontable-form" style={panelStyle}>
       <h4>{title}</h4>
       <div className="ontableBox">
         <table>
@@ -443,7 +448,12 @@ export default function MemberEditPanel({
                       onChange={handleRadioChange('smntUseYn')}
                     />
                   </div>
-                  <Button btnType="search" btnNames="관심분야설정" disabled />
+                  <Button
+                    btnType="search"
+                    btnNames="관심분야설정"
+                    onClick={() => setInterestPopupOpen(true)}
+                    disabled={saving || !formData.lgnId}
+                  />
                 </div>
               </td>
             </tr>
@@ -457,21 +467,28 @@ export default function MemberEditPanel({
         </table>
       </div>
 
-      <div className="onflexbtns" style={{ justifyContent: 'flex-end' }}>
-        <Button
-          btnType="add"
-          btnNames={saving ? '저장중...' : '저장'}
-          onClick={handleSave}
-          disabled={saving}
-        />
-        <Button
-          btnType="del"
-          btnNames="취소"
-          onClick={onCancel}
-          disabled={saving}
-        />
+        <div className="onflexbtns" style={{ justifyContent: 'flex-end' }}>
+          <Button
+            btnType="add"
+            btnNames={saving ? '저장중...' : '저장'}
+            onClick={handleSave}
+            disabled={saving}
+          />
+          <Button
+            btnType="del"
+            btnNames="취소"
+            onClick={onCancel}
+            disabled={saving}
+          />
+        </div>
       </div>
-    </div>
+      {interestPopupOpen ? (
+        <MemberItrstFldPopup
+          member={formData}
+          onClose={() => setInterestPopupOpen(false)}
+        />
+      ) : null}
+    </>
   );
 }
 

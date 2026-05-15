@@ -1,0 +1,28 @@
+.member-interest-popup {
+  width: 100%;
+}
+
+.oncontents.space .popup .oncontent.member-interest-popup {
+  width: 100%;
+}
+
+.member-interest-popup .oncheckBox {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  row-gap: 10px;
+}
+
+.member-interest-popup .onchkLabel {
+  flex: 0 0 auto;
+  max-width: 100%;
+}
+
+.member-interest-popup .onchkLabel::before {
+  flex: 0 0 16px;
+}
+
+.member-interest-popup .onchkLabel span.onchkName {
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
