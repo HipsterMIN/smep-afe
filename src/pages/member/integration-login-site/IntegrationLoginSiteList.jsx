@@ -1,5 +1,6 @@
 import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button.jsx';
+import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
@@ -159,10 +160,28 @@ export default function IntegrationLoginSiteList() {
     navigate(`${linkSiteCd}/update`);
   };
 
+  const handleMoveToDetail = (linkSiteCd) => {
+    if (!linkSiteCd || linkSiteCd === '-') {
+      alert('사이트코드가 없습니다.');
+      return;
+    }
+    navigate(`${linkSiteCd}`);
+  };
+
+  const siteNameActionCell = createGridValueActionCell({
+    getValue: (row) => {
+      const text = row?.siteNm || '-';
+      return <span title={text === '-' ? '' : text}>{text}</span>;
+    },
+    fallback: '-',
+    onClick: (row) => handleMoveToDetail(row?.linkSiteCd),
+    variant: 'link',
+  });
+
   const columns = [
     { id: 'no', header: '순번', width: 44 },
     { id: 'linkSiteCd', header: '사이트코드', width: 208 },
-    { id: 'siteNm', header: '사이트명', width: 350 },
+    { id: 'siteNm', header: '사이트명', width: 350, cell: siteNameActionCell },
     { id: 'siteMngInstNm', header: '관리기관', width: 300 },
     { id: 'linkUseTrgtSeCdNm', header: '회원유형', width: 100 },
     { id: 'prtlSysExpsrYnNm', header: '노출여부', width: 90 },
