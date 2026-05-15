@@ -5,6 +5,8 @@ import { formatDate } from '@utils/stringUtils.js';
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 
+import MemberItrstFldPopup from './MemberItrstFldPopup.jsx';
+
 const EMPTY_VALUE = '-';
 
 function formatValue(value) {
@@ -254,6 +256,7 @@ export default function MemberDetailPanel({
   const [notificationCount, setNotificationCount] = useState(null);
   const [notificationLoading, setNotificationLoading] = useState(false);
   const [notificationError, setNotificationError] = useState('');
+  const [interestPopupOpen, setInterestPopupOpen] = useState(false);
   const memberNo = member?.mbrNo;
   const memberModifiedAt = member?.mdfcnDt;
   const isPersonalMember = member?.mbrTypeCd === 'IND';
@@ -475,7 +478,12 @@ export default function MemberDetailPanel({
                 <td>
                   <div className="onflexrow">
                     <span>{formatUseYn(member.smntUseYn)}</span>
-                    <Button btnType="search" btnNames="관심분야조회" disabled />
+                    <Button
+                      btnType="search"
+                      btnNames="관심분야조회"
+                      onClick={() => setInterestPopupOpen(true)}
+                      disabled={!member?.lgnId}
+                    />
                   </div>
                 </td>
               </tr>
@@ -551,6 +559,13 @@ export default function MemberDetailPanel({
           <GridTable data={visibleHistoryRows} columns={historyColumns} />
         </div>
       </div>
+      {interestPopupOpen ? (
+        <MemberItrstFldPopup
+          member={member}
+          readOnly
+          onClose={() => setInterestPopupOpen(false)}
+        />
+      ) : null}
     </>
   );
 }

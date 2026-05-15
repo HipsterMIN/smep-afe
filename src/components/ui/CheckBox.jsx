@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import PropTypes from 'prop-types';
 
 // 관리자 화면 - checkbox 컴포넌트
 export default function CheckBox({
@@ -6,6 +6,7 @@ export default function CheckBox({
                                    chkName,
                                    value,
                                    checked = false,
+                                   disabled = false,
                                    onChange,
                                  }) {
   const handleChange = (e) => {
@@ -25,9 +26,19 @@ export default function CheckBox({
             type="checkbox"
             value={value}
             checked={checked}
+            disabled={disabled}
             onChange={handleChange}
         />
         {chkName && <span className="onchkName">{chkName}</span>}
       </label>
   );
 }
+
+CheckBox.propTypes = {
+  chkId: PropTypes.string.isRequired,
+  chkName: PropTypes.string,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  checked: PropTypes.bool,
+  disabled: PropTypes.bool,
+  onChange: PropTypes.func,
+};
