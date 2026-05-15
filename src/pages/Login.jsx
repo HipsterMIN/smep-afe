@@ -144,12 +144,20 @@ export default function Login() {
               >
                 {isSubmitting ? '로그인 중...' : '로그인'}
               </button>
-              {/* 인증서 버튼 자리: 인증서 연계 전까지 같은 퍼블리싱 슬롯을 임시로그인에 사용한다. */}
+              {/* 간편인증 연계 전까지 표시 슬롯을 유지하고, 개발용 임시로그인은 아래 버튼에서만 처리한다. */}
+              <button
+                className="changeBtn"
+                type="button"
+                disabled={isSubmitting}
+              >
+                공동인증서 인증
+              </button>
               <button
                 className="changeBtn"
                 type="button"
                 onClick={onTemporaryLogin}
                 disabled={isSubmitting}
+                style={{ marginTop: 12 }}
               >
                 임시로그인
               </button>

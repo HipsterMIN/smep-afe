@@ -17,6 +17,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 const GDS_TYPE_LOAN = 'FT01';
 const GDS_TYPE_GRNTE = 'FT02';
 const GDS_TYPE_INSRNC = 'FT03';
+const CREATE_PRODUCT_TYPE_CODES = new Set([
+  GDS_TYPE_LOAN,
+  GDS_TYPE_GRNTE,
+  GDS_TYPE_INSRNC,
+]);
+const USE_YN_CODES = new Set(['Y', 'N']);
 
 const COMMON_CODE_GROUPS = [
   'PLCY_FNNC_GDS_TYPE_CD',
@@ -159,6 +165,40 @@ const joinArrayToCsv = (values) => {
 };
 
 const toSelectOptions = (options = []) => [{ value: '', label: '선택' }, ...options];
+
+const optionContainsValue = (options = [], value) => {
+  const normalized = normalizeSelectValue(value);
+  if (!normalized) return false;
+  return options.some((option) => normalizeSelectValue(option.value) === normalized);
+};
+
+const validateSingleOptionValue = (label, value, options = []) => {
+  const normalized = normalizeSelectValue(value);
+  if (!normalized) return true;
+  if (optionContainsValue(options, normalized)) return true;
+  alert(`${label} 값을 다시 선택해주세요.`);
+  return false;
+};
+
+const validateMultiOptionValues = (label, values, options = []) => {
+  const selectedValues = Array.isArray(values) ? values : [];
+  const invalidValue = selectedValues
+    .map((value) => normalizeSelectValue(value))
+    .find((value) => value && !optionContainsValue(options, value));
+  if (!invalidValue) return true;
+  alert(`${label} 값을 다시 선택해주세요.`);
+  return false;
+};
+
+const validateMaxLength = (label, value, maxLength) => {
+  if (value === null || value === undefined) return true;
+  if (String(value).trim().length <= maxLength) return true;
+  alert(`${label}은(는) ${maxLength}자 이하로 입력해주세요.`);
+  return false;
+};
+
+const validateCsvMaxLength = (label, values, maxLength) =>
+  validateMaxLength(label, joinArrayToCsv(values) || '', maxLength);
 
 const createCheckboxId = (fieldName, value) =>
   `${fieldName}_${String(value).replace(/[^A-Za-z0-9_-]/g, '_')}`;
@@ -423,6 +463,180 @@ export default function PolicyFinanceForm({ mode }) {
       alert('상품명을 입력해주세요.');
       return false;
     }
+    const normalizedUseYn = normalizeSelectValue(form.useYn);
+    if (!USE_YN_CODES.has(normalizedUseYn)) {
+      alert('사용여부를 다시 선택해주세요.');
+      return false;
+    }
+    if (!isUpdateMode) {
+      const normalizedTypeCd = normalizeSelectValue(form.plcyFnncGdsTypeCd);
+      if (
+        !CREATE_PRODUCT_TYPE_CODES.has(normalizedTypeCd) ||
+        !optionContainsValue(productTypeOptions, normalizedTypeCd)
+      ) {
+        alert('상품유형은 대출, 보증, 보증보험 중에서 선택해주세요.');
+        return false;
+      }
+      if (!validateSingleOptionValue('승인여부', form.plcyFnncSttsCd, approvalStatusOptions)) {
+        return false;
+      }
+      if (
+        !validateSingleOptionValue(
+          '접수상황',
+          form.plcyFnncRcptSttsCd,
+          receiptStatusOptions
+        )
+      ) {
+        return false;
+      }
+      if (!validateMultiOptionValues('신청방식', form.plcyFnncAplyMthCd, applyMethodOptions)) {
+        return false;
+      }
+      if (!validateMultiOptionValues('기업규모', form.plcyFnncEntSclCd, companyScaleOptions)) {
+        return false;
+      }
+      if (
+        !validateMultiOptionValues(
+          '추가상세조건',
+          form.plcyFnncAddDtlCndCn,
+          preferredTypeOptions
+        )
+      ) {
+        return false;
+      }
+      if (form.plcyFnncGdsTypeCd === GDS_TYPE_LOAN) {
+        if (
+          !validateMultiOptionValues('지원대상자금', form.loanSprtTrgtFndsCn, loanFundsOptions) ||
+          !validateMultiOptionValues('대출방식', form.loanMthCn, loanMethodOptions) ||
+          !validateMultiOptionValues('금리유형', form.flctnIrtYnCn, rateTypeOptions) ||
+          !validateSingleOptionValue('대출기간요약', form.loanPrdSmryCd, loanPeriodSummaryOptions) ||
+          !validateMultiOptionValues('상환방식', form.loanRpmtMthdCd, repaymentMethodOptions)
+        ) {
+          return false;
+        }
+      }
+      if (form.plcyFnncGdsTypeCd === GDS_TYPE_GRNTE) {
+        if (
+          !validateMultiOptionValues(
+            '보증지원대상자금용도',
+            form.grnteSprtTrgtFndsUsgCn,
+            grnteFundsUsageOptions
+          ) ||
+          !validateMultiOptionValues('보증상품종류', form.grnteGdsKndCd, grnteGoodsKindOptions) ||
+          !validateSingleOptionValue('보증비율요약', form.grnteRtSmryCd, grnteRateSummaryCodeOptions)
+        ) {
+          return false;
+        }
+      }
+      if (form.plcyFnncGdsTypeCd === GDS_TYPE_INSRNC) {
+        if (
+          !validateSingleOptionValue(
+            '보험보상비율요약',
+            form.insrncCmpnRtSmryCd,
+            insrncCmpnSummaryCodeOptions
+          )
+        ) {
+          return false;
+        }
+      }
+      const lengthRules = [
+        ['상품유형', form.plcyFnncGdsTypeCd, 20],
+        ['상품명', form.plcyFnncGdsNm, 200],
+        ['사업수행기관', form.plcyFnncBizFlfmtInstNm, 200],
+        ['상품목적', form.plcyFnncGdsPrpsCn, 2000],
+        ['지원대상', form.plcyFnncSprtTrgtCn, 2000],
+        ['지원한도', form.plcyFnncSprtLimCn, 2000],
+        ['지원한도요약', form.plcyFnncSprtLimSmryCn, 2000],
+        ['지원제외대상', form.plcyFnncSprtExclTrgtCn, 4000],
+        ['관할지역', form.cmptncRgnNm, 500],
+        ['문의내용', form.plcyFnncInqCn, 500],
+        ['신청시작일시', form.plcyFnncAplyBgngDtCn, 200],
+        ['신청마감일시', form.plcyFnncAplyDdlnDtCn, 200],
+        ['상세URL', form.plcyFnncDtlUrlAddr, 1000],
+        ['문의처URL', form.plcyFnncInqplUrlAddr, 1000],
+        ['승인여부', form.plcyFnncSttsCd, 10],
+        ['첨부파일URL', form.plcyFnncAtchFileUrlAddr, 1000],
+        ['기업규모요약', form.plcyFnncEntSclSmryCn, 200],
+        ['업종명', form.plcyFnncTpbizNm, 200],
+        ['업종상세분류명', form.plcyFnncTpbizDtlClsfNm, 100],
+        ['접수상황', form.plcyFnncRcptSttsCd, 50],
+        ['신청URL', form.plcyFnncAplyUrlAddr, 1000],
+        ['사용여부', form.useYn, 1],
+      ];
+      if (!lengthRules.every(([label, value, maxLength]) => validateMaxLength(label, value, maxLength))) {
+        return false;
+      }
+      if (
+        !validateCsvMaxLength('신청방식', form.plcyFnncAplyMthCd, 50) ||
+        !validateCsvMaxLength('기업규모', form.plcyFnncEntSclCd, 100) ||
+        !validateCsvMaxLength('추가상세조건', form.plcyFnncAddDtlCndCn, 500)
+      ) {
+        return false;
+      }
+      if (form.plcyFnncGdsTypeCd === GDS_TYPE_LOAN) {
+        const loanLengthRules = [
+          ['지원대상자금요약', form.loanSprtTrgtFndsSmryCn, 200],
+          ['대출신청가능여부', form.loanAplyPsbltyYnCn, 300],
+          ['매출액', form.slsAmtCn, 200],
+          ['업력', form.tpbizHstryCn, 200],
+          ['우대조건', form.loanPrtrtCndCn, 4000],
+          ['기준금리', form.crtrIrtCn, 500],
+          ['대출금리', form.loanIrtCn, 2000],
+          ['대출기간', form.loanPrdCn, 2000],
+          ['대출기간요약', form.loanPrdSmryCd, 10],
+          ['거치기간', form.dfmtPrdCn, 2000],
+          ['추천기관', form.loanRcmdtnInstNm, 200],
+          ['대상업종명', form.thmTpbizNm, 100],
+        ];
+        if (!loanLengthRules.every(([label, value, maxLength]) => validateMaxLength(label, value, maxLength))) {
+          return false;
+        }
+        if (
+          !validateCsvMaxLength('지원대상자금', form.loanSprtTrgtFndsCn, 50) ||
+          !validateCsvMaxLength('대출방식', form.loanMthCn, 500) ||
+          !validateCsvMaxLength('금리유형', form.flctnIrtYnCn, 20) ||
+          !validateCsvMaxLength('상환방식', form.loanRpmtMthdCd, 50)
+        ) {
+          return false;
+        }
+      }
+      if (form.plcyFnncGdsTypeCd === GDS_TYPE_GRNTE) {
+        const grnteLengthRules = [
+          ['보증지원대상자금용도요약', form.grnteSprtTrgtFndsUsgSmryCn, 200],
+          ['우대조건', form.grntePrtrtCndCn, 4000],
+          ['보증비율', form.grnteRtCn, 200],
+          ['보증비율요약', form.grnteRtSmryCn, 200],
+          ['보증비율요약코드', form.grnteRtSmryCd, 10],
+          ['보증료', form.grfeCn, 2000],
+          ['추천기관', form.grnteRcmdtnInstNm, 200],
+        ];
+        if (!grnteLengthRules.every(([label, value, maxLength]) => validateMaxLength(label, value, maxLength))) {
+          return false;
+        }
+        if (
+          !validateCsvMaxLength('보증지원대상자금용도', form.grnteSprtTrgtFndsUsgCn, 20) ||
+          !validateCsvMaxLength('보증상품종류', form.grnteGdsKndCd, 50)
+        ) {
+          return false;
+        }
+      }
+      if (form.plcyFnncGdsTypeCd === GDS_TYPE_INSRNC) {
+        const insrncLengthRules = [
+          ['보험지급금액', form.insrncGiveAmtCn, 2000],
+          ['보험지급금액요약', form.insrncGiveAmtSmryCn, 2000],
+          ['보험료', form.ispmCn, 2000],
+          ['우대조건', form.insrncPrtrtCndCn, 4000],
+          ['보험료우대조건', form.insrncIspmPrtrtCndCn, 500],
+          ['보상비율', form.insrncCmpnRtCn, 300],
+          ['보상비율요약', form.insrncCmpnRtSmryCn, 300],
+          ['보상비율요약코드', form.insrncCmpnRtSmryCd, 10],
+          ['보증유효기간', form.insrncScrtVldPrdCn, 200],
+        ];
+        if (!insrncLengthRules.every(([label, value, maxLength]) => validateMaxLength(label, value, maxLength))) {
+          return false;
+        }
+      }
+    }
     const { overLengthToken } = parseHashtagInputToNameArray(form.hstgNmsInput);
     if (overLengthToken) {
       alert(`해시태그는 항목별 100자 이하로 입력해주세요: ${overLengthToken}`);
@@ -540,16 +754,17 @@ export default function PolicyFinanceForm({ mode }) {
     setForm((prev) => ({
       ...prev,
       plcyFnncGdsTypeCd:
-        prev.plcyFnncGdsTypeCd || productTypeOptions[0]?.value || '',
+        prev.plcyFnncGdsTypeCd ||
+        productTypeOptions.find((option) =>
+          CREATE_PRODUCT_TYPE_CODES.has(normalizeSelectValue(option.value))
+        )?.value ||
+        '',
       plcyFnncSttsCd: prev.plcyFnncSttsCd || approvalStatusOptions[0]?.value || '',
-      plcyFnncRcptSttsCd:
-        prev.plcyFnncRcptSttsCd || receiptStatusOptions[0]?.value || '',
     }));
   }, [
     isUpdateMode,
     productTypeOptions,
     approvalStatusOptions,
-    receiptStatusOptions,
   ]);
 
   if (loading) {
@@ -563,7 +778,13 @@ export default function PolicyFinanceForm({ mode }) {
   }
 
   const institutionSelectOptions = toSelectOptions(institutionOptions);
-  const typeSelectOptions = toSelectOptions(productTypeOptions);
+  const typeSelectOptions = toSelectOptions(
+    isUpdateMode
+      ? productTypeOptions
+      : productTypeOptions.filter((option) =>
+          CREATE_PRODUCT_TYPE_CODES.has(normalizeSelectValue(option.value))
+        )
+  );
   const receiptSelectOptions = toSelectOptions(receiptStatusOptions);
   const loanPeriodSummarySelectOptions = toSelectOptions(loanPeriodSummaryOptions);
   const grnteRateSummarySelectOptions = toSelectOptions(
