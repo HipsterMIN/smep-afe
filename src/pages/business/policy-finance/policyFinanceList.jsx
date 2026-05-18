@@ -1,3 +1,4 @@
+import policyFinanceGuidePdfUrl from '@assets/guide/중소벤처24_사용자매뉴얼_정책금융관리(관리자).pdf';
 import Button from '@components/ui/Button';
 import { createGridValueActionCell } from '@components/ui/createGridValueActionCell.jsx';
 import GridTable from '@components/ui/GridTable';
@@ -14,6 +15,8 @@ import { useNavigate } from 'react-router-dom';
 const PAGE_SIZE = 20;
 const MENU_ID_SMS_SEND = 'M_PIIO_00130';
 const MENU_ID_EMAIL_SEND = 'M_PIIO_00131';
+const POLICY_FINANCE_GUIDE_FILE_NAME =
+  '중소벤처24_사용자매뉴얼_정책금융관리(관리자).pdf';
 const POLICY_FINANCE_COMMON_CODE_GROUPS = [
   'PLCY_FNNC_GDS_TYPE_CD',
   'PLCY_FNNC_STTS_CD',
@@ -342,6 +345,15 @@ export default function PolicyFinanceList() {
     alert(`${menuName} 메뉴 경로를 찾을 수 없습니다.`);
   };
 
+  const handleDownloadGuide = () => {
+    const link = document.createElement('a');
+    link.href = policyFinanceGuidePdfUrl;
+    link.download = POLICY_FINANCE_GUIDE_FILE_NAME;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
   const loadCommonCodeOptions = async () => {
     try {
       const codes = await fetchAndConvertCommonCodes(
@@ -490,7 +502,7 @@ export default function PolicyFinanceList() {
               총 <b>{totalCount.toLocaleString()}</b>건
             </span>
             <div className="onbtns">
-              <Button
+              {/*<Button
                 btnType="add"
                 btnNames="메세지 작성"
                 onClick={() =>
@@ -503,8 +515,12 @@ export default function PolicyFinanceList() {
                 onClick={() =>
                   handleMoveByMenuId(MENU_ID_EMAIL_SEND, '이메일 발송', 'create')
                 }
+              />*/}
+              <Button
+                btnType="list"
+                btnNames="이용 가이드"
+                onClick={handleDownloadGuide}
               />
-              <Button btnType="list" btnNames="이용 가이드" />
               <Button
                 btnType="add"
                 btnNames="등록"
