@@ -25,6 +25,19 @@ const COMMON_CODE_GROUPS = [
   'BIZ_PBANC_SPRT_INST_CD',
 ];
 
+const STREAMDOCS_VIEWER_URL =
+  import.meta.env.VITE_STREAMDOCS_VIEWER_URL ||
+  'https://www.smes.go.kr/e-paper/view/sd';
+
+const openStreamDocsPreview = (streamdocsId) => {
+  if (!streamdocsId) return;
+  window.open(
+    `${STREAMDOCS_VIEWER_URL};streamdocsId=${encodeURIComponent(streamdocsId)}`,
+    '_blank',
+    'noopener,noreferrer'
+  );
+};
+
 export default function PublicAnnouncementDetail({
   bizPbancTypeCd = PUBLIC_ANNOUNCEMENT_TYPE.BUSINESS,
   listPath = '/sprtBiz/bizPbanc/sprtBizPbanc',
@@ -106,6 +119,7 @@ export default function PublicAnnouncementDetail({
     atchFileSn: file.atchFileSn, // 다운로드용
     fileName: file.orgnlFileNm,
     fileSize: file.fileSz ?? 0,
+    strmdcsId: file.strmdcsId,
     status: 'existing',
   });
 
@@ -728,16 +742,13 @@ export default function PublicAnnouncementDetail({
                       fileType="notice"
                       files={noticeFiles}
                       onFilesChange={setNoticeFiles}
+                      getPreviewId={(file, index) =>
+                        file?.strmdcsId || (index === 0 ? form.strmdcsId : '')
+                      }
+                      onPreviewFile={(file, previewId) =>
+                        openStreamDocsPreview(previewId)
+                      }
                     />
-                    {form.strmdcsId && (
-                      <a
-                        href={`http://192.168.16.82:8088/e-paper/view/sd;streamdocsId=${form.strmdcsId}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        미리보기임시
-                      </a>
-                    )}
                   </td>
                 </tr>
                 <tr>
@@ -749,6 +760,9 @@ export default function PublicAnnouncementDetail({
                       fileType="attachment"
                       files={attachFiles}
                       onFilesChange={setAttachFiles}
+                      onPreviewFile={(file, previewId) =>
+                        openStreamDocsPreview(previewId)
+                      }
                     />
                   </td>
                 </tr>

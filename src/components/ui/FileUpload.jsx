@@ -8,7 +8,9 @@ export default function FileUpload({
   maxFiles = 5,
   fileType = 'attachment', // 'notice' | 'attachment'
   files = [],
-  onFilesChange = () => {}
+  onFilesChange = () => {},
+  getPreviewId = (file) => file?.strmdcsId,
+  onPreviewFile = null
 }) {
   const fileInputRef = useRef(null);
 
@@ -131,7 +133,10 @@ export default function FileUpload({
         {visibleFiles.length === 0 ? (
           <p className="onnofiles">등록된 파일이 없습니다.</p>
         ) : (
-          visibleFiles.map((file) => (
+          visibleFiles.map((file, index) => {
+            const previewId =
+              typeof getPreviewId === 'function' ? getPreviewId(file, index) : file?.strmdcsId;
+            return (
             <div key={file.id} className="ondownloadlinkbox">
               <a
                 href="#"
@@ -143,6 +148,16 @@ export default function FileUpload({
                 {file.status === 'new' ? ' (신규)' : ''}
                 {` (${getFileSizeDisplay(file.fileSize)}) `}
               </a>
+              {previewId && typeof onPreviewFile === 'function' && (
+                <button
+                  type="button"
+                  className="ondownloadlink"
+                  onClick={() => onPreviewFile(file, previewId)}
+                >
+                  <i className="onicon search"></i>
+                  미리보기
+                </button>
+              )}
               {mode === 'edit' && (
                 <button
                   className="onfiledeletebtn"
@@ -154,7 +169,8 @@ export default function FileUpload({
                 </button>
               )}
             </div>
-          ))
+          );
+          })
         )}
       </div>
     </div>
