@@ -105,7 +105,7 @@ export default function AccessAllowIp() {
     const isEnabling = row.useYn !== 'Y';
     const statusName = isEnabling ? '사용함' : '사용안함';
     try {
-      await http.patch(`/api/v1/access-allowIp/${row.mngrPrmIpNo}/${action}`);
+      await http.post(`/api/v1/access-allowIp/update/${row.mngrPrmIpNo}/${action}`);
       alert(`상태가 [${statusName}]으로 변경되었습니다.`);
       fetchAccessAllowIps(null, true);
     } catch (error) {

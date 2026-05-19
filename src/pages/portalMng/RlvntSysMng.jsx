@@ -350,8 +350,8 @@ export default function RlvntSysMng() {
 
     try {
       if (isEditMode) {
-        const response = await http.put(
-          `${API_BASE_URL}/${encodeURIComponent(selectedInstSysMngSn)}`,
+        const response = await http.post(
+          `${API_BASE_URL}/update/${encodeURIComponent(selectedInstSysMngSn)}`,
           multipart,
           {
             headers: { 'Content-Type': 'multipart/form-data' },
@@ -397,7 +397,7 @@ export default function RlvntSysMng() {
     if (!window.confirm(`"${selectedInstSysMngSn}" 항목을 삭제하시겠습니까?`)) return;
 
     try {
-      await http.delete(`${API_BASE_URL}/${encodeURIComponent(selectedInstSysMngSn)}`);
+      await http.post(`${API_BASE_URL}/delete/${encodeURIComponent(selectedInstSysMngSn)}`);
       alert('삭제되었습니다.');
       resetForm();
       await fetchList();

@@ -240,8 +240,8 @@ export default function PublicAnnouncementDetail({
 
       if (bizPbancNo) {
         // 수정
-        const res = await http.put(
-          `/api/v1/public-announcement/${bizPbancNo}`,
+        const res = await http.post(
+          `/api/v1/public-announcement/update/${bizPbancNo}`,
           formData,
           {
             headers: {

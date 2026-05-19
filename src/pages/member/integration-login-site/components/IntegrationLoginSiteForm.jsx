@@ -258,7 +258,7 @@ function IntegrationLoginSiteForm({ mode }) {
 
     try {
       if (isUpdateMode) {
-        await http.put(`/api/v1/linksite/${linkSiteCd}`, requestData);
+        await http.post(`/api/v1/linksite/update/${linkSiteCd}`, requestData);
         alert('수정되었습니다.');
       } else {
         await http.post('/api/v1/linksite', requestData);
@@ -276,7 +276,7 @@ function IntegrationLoginSiteForm({ mode }) {
     if (!confirm('정말 삭제하시겠습니까?')) return;
 
     try {
-      await http.delete(`/api/v1/linksite/${linkSiteCd}`);
+      await http.post(`/api/v1/linksite/delete/${linkSiteCd}`);
       alert('삭제되었습니다.');
       navigate('..');
     } catch (error) {

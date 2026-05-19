@@ -413,7 +413,7 @@ function ManagerForm({ mode }) {
         await http.post('/api/v1/managers', requestData);
         alert('관리자가 등록되었습니다.');
       } else {
-        await http.put(`/api/v1/managers/${encodeURIComponent(mbrNo)}`, requestData);
+        await http.post(`/api/v1/managers/update/${encodeURIComponent(mbrNo)}`, requestData);
         alert('관리자가 수정되었습니다.');
       }
 

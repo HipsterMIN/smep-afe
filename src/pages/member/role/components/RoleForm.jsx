@@ -123,7 +123,7 @@ export default function RoleForm({ mode, roleId, onClose, onSaved }) {
           useYn: formData.useYn,
         });
       } else {
-        await http.put(`/api/v1/roles/${roleId}`, {
+        await http.post(`/api/v1/roles/update/${roleId}`, {
           roleNm: normalizedRoleNm,
           useYn: formData.useYn,
         });

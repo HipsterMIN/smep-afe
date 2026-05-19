@@ -234,7 +234,7 @@ export default function MenuBase({
     if (!window.confirm('저장하시겠습니까?')) return;
 
     if (form.menuId) {
-      const res = await http.put(`/api/v1/menuMng/${form.menuId}`, form);
+      const res = await http.post(`/api/v1/menuMng/update/${form.menuId}`, form);
       if (res?.success) {
         alert('수정되었습니다.');
         fetchMenus();
@@ -262,7 +262,7 @@ export default function MenuBase({
     )
       return;
 
-    const res = await http.delete(`/api/v1/menuMng/${form.menuId}`);
+    const res = await http.post(`/api/v1/menuMng/delete/${form.menuId}`);
     if (res?.success) {
       alert('삭제되었습니다.');
       fetchMenus();

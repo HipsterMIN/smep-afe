@@ -94,7 +94,7 @@ export default function CertificateForm() {
     const { regDt, mdfcnDt, ...requestBody } = formData;
     try {
       if (isEditMode) {
-        await http.put(`/api/v1/certificates/${prdocCd}`, requestBody);
+        await http.post(`/api/v1/certificates/update/${prdocCd}`, requestBody);
         alert('수정되었습니다.');
         navigate(`/prdocIssu/prdocInfo/${prdocCd}`);
       } else {
@@ -111,7 +111,7 @@ export default function CertificateForm() {
   const handleDelete = async () => {
     if (!window.confirm('삭제하시겠습니까?')) return;
     try {
-      await http.delete(`/api/v1/certificates/${prdocCd}`);
+      await http.post(`/api/v1/certificates/delete/${prdocCd}`);
       alert('삭제되었습니다.');
       navigate('/prdocIssu/prdocInfo');
     } catch (error) {

@@ -122,7 +122,7 @@ export default function CommonCode() {
     try {
       if (selectedGroupData) {
         // 수정 모드
-        await http.put(`/api/v1/commoncode/${formData.comCdGroupId}`, formData);
+        await http.post(`/api/v1/commoncode/update/${formData.comCdGroupId}`, formData);
         alert('그룹코드가 수정되었습니다.');
       } else {
         // 등록 모드
@@ -179,8 +179,8 @@ export default function CommonCode() {
 
       if (selectedChildData) {
         // 수정 모드
-        await http.put(
-          `/api/v1/commoncode/${selectedGroupId}/codes/${formData.code}`,
+        await http.post(
+          `/api/v1/commoncode/update/${selectedGroupId}/codes/${formData.code}`,
           requestData
         );
         alert('하위코드가 수정되었습니다.');
