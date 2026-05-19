@@ -451,7 +451,7 @@ export default function RoleMenuAssigner() {
     setSaving(true);
 
     try {
-      await http.put(`/api/v1/roles/${selectedRole.roleId}/menus`, {
+      await http.post(`/api/v1/roles/update/${selectedRole.roleId}/menus`, {
         menuIds: checkedMenuIds,
       });
 

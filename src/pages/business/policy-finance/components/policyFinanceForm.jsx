@@ -714,7 +714,7 @@ export default function PolicyFinanceForm({ mode }) {
     try {
       const requestBody = buildRequestPayload();
       if (isUpdateMode) {
-        await http.put(`/api/v1/policy-finance/${policyNo}`, requestBody);
+        await http.post(`/api/v1/policy-finance/update/${policyNo}`, requestBody);
         alert('수정되었습니다.');
       } else {
         await http.post('/api/v1/policy-finance', requestBody);

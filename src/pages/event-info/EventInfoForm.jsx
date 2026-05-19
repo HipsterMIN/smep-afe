@@ -179,7 +179,7 @@ export default function EventInfoForm() {
       formData.append('fileStatusInfo', JSON.stringify(fileStatusInfo));
 
       if (isEdit) {
-        await http.put(`/api/v1/event-info/${evntInfoId}`, formData, {
+        await http.post(`/api/v1/event-info/update/${evntInfoId}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -244,7 +244,7 @@ export default function EventInfoForm() {
   const handleDelete = async () => {
     if (!window.confirm('정말 삭제하시겠습니까?')) return;
     try {
-      await http.delete(`/api/v1/event-info/${evntInfoId}`);
+      await http.post(`/api/v1/event-info/delete/${evntInfoId}`);
       alert('삭제되었습니다.');
       navigate(LIST_PATH);
     } catch (error) {

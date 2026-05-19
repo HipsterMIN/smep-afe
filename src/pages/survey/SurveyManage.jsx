@@ -501,7 +501,7 @@ export default function SurveyManage() {
       if (isCreateMode) {
         await http.post('/api/v1/admin/surveys', payload);
       } else {
-        await http.put(`/api/v1/admin/surveys/${surveyNo}`, payload);
+        await http.post(`/api/v1/admin/surveys/update/${surveyNo}`, payload);
       }
 
       alert('저장되었습니다.');
@@ -524,7 +524,7 @@ export default function SurveyManage() {
     }
 
     try {
-      await http.delete(`/api/v1/admin/surveys/${surveyNo}`);
+      await http.post(`/api/v1/admin/surveys/delete/${surveyNo}`);
       alert('삭제되었습니다.');
       navigate('..');
     } catch (error) {

@@ -428,8 +428,8 @@ export default function SupportBusinessForm() {
     }
 
     for (const id of pendingRemoveIds) {
-      await http.delete(
-        `/api/v1/support-business/${targetSprtBizId}/public-announcements/${id}`
+      await http.post(
+        `/api/v1/support-business/delete/${targetSprtBizId}/public-announcements/${id}`
       );
     }
   };
@@ -449,7 +449,7 @@ export default function SupportBusinessForm() {
       const payload = buildPayload();
 
       if (isEdit) {
-        await http.put(`/api/v1/support-business/${sprtBizId}`, payload);
+        await http.post(`/api/v1/support-business/update/${sprtBizId}`, payload);
         await applyRelationChanges(sprtBizId);
         alert('지원사업이 수정되었습니다.');
         navigate(LIST_PATH);

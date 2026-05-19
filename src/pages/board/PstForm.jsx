@@ -424,8 +424,8 @@ export default function PstForm() {
       let saved = null;
 
       if (isEdit) {
-        saved = await http.put(
-          `/api/v1/board/pst/${bbsNo}/${pstNo}`,
+        saved = await http.post(
+          `/api/v1/board/pst/update/${bbsNo}/${pstNo}`,
           multipart,
           {
             headers: {
@@ -469,7 +469,7 @@ export default function PstForm() {
 
     setDeleting(true);
     try {
-      await http.delete(`/api/v1/board/pst/${bbsNo}/${pstNo}`);
+      await http.post(`/api/v1/board/pst/delete/${bbsNo}/${pstNo}`);
       alert('게시물이 삭제되었습니다.');
       navigate('..');
     } catch (error) {

@@ -157,7 +157,7 @@ export default function PopupManagement() {
 
   const handleToggleUseYn = async (row) => {
     try {
-      await http.patch(`/api/v1/popups/${row.popupId}/use-yn`);
+      await http.post(`/api/v1/popups/update/${row.popupId}/use-yn`);
       fetchPopupList();
       if (selectedPopupId === row.popupId) {
         fetchPopupDetail(row.popupId);
@@ -214,7 +214,7 @@ export default function PopupManagement() {
       }
 
       if (selectedPopupId) {
-        await http.put(`/api/v1/popups/${selectedPopupId}`, fd, {
+        await http.post(`/api/v1/popups/update/${selectedPopupId}`, fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         alert('팝업이 수정되었습니다.');
@@ -240,7 +240,7 @@ export default function PopupManagement() {
     if (!selectedPopupId) return;
     if (!window.confirm('팝업을 삭제하시겠습니까?')) return;
     try {
-      await http.delete(`/api/v1/popups/${selectedPopupId}`);
+      await http.post(`/api/v1/popups/delete/${selectedPopupId}`);
       alert('팝업이 삭제되었습니다.');
       setRightPanel(null);
       setSelectedPopupId(null);

@@ -313,7 +313,7 @@ export default function LoginInfoForm({ onClose, isPopup }) {
       setSaving(true);
 
       if (hasPasswordChangeInput) {
-        await http.put('/api/v1/account/password', {
+        await http.post('/api/v1/account/password/update', {
           currentPassword: trimmedCurrentPassword,
           newPassword: trimmedNewPassword,
           newPasswordConfirm: trimmedNewPasswordConfirm,
@@ -322,7 +322,7 @@ export default function LoginInfoForm({ onClose, isPopup }) {
       }
 
       if (hasProfileChanges) {
-        const response = await http.put('/api/v1/account/profile', {
+        const response = await http.post('/api/v1/account/profile/update', {
           mbrNm: trimmedName,
           mngrMblTelno: normalizedMobile,
         });

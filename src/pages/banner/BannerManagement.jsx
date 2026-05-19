@@ -153,8 +153,8 @@ export default function BannerManagement() {
 
   const handleToggleUseYn = async (row) => {
     try {
-      // 💡 Popup과 동일하게 patch 호출
-      await http.patch(`/api/v1/banners/${row.bnrId}/use-yn`);
+      // 💡 Popup과 동일하게 post 호출
+      await http.post(`/api/v1/banners/update/${row.bnrId}/use-yn`);
       fetchBannerList();
       if (selectedBnrId === row.bnrId) {
         fetchBannerDetail(row.bnrId);
@@ -204,7 +204,7 @@ export default function BannerManagement() {
   //       fd.append('fileStatusInfoJson', fileStatusInfoJson);
   //
   //     if (selectedBnrId) {
-  //       await http.put(`/api/v1/banners/${selectedBnrId}`, fd);
+  //       await http.post(`/api/v1/banners/update/${selectedBnrId}`, fd);
   //       alert('배너가 수정되었습니다.');
   //       await fetchBannerDetail(selectedBnrId);
   //       setRightPanel('detail');
@@ -259,7 +259,7 @@ export default function BannerManagement() {
 
       if (selectedBnrId) {
         // url, data, config 순서 확인
-        await http.put(`/api/v1/banners/${selectedBnrId}`, fd, {
+        await http.post(`/api/v1/banners/update/${selectedBnrId}`, fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         alert('배너가 수정되었습니다.');
@@ -284,7 +284,7 @@ export default function BannerManagement() {
     if (!setSelectedBnrId) return;
     if (!window.confirm('배너를 삭제하시겠습니까?')) return;
     try {
-      await http.delete(`/api/v1/banners/${setSelectedBnrId}`);
+      await http.post(`/api/v1/banners/delete/${setSelectedBnrId}`);
       alert('배너가 삭제되었습니다.');
       setRightPanel(null);
       setSelectedBnrId(null);

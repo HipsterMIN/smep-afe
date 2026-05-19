@@ -230,8 +230,8 @@ export default function MemberEditPanel({
 
     try {
       onSavingChange(true);
-      const response = await http.put(
-        `/api/v1/member/${encodeURIComponent(formData.mbrNo)}/${endpointType}`,
+      const response = await http.post(
+        `/api/v1/member/update/${encodeURIComponent(formData.mbrNo)}/${endpointType}`,
         payload
       );
       const updatedMember = resolvePayload(response);

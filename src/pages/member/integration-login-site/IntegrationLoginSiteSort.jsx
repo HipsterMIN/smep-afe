@@ -66,7 +66,7 @@ export default function IntegrationLoginSiteSort() {
       scrnIndctSeq: Number(row.scrnIndctSeq),
     }));
 
-    await http.put(`/api/v1/linksite/screen-indicator/${type}/sequences`, {
+    await http.post(`/api/v1/linksite/screen-indicator/update/${type}/sequences`, {
       sequences,
     });
   };

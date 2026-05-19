@@ -290,7 +290,7 @@ export default function BbsForm() {
     setSaving(true);
     try {
       if (isEdit) {
-        await http.put(`/api/v1/board/bbs/${bbsNo}`, requestData);
+        await http.post(`/api/v1/board/bbs/update/${bbsNo}`, requestData);
         alert('게시판이 수정되었습니다.');
       } else {
         await http.post('/api/v1/board/bbs', requestData);

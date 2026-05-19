@@ -282,7 +282,7 @@ export default function SecurityPolicy() {
 
     try {
       setLoading(true);
-      await http.patch(`/api/v1/security-policies/${scrtyPlcyCd}/activate`);
+      await http.post(`/api/v1/security-policies/update/${scrtyPlcyCd}/activate`);
       alert('보안정책이 활성화되었습니다.');
 
       fetchSecurityPolicys(null, true);
