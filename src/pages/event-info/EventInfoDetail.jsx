@@ -1,12 +1,18 @@
 import Breadcrumb from '@components/ui/Breadcrumb.jsx';
 import Button from '@components/ui/Button.jsx';
-import FileUpload from '@components/ui/FileUpload.jsx';
 import RadioButton from '@components/ui/RadioButton.jsx';
 import http from '@lib/http.js';
 import React, { useEffect, useState } from 'react';
 import { useMatches, useNavigate, useParams } from 'react-router-dom';
 
 const LIST_PATH = '/infoPvsn/utlzInfo/evntInfo';
+
+const STREAMDOCS_VIEWER_URL =
+  import.meta.env.VITE_STREAMDOCS_VIEWER_URL ||
+  'https://www.smes.go.kr/e-paper/view/sd';
+
+const buildStreamDocsPreviewUrl = (streamdocsId) =>
+  `${STREAMDOCS_VIEWER_URL};streamdocsId=${encodeURIComponent(streamdocsId)}`;
 
 export default function EventInfoDetail() {
   const navigate = useNavigate();
@@ -186,7 +192,10 @@ export default function EventInfoDetail() {
                   <td colSpan="3">
                     {form.pbancDocAtchFiles &&
                     form.pbancDocAtchFiles.length > 0 ? (
-                      form.pbancDocAtchFiles.map((file, idx) => (
+                      form.pbancDocAtchFiles.map((file, idx) => {
+                        const previewId =
+                          file?.strmdcsId || (idx === 0 ? form.strmdcsId : '');
+                        return (
                         <div key={idx} className="file-item">
                           <a
                             href={`/api/v1/file/download/${file.atchFileId}/${file.atchFileSn}`}
@@ -198,9 +207,9 @@ export default function EventInfoDetail() {
                             {file.orgnlFileNm} ({Math.round(file.fileSz / 1024)}{' '}
                             KB)
                           </a>
-                          {form.strmdcsId && (
+                          {previewId && (
                             <a
-                              href={`http://192.168.16.82:8088/e-paper/view/sd;streamdocsId=${form.strmdcsId}`}
+                              href={buildStreamDocsPreviewUrl(previewId)}
                               target="_blank"
                               rel="noreferrer"
                               style={{
@@ -213,7 +222,8 @@ export default function EventInfoDetail() {
                             </a>
                           )}
                         </div>
-                      ))
+                      );
+                      })
                     ) : (
                       <span style={{ color: '#999' }}>
                         등록된 공고문이 없습니다.
@@ -241,6 +251,20 @@ export default function EventInfoDetail() {
                             {file.orgnlFileNm} ({Math.round(file.fileSz / 1024)}{' '}
                             KB)
                           </a>
+                          {file?.strmdcsId && (
+                            <a
+                              href={buildStreamDocsPreviewUrl(file.strmdcsId)}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                marginLeft: '10px',
+                                fontSize: '12px',
+                                color: '#666',
+                              }}
+                            >
+                              [미리보기]
+                            </a>
+                          )}
                         </div>
                       ))
                     ) : (

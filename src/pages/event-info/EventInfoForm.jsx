@@ -11,6 +11,19 @@ import { useMatches, useNavigate, useParams } from 'react-router-dom';
 // 목록 경로 (프로젝트 상황에 맞게 수정)
 const LIST_PATH = '/infoPvsn/utlzInfo/evntInfo';
 
+const STREAMDOCS_VIEWER_URL =
+  import.meta.env.VITE_STREAMDOCS_VIEWER_URL ||
+  'https://www.smes.go.kr/e-paper/view/sd';
+
+const openStreamDocsPreview = (streamdocsId) => {
+  if (!streamdocsId) return;
+  window.open(
+    `${STREAMDOCS_VIEWER_URL};streamdocsId=${encodeURIComponent(streamdocsId)}`,
+    '_blank',
+    'noopener,noreferrer'
+  );
+};
+
 export default function EventInfoForm() {
   const navigate = useNavigate();
   const { evntInfoId } = useParams(); // URL 파라미터에서 ID 추출
@@ -104,6 +117,7 @@ export default function EventInfoForm() {
     atchFileSn: file.atchFileSn, // 다운로드용
     fileName: file.orgnlFileNm,
     fileSize: file.fileSz ?? 0,
+    strmdcsId: file.strmdcsId,
     status: 'existing',
   });
   const extractVal = (v) => (v && v.target !== undefined ? v.target.value : v);
@@ -386,16 +400,13 @@ export default function EventInfoForm() {
                       fileType="notice"
                       files={noticeFiles}
                       onFilesChange={setNoticeFiles}
+                      getPreviewId={(file, index) =>
+                        file?.strmdcsId || (index === 0 ? form.strmdcsId : '')
+                      }
+                      onPreviewFile={(file, previewId) =>
+                        openStreamDocsPreview(previewId)
+                      }
                     />
-                    {form.strmdcsId && (
-                      <a
-                        href={`http://192.168.16.82:8088/e-paper/view/sd;streamdocsId=${form.strmdcsId}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        미리보기임시
-                      </a>
-                    )}
                   </td>
                 </tr>
                 <tr>
@@ -407,6 +418,9 @@ export default function EventInfoForm() {
                       fileType="attachment"
                       files={attachFiles}
                       onFilesChange={setAttachFiles}
+                      onPreviewFile={(file, previewId) =>
+                        openStreamDocsPreview(previewId)
+                      }
                     />
                   </td>
                 </tr>
