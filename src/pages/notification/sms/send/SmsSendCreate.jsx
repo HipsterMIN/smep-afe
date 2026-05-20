@@ -2,6 +2,7 @@ import Button from '@components/ui/Button.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import MessageEditorPanel from '@pages/notification/sms/send/components/MessageEditorPanel.jsx';
 import RecipientMemberPopup from '@pages/notification/common/RecipientMemberPopup.jsx';
+import TemplatePopup from '@pages/notification/common/TemplatePopup.jsx';
 import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
 import { useRef, useState } from 'react';
@@ -9,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 
 const MESSAGE_TYPES = ['SMS', 'LMS'];
 const MEMBER_POPUP_PAGE_SIZE = 20;
+const TEMPLATE_POPUP_PAGE_SIZE = 20;
 
 const TAB_BUTTON_STYLE = {
   display: 'flex',
@@ -25,6 +27,13 @@ const TAB_BUTTON_STYLE = {
 
 function normalizePhoneNo(phoneNo = '') {
   return String(phoneNo).replace(/[^0-9]/g, '');
+}
+
+function formatTemplateDate(value = '') {
+  if (/^\d{14}$/.test(value)) {
+    return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
+  }
+  return value;
 }
 
 function normalizePopupMember(row) {
@@ -57,10 +66,28 @@ function normalizePopupMemberRows(rows = []) {
   return uniqueRows.map(normalizePopupMember);
 }
 
+function normalizeTemplateRows(rows = [], totalCount = 0, currentLength = 0) {
+  return rows.map((row, index) => ({
+    ...row,
+    id: row?.tplId,
+    rowNo: totalCount - (currentLength + index),
+    tplTitle: row?.tplTitle ?? '',
+    writer: row?.writer ?? '',
+    inDate: formatTemplateDate(row?.inDate ?? ''),
+    tplContent: row?.tplContent ?? '',
+  }));
+}
+
 function getFallbackCursorFromRows(rows = []) {
   if (!rows?.length) return null;
   const lastRow = rows[rows.length - 1];
   return lastRow?.mbrNo ?? lastRow?.id ?? null;
+}
+
+function getFallbackTemplateCursor(rows = []) {
+  if (!rows?.length) return null;
+  const lastRow = rows[rows.length - 1];
+  return lastRow?.tplId ?? lastRow?.id ?? null;
 }
 
 function resolveMemberPayload(response) {
@@ -89,22 +116,25 @@ function resolveMemberPayload(response) {
   return response ?? {};
 }
 
+function resolveTemplatePayload(response) {
+  if (response && typeof response === 'object' && !Array.isArray(response)) {
+    return response.data ?? response;
+  }
+  return response ?? {};
+}
+
 export default function SmsSendCreate() {
   const [selectedValue, setSelectedValue] = useState('즉시발송');
   const [activeMessageType, setActiveMessageType] = useState('SMS');
+  const [messageTitle, setMessageTitle] = useState('');
+  const [messageContents, setMessageContents] = useState('');
 
-  // 수신자 목록
   const [recipients, setRecipients] = useState([]);
 
-  // 회원목록 팝업 상태
   const [isMemberPopupOpen, setIsMemberPopupOpen] = useState(false);
-
-  // 회원목록 검색 조건
   const [memberType, setMemberType] = useState('');
   const [memberSearchType, setMemberSearchType] = useState('');
   const [memberSearchKeyword, setMemberSearchKeyword] = useState('');
-
-  // 회원목록 데이터
   const [memberList, setMemberList] = useState([]);
   const [memberTotalCount, setMemberTotalCount] = useState(0);
   const [checkedMemberIds, setCheckedMemberIds] = useState([]);
@@ -112,8 +142,18 @@ export default function SmsSendCreate() {
   const [memberCursor, setMemberCursor] = useState(null);
   const [memberHasNext, setMemberHasNext] = useState(true);
 
+  const [isTemplatePopupOpen, setIsTemplatePopupOpen] = useState(false);
+  const [templateList, setTemplateList] = useState([]);
+  const [templateTotalCount, setTemplateTotalCount] = useState(0);
+  const [selectedTemplateId, setSelectedTemplateId] = useState(null);
+  const [templateLoading, setTemplateLoading] = useState(false);
+  const [templateCursor, setTemplateCursor] = useState(null);
+  const [templateHasNext, setTemplateHasNext] = useState(true);
+
   const memberLoadingRef = useRef(false);
   const memberGridViewportRef = useRef(null);
+  const templateLoadingRef = useRef(false);
+  const templateGridViewportRef = useRef(null);
 
   const navigate = useNavigate();
 
@@ -227,6 +267,63 @@ export default function SmsSendCreate() {
     }
   };
 
+  const fetchTemplateList = async (nextCursor = null, reset = false) => {
+    if (templateLoadingRef.current) return;
+    if (!templateHasNext && !reset) return;
+
+    templateLoadingRef.current = true;
+    setTemplateLoading(true);
+
+    try {
+      if (reset) {
+        setTemplateCursor(null);
+        setTemplateHasNext(true);
+        setSelectedTemplateId(null);
+        setTemplateTotalCount(0);
+      }
+
+      const response = await http.get('/api/v1/notification/sms/templates', {
+        params: {
+          cursor: reset ? null : nextCursor,
+          size: TEMPLATE_POPUP_PAGE_SIZE,
+        },
+      });
+
+      const data = resolveTemplatePayload(response);
+      const rows = Array.isArray(data?.data) ? data.data : [];
+      const next = data?.nextCursor ?? null;
+      const nextHasNext = Boolean(data?.hasNext);
+      const nextTotalCount = data?.totalCount ?? rows.length;
+
+      setTemplateList((prev) =>
+        reset
+          ? normalizeTemplateRows(rows, nextTotalCount, 0)
+          : [
+              ...prev,
+              ...normalizeTemplateRows(rows, nextTotalCount, prev.length),
+            ]
+      );
+      setTemplateTotalCount(nextTotalCount);
+      setTemplateCursor(next);
+      setTemplateHasNext(nextHasNext);
+    } catch (error) {
+      console.error('SMS 양식 목록 조회 실패:', error);
+
+      if (reset) {
+        setTemplateList([]);
+        setTemplateTotalCount(0);
+        setTemplateCursor(null);
+        setTemplateHasNext(false);
+        setSelectedTemplateId(null);
+      }
+
+      alert('SMS 양식 목록 조회 중 오류가 발생했습니다.');
+    } finally {
+      templateLoadingRef.current = false;
+      setTemplateLoading(false);
+    }
+  };
+
   const handleOpenMemberPopup = () => {
     setIsMemberPopupOpen(true);
     setCheckedMemberIds([]);
@@ -248,6 +345,70 @@ export default function SmsSendCreate() {
     if (nextCursor !== null && nextCursor !== undefined) {
       fetchMemberList(nextCursor, false);
     }
+  };
+
+  const handleOpenTemplatePopup = () => {
+    setIsTemplatePopupOpen(true);
+    setSelectedTemplateId(null);
+    fetchTemplateList(null, true);
+  };
+
+  const handleCloseTemplatePopup = () => {
+    setSelectedTemplateId(null);
+    setIsTemplatePopupOpen(false);
+  };
+
+  const handleToggleTemplateSelect = (id) => {
+    setSelectedTemplateId((prev) => (prev === id ? null : id));
+  };
+
+  const handleLoadMoreTemplates = () => {
+    const nextCursor =
+      templateCursor ?? getFallbackTemplateCursor(templateList);
+
+    if (nextCursor !== null && nextCursor !== undefined) {
+      fetchTemplateList(nextCursor, false);
+    }
+  };
+
+  const handleApplyTemplate = async () => {
+    if (!selectedTemplateId) {
+      alert('불러올 양식을 선택하세요.');
+      return;
+    }
+
+    const selectedTemplate = templateList.find(
+      (template) => template.id === selectedTemplateId
+    );
+
+    if (!selectedTemplate) {
+      alert('선택한 양식 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    let templateDetail = selectedTemplate;
+
+    if (!templateDetail?.tplContent) {
+      try {
+        const response = await http.get(
+          `/api/v1/notification/sms/templates/${selectedTemplateId}`
+        );
+        templateDetail =
+          response?.data?.data ??
+          response?.data ??
+          response ??
+          selectedTemplate;
+      } catch (error) {
+        console.error('SMS 양식 상세 조회 실패:', error);
+        alert('양식 상세 조회 중 오류가 발생했습니다.');
+        return;
+      }
+    }
+
+    setMessageTitle(templateDetail?.tplTitle ?? '');
+    setMessageContents(templateDetail?.tplContent ?? '');
+    setSelectedTemplateId(null);
+    setIsTemplatePopupOpen(false);
   };
 
   const handleAddCheckedMembers = () => {
@@ -304,6 +465,14 @@ export default function SmsSendCreate() {
     onLoadMore: handleLoadMoreMembers,
   });
 
+  useGridInfiniteScroll({
+    viewportRef: templateGridViewportRef,
+    loading: templateLoading,
+    loadingRef: templateLoadingRef,
+    hasNext: isTemplatePopupOpen ? templateHasNext : false,
+    onLoadMore: handleLoadMoreTemplates,
+  });
+
   return (
     <div className="oncontentbox full">
       <div className="oncontentTitle">
@@ -342,8 +511,13 @@ export default function SmsSendCreate() {
           onSelectedValueChange={setSelectedValue}
           onBack={() => navigate('..')}
           onOpenMemberPopup={handleOpenMemberPopup}
+          onOpenTemplatePopup={handleOpenTemplatePopup}
           recipients={recipients}
           onRecipientsChange={setRecipients}
+          title={messageTitle}
+          contents={messageContents}
+          onTitleChange={setMessageTitle}
+          onContentsChange={setMessageContents}
         />
       </div>
 
@@ -365,6 +539,20 @@ export default function SmsSendCreate() {
           onSearch={handleSearchMembers}
           onToggleCheck={handleMemberCheckToggle}
           onConfirm={handleAddCheckedMembers}
+        />
+      )}
+
+      {isTemplatePopupOpen && (
+        <TemplatePopup
+          title="SMS 양식 목록"
+          templateList={templateList}
+          totalCount={templateTotalCount}
+          selectedTemplateId={selectedTemplateId}
+          loading={templateLoading}
+          gridViewportRef={templateGridViewportRef}
+          onClose={handleCloseTemplatePopup}
+          onToggleSelect={handleToggleTemplateSelect}
+          onConfirm={handleApplyTemplate}
         />
       )}
     </div>
