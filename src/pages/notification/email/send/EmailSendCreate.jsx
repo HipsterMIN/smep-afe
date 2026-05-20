@@ -1,19 +1,25 @@
 import Button from '@components/ui/Button.jsx';
+import CheckBox from '@components/ui/CheckBox.jsx';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import DatepickerTimeBox from '@components/ui/DatepickerTimeBox.jsx';
 import FileUpload from '@components/ui/FileUpload.jsx';
+import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import Popup from '@components/ui/Popup.jsx';
 import RichEditor from '@components/ui/RichEditor.jsx';
 import TextareaBox from '@components/ui/TextareaBox.jsx';
 import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
 import RecipientMemberPopup from '@pages/notification/common/RecipientMemberPopup.jsx';
-import { useRef, useState } from 'react';
+import { Willow } from '@svar-ui/react-grid';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // ── 상수 ─────────────────────────────────────────────────────────────────────
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MEMBER_POPUP_PAGE_SIZE = 20;
+const TEMPLATE_POPUP_PAGE_SIZE = 20;
+const TEMPLATE_GRID_PROPS = { rowHeight: 36, headerRowHeight: 40 };
 
 /** Date + HH:mm → yyyyMMddHHmmss (BE sendDate 포맷) */
 function toSendDateStr(date, timeStr) {
@@ -59,7 +65,7 @@ function normalizePopupMemberRows(rows) {
   const uniqueRows = [];
   const seen = new Set();
 
-  rows.forEach((row, index) => {
+  rows.forEach((row) => {
     const key = row?.mbrNo || row?.lgnId;
     if (key && seen.has(key)) return;
     if (key) seen.add(key);
@@ -103,6 +109,154 @@ function resolveMemberPayload(response) {
   return response ?? {};
 }
 
+function resolveTemplatePayload(response) {
+  if (response && typeof response === 'object' && !Array.isArray(response)) {
+    const responseData = response.data ?? response;
+
+    if (
+      responseData &&
+      typeof responseData === 'object' &&
+      !Array.isArray(responseData) &&
+      Array.isArray(responseData.data)
+    ) {
+      return responseData;
+    }
+
+    if (
+      responseData?.data &&
+      typeof responseData.data === 'object' &&
+      !Array.isArray(responseData.data) &&
+      Array.isArray(responseData.data.data)
+    ) {
+      return responseData.data;
+    }
+
+    return responseData;
+  }
+
+  return response ?? {};
+}
+
+function formatTemplateDate(value) {
+  if (!value) return '';
+  const str = String(value);
+
+  if (/^\d{14}$/.test(str)) {
+    return `${str.slice(0, 4)}-${str.slice(4, 6)}-${str.slice(6, 8)}`;
+  }
+
+  if (/^\d{8}$/.test(str)) {
+    return `${str.slice(0, 4)}-${str.slice(4, 6)}-${str.slice(6, 8)}`;
+  }
+
+  return str;
+}
+
+function normalizeTemplateRows(rows, totalCount = 0, offset = 0) {
+  return (rows ?? []).map((row, index) => ({
+    ...row,
+    id: row?.tplId ?? row?.id,
+    rowNo: totalCount > 0 ? totalCount - (offset + index) : offset + index + 1,
+    tplId: row?.tplId ?? '',
+    tplTitle: row?.tplTitle ?? '',
+    writer: row?.writer ?? '',
+    inDate: formatTemplateDate(row?.inDate ?? ''),
+    modDate: formatTemplateDate(row?.modDate ?? ''),
+    tplContent: row?.tplContent ?? '',
+  }));
+}
+
+function getFallbackTemplateCursorFromRows(rows) {
+  if (!rows?.length) return null;
+  const lastRow = rows[rows.length - 1];
+  return lastRow?.tmpltSeq ?? lastRow?.templateId ?? lastRow?.id ?? null;
+}
+
+function EmailTemplatePopup({
+  title = '이메일 양식 목록',
+  templateList = [],
+  totalCount = 0,
+  selectedTemplateId = null,
+  loading = false,
+  gridViewportRef,
+  onClose,
+  onToggleSelect,
+  onConfirm,
+}) {
+  const columns = useMemo(
+    () => [
+      {
+        id: 'checked',
+        header: '선택',
+        width: 60,
+        cell: ({ row }) => (
+          <CheckBox
+            chkId={`email-template-${row.id}`}
+            checked={selectedTemplateId === row.id}
+            onChange={() => onToggleSelect(row.id)}
+          />
+        ),
+      },
+      { id: 'rowNo', header: '번호', width: 80 },
+      { id: 'tplTitle', header: '템플릿명', flexgrow: 1.6 },
+      { id: 'inDate', header: '작성일', width: 140 },
+      { id: 'writer', header: '작성자', width: 120 },
+    ],
+    [selectedTemplateId, onToggleSelect]
+  );
+  return (
+    <Popup title={title} autoHeight={true} onClose={onClose}>
+      <div className="oncontent">
+        <div className="onselect-form open" style={{ minHeight: 'auto' }}>
+          <div className="onparagraph">
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+              <Button btnType="add" btnNames="추가" onClick={onConfirm} />
+            </div>
+          </div>
+        </div>
+
+        <div className="ontable-legend">
+          <span>
+            총 <b>{totalCount}</b>개
+          </span>
+        </div>
+
+        <div className="ongrid-tableform" style={{ scrollbarGutter: 'stable' }}>
+          <Willow>
+            <div
+              ref={gridViewportRef}
+              style={{
+                height: '420px',
+                overflow: 'hidden',
+              }}
+            >
+              <GridTable
+                data={templateList}
+                columns={columns}
+                useWillow={false}
+                gridProps={TEMPLATE_GRID_PROPS}
+              />
+            </div>
+          </Willow>
+        </div>
+
+        {loading ? (
+          <div
+            style={{
+              padding: '8px 12px',
+              fontSize: '13px',
+              color: '#666',
+              textAlign: 'right',
+            }}
+          >
+            이메일 양식 목록을 불러오는 중입니다...
+          </div>
+        ) : null}
+      </div>
+    </Popup>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 export default function EmailSendCreate() {
   const navigate = useNavigate();
@@ -141,6 +295,17 @@ export default function EmailSendCreate() {
   const [memberHasNext, setMemberHasNext] = useState(true);
   const memberLoadingRef = useRef(false);
   const memberGridViewportRef = useRef(null);
+
+  // ── 양식 팝업
+  const [isTemplatePopupOpen, setIsTemplatePopupOpen] = useState(false);
+  const [templateList, setTemplateList] = useState([]);
+  const [templateTotalCount, setTemplateTotalCount] = useState(0);
+  const [selectedTemplateId, setSelectedTemplateId] = useState(null);
+  const [templateLoading, setTemplateLoading] = useState(false);
+  const [templateCursor, setTemplateCursor] = useState(null);
+  const [templateHasNext, setTemplateHasNext] = useState(true);
+  const templateLoadingRef = useRef(false);
+  const templateGridViewportRef = useRef(null);
 
   // ── 발송 처리 state
   const [isSending, setIsSending] = useState(false);
@@ -245,10 +410,8 @@ export default function EmailSendCreate() {
           : normalizePopupMemberRows([...prev, ...rows])
       );
 
-      setMemberTotalCount(
-        reset
-          ? (data?.totalCount ?? rows.length)
-          : (data?.totalCount ?? memberTotalCount)
+      setMemberTotalCount((prev) =>
+        reset ? (data?.totalCount ?? rows.length) : (data?.totalCount ?? prev)
       );
 
       const resolvedNextCursor = parseNextCursor(data, rows);
@@ -274,17 +437,141 @@ export default function EmailSendCreate() {
     }
   }
 
+  async function fetchTemplateList(nextCursor = null, reset = false) {
+    if (templateLoadingRef.current) return;
+    if (!templateHasNext && !reset) return;
+
+    templateLoadingRef.current = true;
+    setTemplateLoading(true);
+
+    try {
+      if (reset) {
+        setTemplateCursor(null);
+        setTemplateHasNext(true);
+        setSelectedTemplateId(null);
+        setTemplateTotalCount(0);
+      }
+
+      const response = await http.get('/api/v1/notification/email/templates', {
+        cursorPageRequest: {
+          size: TEMPLATE_POPUP_PAGE_SIZE,
+          cursor: reset ? null : nextCursor,
+        },
+        searchCondition: '*',
+      });
+
+      const data = resolveTemplatePayload(response);
+      const rows = Array.isArray(data?.data) ? data.data : [];
+      const totalCount = data?.totalCount ?? rows.length;
+
+      setTemplateList((prev) =>
+        reset
+          ? normalizeTemplateRows(rows, totalCount, 0)
+          : [...prev, ...normalizeTemplateRows(rows, totalCount, prev.length)]
+      );
+
+      setTemplateTotalCount(totalCount);
+
+      const resolvedNextCursor =
+        data?.nextCursor ??
+        data?.cursor ??
+        data?.next ??
+        data?.cursorPageResponse?.nextCursor ??
+        data?.page?.nextCursor ??
+        getFallbackTemplateCursorFromRows(rows);
+
+      const rawHasNext =
+        data?.hasNext ??
+        data?.cursorPageResponse?.hasNext ??
+        data?.page?.hasNext;
+
+      const resolvedHasNext =
+        typeof rawHasNext === 'boolean'
+          ? rawHasNext
+          : rawHasNext === 'Y'
+            ? true
+            : rawHasNext === 'N'
+              ? false
+              : rows.length >= TEMPLATE_POPUP_PAGE_SIZE &&
+                Boolean(resolvedNextCursor);
+
+      setTemplateCursor(resolvedNextCursor);
+      setTemplateHasNext(resolvedHasNext);
+    } catch (error) {
+      console.error('이메일 양식 목록 조회 실패:', error);
+
+      if (reset) {
+        setTemplateList([]);
+        setTemplateTotalCount(0);
+        setTemplateCursor(null);
+        setTemplateHasNext(false);
+        setSelectedTemplateId(null);
+      }
+
+      alert('이메일 양식 목록을 불러오지 못했습니다.');
+    } finally {
+      templateLoadingRef.current = false;
+      setTemplateLoading(false);
+    }
+  }
+
   // 회원목록 팝업 열기/닫기
   const handleOpenMemberPopup = () => {
     setIsMemberPopupOpen(true);
     setCheckedMemberIds([]);
-
     fetchMemberList(null, true);
   };
 
   const handleCloseMemberPopup = () => {
     setCheckedMemberIds([]);
     setIsMemberPopupOpen(false);
+  };
+
+  // 양식 팝업 열기/닫기
+  const handleOpenTemplatePopup = () => {
+    setIsTemplatePopupOpen(true);
+    setSelectedTemplateId(null);
+    fetchTemplateList(null, true);
+  };
+
+  const handleCloseTemplatePopup = () => {
+    setSelectedTemplateId(null);
+    setIsTemplatePopupOpen(false);
+  };
+
+  const handleToggleTemplateSelect = (id) => {
+    setSelectedTemplateId((prev) => (prev === id ? null : id));
+  };
+
+  const handleLoadMoreTemplates = () => {
+    const nextCursor =
+      templateCursor ?? getFallbackTemplateCursorFromRows(templateList);
+
+    if (nextCursor !== null && nextCursor !== undefined) {
+      fetchTemplateList(nextCursor, false);
+    }
+  };
+
+  const handleApplyTemplate = async () => {
+    if (!selectedTemplateId) {
+      alert('불러올 양식을 선택하세요.');
+      return;
+    }
+
+    try {
+      const response = await http.get(
+        `/api/v1/notification/email/templates/${selectedTemplateId}`
+      );
+      const payload = response?.data?.data ?? response?.data ?? response ?? {};
+
+      setTitle(payload?.tplTitle ?? '');
+      setContent(payload?.tplContent ?? '');
+      setSelectedTemplateId(null);
+      setIsTemplatePopupOpen(false);
+    } catch (error) {
+      console.error('이메일 양식 상세 조회 실패:', error);
+      alert('이메일 양식 상세 조회 중 오류가 발생했습니다.');
+    }
   };
 
   // ── 회원목록 팝업 체크 토글
@@ -374,6 +661,12 @@ export default function EmailSendCreate() {
     setCheckedMemberIds([]);
     setMemberCursor(null);
     setMemberHasNext(true);
+    setIsTemplatePopupOpen(false);
+    setTemplateList([]);
+    setTemplateTotalCount(0);
+    setSelectedTemplateId(null);
+    setTemplateCursor(null);
+    setTemplateHasNext(true);
     setSendError(null);
   };
 
@@ -473,9 +766,18 @@ export default function EmailSendCreate() {
     viewportRef: memberGridViewportRef,
     loading: memberLoading,
     loadingRef: memberLoadingRef,
-    hasNext: isMemberPopupOpen ? memberHasNext : false, // ← 팝업 닫힘 시 비활성화
+    hasNext: isMemberPopupOpen ? memberHasNext : false,
     onLoadMore: handleLoadMoreMembers,
   });
+
+  useGridInfiniteScroll({
+    viewportRef: templateGridViewportRef,
+    loading: templateLoading,
+    loadingRef: templateLoadingRef,
+    hasNext: isTemplatePopupOpen ? templateHasNext : false,
+    onLoadMore: handleLoadMoreTemplates,
+  });
+
   return (
     <div className="oncontentbox full">
       <div className="oncontentTitle">
@@ -676,7 +978,11 @@ export default function EmailSendCreate() {
                     <div className="flexColumn centerGap">
                       <span>내용</span>
                       <div style={{ width: '108px', whiteSpace: 'nowrap' }}>
-                        <Button btnType="add" btnNames="양식 불러오기" />
+                        <Button
+                          btnType="add"
+                          btnNames="양식 불러오기"
+                          onClick={handleOpenTemplatePopup}
+                        />
                       </div>
                     </div>
                   </td>
@@ -755,6 +1061,20 @@ export default function EmailSendCreate() {
           onSearch={handleSearchMembers}
           onToggleCheck={handleMemberCheckToggle}
           onConfirm={handleAddCheckedMembers}
+        />
+      )}
+
+      {isTemplatePopupOpen && (
+        <EmailTemplatePopup
+          title="이메일 양식 목록"
+          templateList={templateList}
+          totalCount={templateTotalCount}
+          selectedTemplateId={selectedTemplateId}
+          loading={templateLoading}
+          gridViewportRef={templateGridViewportRef}
+          onClose={handleCloseTemplatePopup}
+          onToggleSelect={handleToggleTemplateSelect}
+          onConfirm={handleApplyTemplate}
         />
       )}
     </div>

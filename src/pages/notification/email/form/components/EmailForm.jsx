@@ -1,9 +1,144 @@
 import Button from '@components/ui/Button.jsx';
 import FileUpload from '@components/ui/FileUpload.jsx';
-import { useNavigate } from 'react-router-dom';
+import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import RichEditor from '@components/ui/RichEditor.jsx';
+import http from '@lib/http.js';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
-export default function CommonCode() {
+export default function EmailForm({ mode = 'create' }) {
   const navigate = useNavigate();
+  const { id } = useParams();
+
+  const isUpdateMode = mode === 'update';
+
+  const [formId, setFormId] = useState('');
+  const [formName, setFormName] = useState('');
+  const [content, setContent] = useState('');
+  const [writer, setWriter] = useState('');
+  const [createdAt, setCreatedAt] = useState('');
+  const [attachFiles, setAttachFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const formatDateTime = (value) => {
+    if (!value) return '';
+    if (/^\d{14}$/.test(value)) {
+      return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)} ${value.slice(8, 10)}:${value.slice(10, 12)}`;
+    }
+    return value;
+  };
+
+  const fetchDetail = async () => {
+    if (!isUpdateMode || !id) return;
+
+    setLoading(true);
+    try {
+      const response = await http.get(
+        `/api/v1/notification/email/templates/${id}`
+      );
+      const payload = response?.data?.data ?? response?.data ?? response ?? {};
+
+      setFormId(payload?.tplId ? String(payload.tplId) : '');
+      setFormName(payload?.tplTitle ?? '');
+      setContent(payload?.tplContent ?? '');
+      setWriter(payload?.writer ?? '');
+      setCreatedAt(formatDateTime(payload?.inDate));
+
+      // TODO 첨부파일 정책/상세 응답 구조 확정 시 attachFiles 세팅
+      setAttachFiles([]);
+    } catch (error) {
+      console.error('이메일 양식 상세 조회 실패:', error);
+      alert('이메일 양식 상세 조회 중 오류가 발생했습니다.');
+      navigate('..');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isUpdateMode) {
+      fetchDetail();
+      return;
+    }
+
+    setFormId('');
+    setFormName('');
+    setContent('');
+    setWriter('');
+    setCreatedAt('');
+    setAttachFiles([]);
+  }, [isUpdateMode, id]);
+
+  const validate = () => {
+    if (!formName.trim()) {
+      alert('양식명을 입력하세요.');
+      return false;
+    }
+
+    if (!content || !String(content).trim()) {
+      alert('내용을 입력하세요.');
+      return false;
+    }
+
+    return true;
+  };
+
+  const buildRequestBody = () => ({
+    tplTitle: formName.trim(),
+    tplContent: content,
+    // TODO 첨부파일 정책 확정 시 attachYn / files / attachmentIds 반영
+  });
+
+  const handleSave = async () => {
+    if (!validate()) return;
+
+    setLoading(true);
+    try {
+      if (attachFiles.length > 0) {
+        // TODO 첨부파일 정책 확정 후 multipart 또는 별도 업로드 API 연동
+        console.warn('첨부파일 연동 TODO:', attachFiles);
+      }
+
+      if (isUpdateMode) {
+        await http.post(
+          `/api/v1/notification/email/templates/update/${id}`,
+          buildRequestBody()
+        );
+        alert('수정되었습니다.');
+      } else {
+        await http.post(
+          '/api/v1/notification/email/templates',
+          buildRequestBody()
+        );
+        alert('등록되었습니다.');
+      }
+
+      navigate('..');
+    } catch (error) {
+      console.error('이메일 양식 저장 실패:', error);
+      alert('이메일 양식 저장 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!isUpdateMode || !tplId) return;
+
+    if (!window.confirm('삭제하시겠습니까?')) return;
+
+    setLoading(true);
+    try {
+      await http.post(`/api/v1/notification/email/templates/delete/${id}`);
+      alert('삭제되었습니다.');
+      navigate('..');
+    } catch (error) {
+      console.error('이메일 양식 삭제 실패:', error);
+      alert('이메일 양식 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="oncontentbox full">
@@ -17,6 +152,7 @@ export default function CommonCode() {
           <li className="on">이메일 양식 등록/수정</li>
         </ul>
       </div>
+
       <div className="oncontents">
         <div className="oncontent ontable-form">
           <div className="ontableBox">
@@ -28,41 +164,70 @@ export default function CommonCode() {
               <tbody>
                 <tr>
                   <td>양식ID</td>
-                  <td>아이디</td>
+                  <td>
+                    <MenuInputBox
+                      menuType="input"
+                      menuSize="500px"
+                      value={isUpdateMode ? formId : '자동생성'}
+                      disabled={true}
+                    />
+                  </td>
                 </tr>
                 <tr>
                   <td>양식명</td>
-                  <td>제목</td>
+                  <td>
+                    <MenuInputBox
+                      menuType="input"
+                      menuSize="500px"
+                      value={formName}
+                      onChange={(e) => setFormName(e.target.value)}
+                      placeholder="양식명을 입력하세요."
+                      maxLength={1000}
+                    />
+                  </td>
                 </tr>
                 <tr>
                   <td>내용</td>
                   <td>
-                    <div className="oneditcontent"></div>
+                    <RichEditor
+                      theme="light"
+                      value={content}
+                      onChange={setContent}
+                      placeholder="내용을 입력하세요."
+                      minHeight={280}
+                    />
                   </td>
                 </tr>
                 <tr>
                   <td>첨부파일</td>
                   <td>
-                    <Button btnType="addfile" btnNames="파일 선택" />
-                    <input type="file" />
-                    <div className="onflex onflexcolumn">
-                      <FileUpload mode="edit" />
-                      <FileUpload mode="edit" />
+                    <div className="onflex onflexcolumn" style={{ gap: '8px' }}>
+                      <FileUpload
+                        mode="edit"
+                        maxFiles={5}
+                        fileType="attachment"
+                        files={attachFiles}
+                        onFilesChange={setAttachFiles}
+                      />
+                      <span style={{ fontSize: '12px', color: '#777' }}>
+                        첨부파일 기능은 정책 확정 후 연동 예정입니다.
+                      </span>
                     </div>
                   </td>
                 </tr>
                 <tr>
                   <td>작성자</td>
-                  <td>홍길동</td>
+                  <td>{writer || '-'}</td>
                 </tr>
                 <tr>
                   <td>작성일</td>
-                  <td>2025-12-10</td>
+                  <td>{createdAt || '-'}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
+
         <div className="onflexbtns">
           <div style={{ marginRight: 'auto' }}>
             <Button
@@ -71,8 +236,22 @@ export default function CommonCode() {
               onClick={() => navigate('..')}
             />
           </div>
-          <Button btnType="del" btnNames="삭제" />
-          <Button btnType="add" btnNames="저장" />
+
+          {isUpdateMode && (
+            <Button
+              btnType="del"
+              btnNames="삭제"
+              onClick={handleDelete}
+              disabled={loading}
+            />
+          )}
+
+          <Button
+            btnType="add"
+            btnNames="저장"
+            onClick={handleSave}
+            disabled={loading}
+          />
         </div>
       </div>
     </div>
