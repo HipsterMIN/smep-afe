@@ -498,7 +498,7 @@ export const componentMap = {
     layout: AdminLayoutWithAuth,
     children: [
       {
-        path: ':id',
+        path: 'detail/:msgId',
         component: EmailSendDetail, // 이메일발송상세
       },
       {
