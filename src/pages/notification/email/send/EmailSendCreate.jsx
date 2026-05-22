@@ -307,6 +307,12 @@ export default function EmailSendCreate() {
   const templateLoadingRef = useRef(false);
   const templateGridViewportRef = useRef(null);
 
+  // ── 엑셀 업로드
+  const [isExcelPopupOpen, setIsExcelPopupOpen] = useState(false);
+  const [excelFile, setExcelFile] = useState(null);
+  const [isExcelUploading, setIsExcelUploading] = useState(false);
+  const excelFileInputRef = useRef(null);
+
   // ── 발송 처리 state
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState(null);
@@ -638,6 +644,60 @@ export default function EmailSendCreate() {
     }
   };
 
+  const handleExcelConfirm = async () => {
+    if (!excelFile) {
+      alert('파일을 선택해주세요.');
+      return;
+    }
+    setIsExcelUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', excelFile);
+
+      const res = await http.post('/api/common/excel/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      // ApiResponse 래퍼 : res.data.data 가 List<Map<String, List<String>>>
+      const rawList = res?.data ?? [];
+
+      // 1행은 헤더(이름/이메일주소)이므로 skip, A열=key(이름), C열=values[0](이메일)
+      const parsed = rawList
+        .slice(1)
+        .map((row) => {
+          const name = Object.keys(row)[0] ?? '';
+          const email = (Object.values(row)[0] ?? [])[0] ?? '';
+          return { name: name.trim(), email: email.trim() };
+        })
+        .filter((r) => EMAIL_REGEX.test(r.email));
+
+      if (parsed.length === 0) {
+        alert(
+          '유효한 이메일 주소가 없습니다.\nA열=이름, C열=이메일주소 형식인지 확인해주세요.'
+        );
+        return;
+      }
+
+      const existingEmails = new Set(recipients.map((r) => r.email));
+      const newRecipients = parsed.filter((r) => !existingEmails.has(r.email));
+
+      setRecipients((prev) => [...prev, ...newRecipients]);
+      setIsExcelPopupOpen(false);
+      setExcelFile(null);
+
+      alert(`${newRecipients.length}명이 수신자 목록에 추가되었습니다.`);
+    } catch (e) {
+      console.error('엑셀 업로드 실패:', e);
+      alert('엑셀 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsExcelUploading(false);
+    }
+  };
+
+  const handleClickExcelFileButton = () => {
+    excelFileInputRef.current?.click();
+  };
+
   // ── 다시쓰기 (초기화)
   const handleReset = () => {
     setCategoryNm('');
@@ -879,12 +939,17 @@ export default function EmailSendCreate() {
                             onClick={handleAddRecipient}
                           />
                         </div>
-                        <Button btnType="add" btnNames="엑셀 불러오기" />
                         <Button
-                          btnType="list"
+                          btnType="add"
+                          bgColor="color-gray"
                           btnNames="회원목록"
                           onClick={handleOpenMemberPopup}
                         />
+                        <Button
+                          btnType="list"
+                          btnNames="엑셀 불러오기"
+                          onClick={() => setIsExcelPopupOpen(true)}
+                        ></Button>
                       </div>
 
                       <div className="flexRow">
@@ -1076,6 +1141,110 @@ export default function EmailSendCreate() {
           onToggleSelect={handleToggleTemplateSelect}
           onConfirm={handleApplyTemplate}
         />
+      )}
+
+      {isExcelPopupOpen && (
+        <Popup
+          title="엑셀 불러오기"
+          autoHeight={true}
+          onClose={() => {
+            setIsExcelPopupOpen(false);
+            setExcelFile(null);
+          }}
+        >
+          <h4 className="onsubtitle" style={{ margin: '0 2px 12px' }}>
+            업로드 안내
+          </h4>
+
+          <div className="oncontent" style={{ margin: '0 2px 12px' }}>
+            <ul style={{ paddingLeft: '18px', lineHeight: '1.8' }}>
+              <li>
+                반드시 아래의 양식에 맞게 전송 대상자 정보를 입력하여 업로드해
+                주시기 바랍니다.
+              </li>
+            </ul>
+          </div>
+
+          <div
+            className="oncontent ontable-form"
+            style={{ paddingRight: '0', marginBottom: '12px' }}
+          >
+            <div className="ontableBox onbgtable">
+              <table>
+                <colgroup>
+                  <col style={{ width: '33.33%' }} />
+                  <col style={{ width: '33.33%' }} />
+                  <col style={{ width: '33.33%' }} />
+                </colgroup>
+                <tbody>
+                  <tr>
+                    <td style={{ borderRight: '1px solid #E1E1E1' }}>A열</td>
+                    <td style={{ borderRight: '1px solid #E1E1E1' }}>B열</td>
+                    <td>C열</td>
+                  </tr>
+                  <tr>
+                    <td style={{ borderRight: '1px solid #E1E1E1' }}>이름</td>
+                    <td style={{ borderRight: '1px solid #E1E1E1' }}>&nbsp;</td>
+                    <td>이메일주소</td>
+                  </tr>
+                  <tr>
+                    <td style={{ borderRight: '1px solid #E1E1E1' }}>홍길동</td>
+                    <td style={{ borderRight: '1px solid #E1E1E1' }}>&nbsp;</td>
+                    <td>test@test.co.kr</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="ongrid-form" style={{ margin: '0 2px 8px' }}>
+            <div className="flexRow" style={{ width: '100%', gap: '8px' }}>
+              <MenuInputBox
+                menuType="input"
+                menuSize="300px"
+                value={excelFile?.name ?? ''}
+                placeholder="선택된 파일 없음"
+                readOnly
+              />
+
+              <input
+                ref={excelFileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                style={{ display: 'none' }}
+                onChange={(e) => setExcelFile(e.target.files?.[0] ?? null)}
+              />
+
+              <Button
+                type="button"
+                btnType="add"
+                btnNames="파일 선택"
+                onClick={handleClickExcelFileButton}
+              />
+            </div>
+          </div>
+
+          <div
+            className="onflexbtns"
+            style={{ marginTop: '16px', justifyContent: 'center' }}
+          >
+            <Button
+              btnType="add"
+              bgColor="color-gray"
+              btnNames="취소"
+              onClick={() => {
+                setIsExcelPopupOpen(false);
+                setExcelFile(null);
+              }}
+            />
+            <Button
+              btnType="add"
+              btnNames={isExcelUploading ? '처리 중...' : '확인'}
+              disabled={isExcelUploading}
+              onClick={handleExcelConfirm}
+            />
+          </div>
+        </Popup>
       )}
     </div>
   );
