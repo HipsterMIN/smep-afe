@@ -73,6 +73,7 @@ export default function PublicAnnouncementDetail({
     bizPbancRlsSttsCd: 'BS01', //통합플랫폼공개여부
     bizPbancSprtTypeCd: null, //지원유형
     bizPbancSprtInstCd: null, //지원기관
+    bizTelgmInstNm: null,
     bizSprvsnInstNm: null, //주관기관
     bizPbancLinkInstCd: null, //연계시스템
     scrapCnt: 0, //스크랩수
@@ -436,6 +437,17 @@ export default function PublicAnnouncementDetail({
                       onChange={(v) => handleInputChange('bizSprvsnInstNm', v)}
                     />
                   </td>
+                  <td>전문기관</td>
+                  <td>
+                    <MenuInputBox
+                      menuType="input"
+                      menuSize="100%"
+                      value={form.bizTelgmInstNm}
+                      onChange={(v) => handleInputChange('bizTelgmInstNm', v)}
+                    />
+                  </td>
+                </tr>
+                <tr>
                   <td>연계시스템</td>
                   <td>
                     <MenuInputBox
@@ -448,12 +460,12 @@ export default function PublicAnnouncementDetail({
                       options={linkInstOptions}
                     />
                   </td>
-                </tr>
-                <tr>
                   <td>스크랩수</td>
                   <td>{form.scrapCnt}</td>
+                </tr>
+                <tr>
                   <td>최종수정일시</td>
-                  <td>{form.mdfcnDt}</td>
+                  <td colSpan={3}>{form.mdfcnDt}</td>
                 </tr>
               </tbody>
             </table>

@@ -1,5 +1,6 @@
 import Button from '@components/ui/Button.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import Popup from '@components/ui/Popup.jsx';
 import MessageEditorPanel from '@pages/notification/sms/send/components/MessageEditorPanel.jsx';
 import RecipientMemberPopup from '@pages/notification/common/RecipientMemberPopup.jsx';
 import TemplatePopup from '@pages/notification/common/TemplatePopup.jsx';
@@ -11,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 const MESSAGE_TYPES = ['SMS', 'LMS'];
 const MEMBER_POPUP_PAGE_SIZE = 20;
 const TEMPLATE_POPUP_PAGE_SIZE = 20;
+const PHONE_REGEX = /^01[0-9]{8,9}$/;
 
 const TAB_BUTTON_STYLE = {
   display: 'flex',
@@ -38,7 +40,6 @@ function formatTemplateDate(value = '') {
 
 function normalizePopupMember(row) {
   const stableId = row?.mbrNo ?? row?.lgnId;
-
   return {
     ...row,
     id: stableId,
@@ -55,14 +56,12 @@ function normalizePopupMember(row) {
 function normalizePopupMemberRows(rows = []) {
   const uniqueRows = [];
   const seen = new Set();
-
   rows.forEach((row) => {
     const key = row?.mbrNo ?? row?.lgnId;
     if (!key || seen.has(key)) return;
     seen.add(key);
     uniqueRows.push(row);
   });
-
   return uniqueRows.map(normalizePopupMember);
 }
 
@@ -93,7 +92,6 @@ function getFallbackTemplateCursor(rows = []) {
 function resolveMemberPayload(response) {
   if (response && typeof response === 'object' && !Array.isArray(response)) {
     const responseData = response.data ?? response;
-
     if (
       responseData &&
       typeof responseData === 'object' &&
@@ -109,10 +107,8 @@ function resolveMemberPayload(response) {
         return responseData.data;
       }
     }
-
     return responseData;
   }
-
   return response ?? {};
 }
 
@@ -128,9 +124,9 @@ export default function SmsSendCreate() {
   const [activeMessageType, setActiveMessageType] = useState('SMS');
   const [messageTitle, setMessageTitle] = useState('');
   const [messageContents, setMessageContents] = useState('');
-
   const [recipients, setRecipients] = useState([]);
 
+  // ── 회원목록 팝업
   const [isMemberPopupOpen, setIsMemberPopupOpen] = useState(false);
   const [memberType, setMemberType] = useState('');
   const [memberSearchType, setMemberSearchType] = useState('');
@@ -142,6 +138,7 @@ export default function SmsSendCreate() {
   const [memberCursor, setMemberCursor] = useState(null);
   const [memberHasNext, setMemberHasNext] = useState(true);
 
+  // ── 양식 팝업
   const [isTemplatePopupOpen, setIsTemplatePopupOpen] = useState(false);
   const [templateList, setTemplateList] = useState([]);
   const [templateTotalCount, setTemplateTotalCount] = useState(0);
@@ -150,10 +147,16 @@ export default function SmsSendCreate() {
   const [templateCursor, setTemplateCursor] = useState(null);
   const [templateHasNext, setTemplateHasNext] = useState(true);
 
+  // ── 엑셀 업로드
+  const [isExcelPopupOpen, setIsExcelPopupOpen] = useState(false);
+  const [excelFile, setExcelFile] = useState(null);
+  const [isExcelUploading, setIsExcelUploading] = useState(false);
+
   const memberLoadingRef = useRef(false);
   const memberGridViewportRef = useRef(null);
   const templateLoadingRef = useRef(false);
   const templateGridViewportRef = useRef(null);
+  const excelFileInputRef = useRef(null);
 
   const navigate = useNavigate();
 
@@ -166,22 +169,18 @@ export default function SmsSendCreate() {
       data?.page?.nextCursor,
       getFallbackCursorFromRows(rows),
     ];
-
     const validCursor = cursorCandidates.find(
       (value) => value !== undefined && value !== null && value !== ''
     );
-
     return validCursor ?? null;
   };
 
   const parseHasNext = (data, rows, nextCursorValue) => {
     const raw =
       data?.hasNext ?? data?.cursorPageResponse?.hasNext ?? data?.page?.hasNext;
-
     if (typeof raw === 'boolean') return raw;
     if (raw === 'Y') return true;
     if (raw === 'N') return false;
-
     return rows.length >= MEMBER_POPUP_PAGE_SIZE || Boolean(nextCursorValue);
   };
 
@@ -191,10 +190,7 @@ export default function SmsSendCreate() {
     currentSearchType,
     currentKeyword
   ) => ({
-    cursorPageRequest: {
-      size: MEMBER_POPUP_PAGE_SIZE,
-      cursor: nextCursor,
-    },
+    cursorPageRequest: { size: MEMBER_POPUP_PAGE_SIZE, cursor: nextCursor },
     memberType: currentMemberType || null,
     searchType: currentSearchType || null,
     keyword: currentKeyword.trim() || null,
@@ -209,10 +205,8 @@ export default function SmsSendCreate() {
   const fetchMemberList = async (nextCursor = null, reset = false) => {
     if (memberLoadingRef.current) return;
     if (!memberHasNext && !reset) return;
-
     memberLoadingRef.current = true;
     setMemberLoading(true);
-
     try {
       if (reset) {
         setMemberCursor(null);
@@ -220,7 +214,6 @@ export default function SmsSendCreate() {
         setCheckedMemberIds([]);
         setMemberTotalCount(0);
       }
-
       const response = await http.post(
         '/api/v1/notification/recipients/members/search',
         buildMemberSearchRequest(
@@ -230,28 +223,22 @@ export default function SmsSendCreate() {
           memberSearchKeyword
         )
       );
-
       const data = resolveMemberPayload(response);
       const rows = Array.isArray(data?.data) ? data.data : [];
-
       setMemberList((prev) =>
         reset
           ? normalizePopupMemberRows(rows)
           : normalizePopupMemberRows([...prev, ...rows])
       );
-
       setMemberTotalCount((prev) =>
         reset ? (data?.totalCount ?? rows.length) : (data?.totalCount ?? prev)
       );
-
       const resolvedNextCursor = parseNextCursor(data, rows);
       const resolvedHasNext = parseHasNext(data, rows, resolvedNextCursor);
-
       setMemberCursor(resolvedNextCursor);
       setMemberHasNext(resolvedHasNext);
     } catch (error) {
       console.error('회원 목록 조회 실패:', error);
-
       if (reset) {
         setMemberList([]);
         setMemberTotalCount(0);
@@ -259,7 +246,6 @@ export default function SmsSendCreate() {
         setMemberHasNext(false);
         setCheckedMemberIds([]);
       }
-
       alert('회원 목록 조회 중 오류가 발생했습니다.');
     } finally {
       memberLoadingRef.current = false;
@@ -270,10 +256,8 @@ export default function SmsSendCreate() {
   const fetchTemplateList = async (nextCursor = null, reset = false) => {
     if (templateLoadingRef.current) return;
     if (!templateHasNext && !reset) return;
-
     templateLoadingRef.current = true;
     setTemplateLoading(true);
-
     try {
       if (reset) {
         setTemplateCursor(null);
@@ -281,20 +265,17 @@ export default function SmsSendCreate() {
         setSelectedTemplateId(null);
         setTemplateTotalCount(0);
       }
-
       const response = await http.get('/api/v1/notification/sms/templates', {
         params: {
           cursor: reset ? null : nextCursor,
           size: TEMPLATE_POPUP_PAGE_SIZE,
         },
       });
-
       const data = resolveTemplatePayload(response);
       const rows = Array.isArray(data?.data) ? data.data : [];
       const next = data?.nextCursor ?? null;
       const nextHasNext = Boolean(data?.hasNext);
       const nextTotalCount = data?.totalCount ?? rows.length;
-
       setTemplateList((prev) =>
         reset
           ? normalizeTemplateRows(rows, nextTotalCount, 0)
@@ -308,7 +289,6 @@ export default function SmsSendCreate() {
       setTemplateHasNext(nextHasNext);
     } catch (error) {
       console.error('SMS 양식 목록 조회 실패:', error);
-
       if (reset) {
         setTemplateList([]);
         setTemplateTotalCount(0);
@@ -316,7 +296,6 @@ export default function SmsSendCreate() {
         setTemplateHasNext(false);
         setSelectedTemplateId(null);
       }
-
       alert('SMS 양식 목록 조회 중 오류가 발생했습니다.');
     } finally {
       templateLoadingRef.current = false;
@@ -341,7 +320,6 @@ export default function SmsSendCreate() {
 
   const handleLoadMoreMembers = () => {
     const nextCursor = memberCursor ?? getFallbackCursorFromRows(memberList);
-
     if (nextCursor !== null && nextCursor !== undefined) {
       fetchMemberList(nextCursor, false);
     }
@@ -365,7 +343,6 @@ export default function SmsSendCreate() {
   const handleLoadMoreTemplates = () => {
     const nextCursor =
       templateCursor ?? getFallbackTemplateCursor(templateList);
-
     if (nextCursor !== null && nextCursor !== undefined) {
       fetchTemplateList(nextCursor, false);
     }
@@ -376,18 +353,14 @@ export default function SmsSendCreate() {
       alert('불러올 양식을 선택하세요.');
       return;
     }
-
     const selectedTemplate = templateList.find(
       (template) => template.id === selectedTemplateId
     );
-
     if (!selectedTemplate) {
       alert('선택한 양식 정보를 찾을 수 없습니다.');
       return;
     }
-
     let templateDetail = selectedTemplate;
-
     if (!templateDetail?.tplContent) {
       try {
         const response = await http.get(
@@ -404,7 +377,6 @@ export default function SmsSendCreate() {
         return;
       }
     }
-
     setMessageTitle(templateDetail?.tplTitle ?? '');
     setMessageContents(templateDetail?.tplContent ?? '');
     setSelectedTemplateId(null);
@@ -415,28 +387,20 @@ export default function SmsSendCreate() {
     const selectedMembers = memberList.filter((member) =>
       checkedMemberIds.includes(member.id)
     );
-
     if (selectedMembers.length === 0) {
       alert('추가할 회원을 선택하세요.');
       return;
     }
-
     const invalidMembers = selectedMembers.filter(
       (member) => !normalizePhoneNo(member.phoneNo)
     );
-
     const existingPhones = new Set(
       recipients.map((r) => normalizePhoneNo(r.phoneNo))
     );
-
     const newRecipients = selectedMembers
       .filter((member) => normalizePhoneNo(member.phoneNo))
       .filter((member) => !existingPhones.has(normalizePhoneNo(member.phoneNo)))
-      .map((member) => ({
-        name: member.name,
-        phoneNo: member.phoneNo,
-      }));
-
+      .map((member) => ({ name: member.name, phoneNo: member.phoneNo }));
     if (newRecipients.length === 0) {
       if (invalidMembers.length > 0) {
         alert('유효한 휴대폰번호가 있는 회원만 추가할 수 있습니다.');
@@ -445,15 +409,68 @@ export default function SmsSendCreate() {
       }
       return;
     }
-
     setRecipients((prev) => [...prev, ...newRecipients]);
     setCheckedMemberIds([]);
     setIsMemberPopupOpen(false);
-
     if (invalidMembers.length > 0) {
       alert(
         `휴대폰번호가 없는 회원 ${invalidMembers.length}명은 제외되고 추가되었습니다.`
       );
+    }
+  };
+
+  // ── 엑셀 업로드 핸들러
+  const handleClickExcelFileButton = () => {
+    excelFileInputRef.current?.click();
+  };
+
+  const handleExcelConfirm = async () => {
+    if (!excelFile) {
+      alert('파일을 선택해주세요.');
+      return;
+    }
+    setIsExcelUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', excelFile);
+      const res = await http.post('/api/common/excel/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      // A열=key(이름), C열=values[0](전화번호), 1행 헤더 skip
+      const rawList = res?.data ?? [];
+      const parsed = rawList
+        .slice(1)
+        .map((row) => {
+          const name = Object.keys(row)[0] ?? '';
+          const phoneNo = (Object.values(row)[0] ?? [])[0] ?? '';
+          return { name: name.trim(), phoneNo: normalizePhoneNo(phoneNo) };
+        })
+        .filter((r) => PHONE_REGEX.test(r.phoneNo));
+
+      if (parsed.length === 0) {
+        alert(
+          '유효한 휴대폰번호가 없습니다.\nA열=이름, C열=휴대폰번호(숫자만) 형식인지 확인해주세요.'
+        );
+        return;
+      }
+
+      const existingPhones = new Set(
+        recipients.map((r) => normalizePhoneNo(r.phoneNo))
+      );
+      const newRecipients = parsed.filter(
+        (r) => !existingPhones.has(r.phoneNo)
+      );
+
+      setRecipients((prev) => [...prev, ...newRecipients]);
+      setIsExcelPopupOpen(false);
+      setExcelFile(null);
+      alert(`${newRecipients.length}명이 수신자 목록에 추가되었습니다.`);
+    } catch (e) {
+      console.error('엑셀 업로드 실패:', e);
+      alert('엑셀 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsExcelUploading(false);
     }
   };
 
@@ -512,6 +529,7 @@ export default function SmsSendCreate() {
           onBack={() => navigate('..')}
           onOpenMemberPopup={handleOpenMemberPopup}
           onOpenTemplatePopup={handleOpenTemplatePopup}
+          onOpenExcelPopup={() => setIsExcelPopupOpen(true)}
           recipients={recipients}
           onRecipientsChange={setRecipients}
           title={messageTitle}
@@ -554,6 +572,112 @@ export default function SmsSendCreate() {
           onToggleSelect={handleToggleTemplateSelect}
           onConfirm={handleApplyTemplate}
         />
+      )}
+
+      {isExcelPopupOpen && (
+        <Popup
+          title="엑셀 불러오기"
+          autoHeight={true}
+          onClose={() => {
+            setIsExcelPopupOpen(false);
+            setExcelFile(null);
+          }}
+        >
+          <h4 className="onsubtitle" style={{ margin: '0 2px 12px' }}>
+            업로드 안내
+          </h4>
+
+          <div className="oncontent" style={{ margin: '0 2px 12px' }}>
+            <ul style={{ paddingLeft: '18px', lineHeight: '1.8' }}>
+              <li>
+                반드시 아래의 양식에 맞게 전송 대상자 정보를 입력하여 업로드해
+                주시기 바랍니다.
+              </li>
+              <li>
+                휴대폰번호는 텍스트 형식으로 입력하거나 앞자리 0을 포함해
+                입력해주세요.
+              </li>
+            </ul>
+          </div>
+
+          <div
+            className="oncontent ontable-form"
+            style={{ paddingRight: '0', marginBottom: '12px' }}
+          >
+            <div className="ontableBox onbgtable">
+              <table>
+                <colgroup>
+                  <col style={{ width: '33.33%' }} />
+                  <col style={{ width: '33.33%' }} />
+                  <col style={{ width: '33.33%' }} />
+                </colgroup>
+                <tbody>
+                  <tr>
+                    <td style={{ borderRight: '1px solid #E1E1E1' }}>A열</td>
+                    <td style={{ borderRight: '1px solid #E1E1E1' }}>B열</td>
+                    <td>C열</td>
+                  </tr>
+                  <tr>
+                    <td style={{ borderRight: '1px solid #E1E1E1' }}>이름</td>
+                    <td style={{ borderRight: '1px solid #E1E1E1' }}>&nbsp;</td>
+                    <td>휴대폰번호</td>
+                  </tr>
+                  <tr>
+                    <td style={{ borderRight: '1px solid #E1E1E1' }}>홍길동</td>
+                    <td style={{ borderRight: '1px solid #E1E1E1' }}>&nbsp;</td>
+                    <td>01012345678</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="ongrid-form" style={{ margin: '0 2px 8px' }}>
+            <div className="flexRow" style={{ width: '100%', gap: '8px' }}>
+              <MenuInputBox
+                menuType="input"
+                menuSize="300px"
+                value={excelFile?.name ?? ''}
+                placeholder="선택된 파일 없음"
+                readOnly
+              />
+              <input
+                ref={excelFileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                style={{ display: 'none' }}
+                onChange={(e) => setExcelFile(e.target.files?.[0] ?? null)}
+              />
+              <Button
+                type="button"
+                btnType="add"
+                btnNames="파일 선택"
+                onClick={handleClickExcelFileButton}
+              />
+            </div>
+          </div>
+
+          <div
+            className="onflexbtns"
+            style={{ marginTop: '16px', justifyContent: 'center' }}
+          >
+            <Button
+              btnType="add"
+              bgColor="color-gray"
+              btnNames="취소"
+              onClick={() => {
+                setIsExcelPopupOpen(false);
+                setExcelFile(null);
+              }}
+            />
+            <Button
+              btnType="add"
+              btnNames={isExcelUploading ? '처리 중...' : '확인'}
+              disabled={isExcelUploading}
+              onClick={handleExcelConfirm}
+            />
+          </div>
+        </Popup>
       )}
     </div>
   );

@@ -35,6 +35,7 @@ function MessageEditorBasePanel({
   onBack,
   onOpenMemberPopup,
   onOpenTemplatePopup,
+  onOpenExcelPopup,
   recipients,
   onRecipientsChange,
   title,
@@ -229,7 +230,11 @@ function MessageEditorBasePanel({
                 btnNames="회원목록"
                 onClick={onOpenMemberPopup}
               />
-              <Button btnType="add" btnNames="엑셀 불러오기" />
+              <Button
+                btnType="list"
+                btnNames="엑셀 불러오기"
+                onClick={onOpenExcelPopup}
+              ></Button>
             </div>
 
             <div className="columnbox grow">
@@ -336,6 +341,7 @@ export default function MessageEditorPanel({
   onBack,
   onOpenMemberPopup,
   onOpenTemplatePopup,
+  onOpenExcelPopup,
   recipients,
   onRecipientsChange,
   title,
@@ -349,6 +355,7 @@ export default function MessageEditorPanel({
     onBack,
     onOpenMemberPopup,
     onOpenTemplatePopup,
+    onOpenExcelPopup,
     recipients,
     onRecipientsChange,
     title,
