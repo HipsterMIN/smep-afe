@@ -2,8 +2,10 @@ import Button from '@components/ui/Button.jsx';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
-import { useEffect, useMemo, useState } from 'react';
+import { Willow } from '@svar-ui/react-grid';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const toDisplayText = (value) => {
@@ -11,163 +13,196 @@ const toDisplayText = (value) => {
   return value;
 };
 
-// 이메일 양식을 참고하여 기획된 SMS 컬럼 명세 구조
-const SMS_LOG_COLUMNS = (navigate, totalCount) => [
-  {
-    id: 'rowNo',
-    header: '번호',
-    width: 70,
-    dataAlign: 'right',
-    cell: ({ row }) => {
-      return Number.isFinite(totalCount) && Number.isFinite(row?._rowIndex)
-        ? totalCount - (row._rowIndex - 1)
-        : '-';
-    },
-  },
-  {
-    id: 'meKind',
-    header: '메시지 구분',
-    width: 100,
-    cell: ({ row }) => {
-      return toDisplayText(row?.meKind);
-    },
-  },
-  {
-    id: 'mtitle',
-    header: '제목',
-    resize: true,
-    flexgrow: 1,
-    dataAlign: 'left',
-    cell: ({ row }) => {
-      const text = toDisplayText(row?.mtitle);
-      return (
-        <span
-          title={text === '-' ? '' : String(text)}
-          onClick={() => navigate(`detail/${row.mseq}`)}
-          style={{ cursor: 'pointer', textDecoration: 'underline' }}
-        >
-          {text}
-        </span>
-      );
-    },
-  },
-  {
-    id: 'msendType',
-    header: '발송상태',
-    width: 100,
-    cell: ({ row }) => {
-      const statusCode = row?.msendType;
-      if (statusCode === '1') return '발송완료';
-      if (statusCode === '0') return '발송실패';
-      if (statusCode === '2') return '발송중';
-      return toDisplayText(statusCode);
-    },
-  },
-  {
-    id: 'msenderId',
-    header: '발신자',
-    width: 110,
-    cell: ({ row }) => {
-      return toDisplayText(row?.msenderId);
-    },
-  },
-  {
-    id: 'mregDate',
-    header: '발송일시',
-    width: 160,
-    cell: ({ row }) => {
-      // ISO 포맷(2026-05-20T17:59:17)에서 T 문자를 공백으로 치환하여 보기 편하게 노출
-      if (!row?.mregDate) return '-';
-      return row.mregDate.replace('T', ' ').substring(0, 19);
-    },
-  },
-  {
-    id: 'msendCount',
-    header: '발송 총 건수',
-    width: 100,
-    cell: ({ row }) => {
-      return toDisplayText(row?.msendCount);
-    },
-  },
-  {
-    id: 'tmsFail',
-    header: '실패건수',
-    width: 90,
-    cell: ({ row }) => {
-      return toDisplayText(row?.tmsFail);
-    },
-  },
-];
+// 초깃값 팩토리 함수 생성
+const createSearchParams = () => ({
+  meKind: '',
+  mSendType: '',
+  mSenderId: '',
+  mTitle: '',
+  startDate: '',
+  endDate: '',
+});
 
 export default function SmsSendList() {
   const navigate = useNavigate();
+  const gridViewportRef = useRef(null);
 
   const [rows, setRows] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [cursor, setCursor] = useState(null);
+  const [hasNext, setHasNext] = useState(true);
 
-  // 이메일 예제를 참고해 초기 검색값을 공백('')으로 통일
-  const [searchParams, setSearchParams] = useState({
-    meKind: '',
-    mSendType: '',
-    mSenderId: '',
-    mTitle: '',
-    startDate: '',
-    endDate: '',
+  const loadingRef = useRef(false);
+  const appliedSearchParamsRef = useRef(createSearchParams());
+  const [searchParams, setSearchParams] = useState(createSearchParams);
+
+  const columns = [
+    {
+      id: 'rowNo',
+      header: '번호',
+      width: 70,
+      dataAlign: 'right',
+      cell: ({ row }) => {
+        return Number.isFinite(totalCount) && Number.isFinite(row?._rowIndex)
+          ? totalCount - (row._rowIndex - 1)
+          : '-';
+      },
+    },
+    {
+      id: 'meKind',
+      header: '메시지 구분',
+      width: 100,
+      cell: ({ row }) => toDisplayText(row?.meKind),
+    },
+    {
+      id: 'mTitle',
+      header: '제목',
+      resize: true,
+      flexgrow: 1,
+      dataAlign: 'left',
+      cell: ({ row }) => {
+        const text = toDisplayText(row?.mTitle);
+        return (
+          <span
+            title={text === '-' ? '' : String(text)}
+            style={{ cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            {text}
+          </span>
+        );
+      },
+    },
+    {
+      id: 'mSendType',
+      header: '발송상태',
+      width: 100,
+      cell: ({ row }) => {
+        const statusCode = row?.mSendType;
+        if (statusCode === '1') return '발송완료';
+        if (statusCode === '0') return '발송실패';
+        if (statusCode === '2') return '발송중';
+        return toDisplayText(statusCode);
+      },
+    },
+    {
+      id: 'mSenderId',
+      header: '발신자',
+      width: 110,
+      cell: ({ row }) => toDisplayText(row?.mSenderId),
+    },
+    {
+      id: 'mRegDate',
+      header: '발송일시',
+      width: 160,
+      cell: ({ row }) => {
+        if (!row?.mRegDate) return '-';
+        return row.mRegDate.replace('T', ' ').substring(0, 19);
+      },
+    },
+    {
+      id: 'mSendCount',
+      header: '발송 총 건수',
+      width: 100,
+      cell: ({ row }) => toDisplayText(row?.mSendCount),
+    },
+    {
+      id: 'tmsFail',
+      header: '실패건수',
+      width: 90,
+      cell: ({ row }) => toDisplayText(row?.tmsFail),
+    },
+  ];
+
+  // 파라미터 빌더 함수 (사이즈 지정 및 빈 값 제거)
+  const buildParams = (baseParams) => {
+    const params = { size: 20, ...baseParams };
+    const filtered = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== '') {
+        filtered[key] = value;
+      }
+    });
+    return filtered;
+  };
+
+  // 목록 데이터 API 호출
+  const fetchSmsLogList = async (nextCursor = null, reset = false) => {
+    if (loadingRef.current) return;
+    if (!reset && !hasNext) return;
+
+    loadingRef.current = true;
+    setLoading(true);
+
+    if (reset) {
+      appliedSearchParamsRef.current = { ...searchParams };
+    }
+
+    try {
+      const params = reset ? searchParams : appliedSearchParamsRef.current;
+      const apiParams = buildParams(params);
+      if (nextCursor) apiParams.cursor = nextCursor;
+
+      Object.keys(apiParams).forEach((key) => {
+        if (!apiParams[key]) delete apiParams[key];
+      });
+
+      const response = await http.get('/api/v1/notification/sms/list', {
+        params: apiParams,
+      });
+      const page = response.data ?? {};
+      const list = Array.isArray(page.data) ? page.data : [];
+
+      setRows((prev) => {
+        const merged = reset ? list : [...prev, ...list];
+
+        const seen = new Set();
+        return merged
+          .filter((item) => {
+            const key = item.mSeq || item.mseq;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          })
+          .map((row, idx) => ({
+            ...row,
+            id: String(row.mSeq || row.mseq || idx),
+            _rowIndex: idx + 1,
+          }));
+      });
+
+      if (reset) setTotalCount(page?.totalCount ?? 0);
+      setCursor(page.nextCursor ?? null);
+      setHasNext(Boolean(page.hasNext));
+    } catch (error) {
+      if (reset) setRows([]);
+    } finally {
+      loadingRef.current = false;
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchSmsLogList(null, true);
+  }, []);
+
+  useGridInfiniteScroll({
+    viewportRef: gridViewportRef,
+    loading,
+    loadingRef,
+    hasNext,
+    onLoadMore: () => fetchSmsLogList(cursor, false),
   });
 
   const handleInputChange = (key, val) => {
     setSearchParams((prev) => ({ ...prev, [key]: val }));
   };
 
-  const fetchSmsLogList = async () => {
-    try {
-      setLoading(true);
-
-      // 빈 값 검색 파라미터 제외 프로세스 추가
-      const apiParams = {};
-      Object.entries(searchParams).forEach(([key, value]) => {
-        if (value !== null && value !== undefined && value !== '') {
-          apiParams[key] = value;
-        }
-      });
-
-      const response = await http.get('/api/v1/notification/sms/list', {
-        params: apiParams,
-      });
-
-      if (response.data) {
-        // 실제 데이터 배열은 response.data.data에 존재하므로 우선 접근
-        const rawList =
-          response.data.data ||
-          (Array.isArray(response.data) ? response.data : []);
-
-        // 가상 행 번호를 위한 _rowIndex 매핑 연산 적용
-        const mappedList = rawList.map((row, idx) => ({
-          ...row,
-          _rowIndex: idx + 1,
-        }));
-
-        setRows(mappedList);
-        setTotalCount(response.data.totalCount || rawList.length || 0);
-      }
-    } catch (error) {
-      console.error('SMS 발송 목록 조회 실패:', error);
-      alert('데이터를 가져오는 데 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
+  // 검색 버튼 클릭 핸들러
+  const handleSearch = () => {
+    setCursor(null);
+    setHasNext(true);
+    fetchSmsLogList(null, true);
   };
-
-  useEffect(() => {
-    fetchSmsLogList();
-  }, []);
-
-  // 이메일과 동일하게 columns를 useMemo로 정의 및 인자 전달 처리
-  const columns = useMemo(
-    () => SMS_LOG_COLUMNS(navigate, totalCount),
-    [navigate, totalCount]
-  );
 
   const handleMoveToCreate = () => navigate('create');
 
@@ -214,7 +249,7 @@ export default function SmsSendList() {
                 <Button
                   btnType="menuSearch"
                   btnNames="검색"
-                  onClick={fetchSmsLogList}
+                  onClick={handleSearch}
                 />
               </div>
             </div>
@@ -225,7 +260,7 @@ export default function SmsSendList() {
                 menuSize="150px"
                 value={searchParams.mSenderId}
                 onChange={(e) => handleInputChange('mSenderId', e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && fetchSmsLogList()}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
               <MenuInputBox
                 menuType="input"
@@ -233,7 +268,7 @@ export default function SmsSendList() {
                 menuSize="300px"
                 value={searchParams.mTitle}
                 onChange={(e) => handleInputChange('mTitle', e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && fetchSmsLogList()}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
               <div className="ondatepickerbox">
                 <DatepickerBox
@@ -264,15 +299,31 @@ export default function SmsSendList() {
             />
           </div>
 
-          {/* 데이터 그리드 영역 */}
           <div className="ongrid-tableform">
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px' }}>
-                데이터 로딩 중...
+            <Willow>
+              <div
+                ref={gridViewportRef}
+                style={{
+                  height: 'max(420px, calc(100dvh - 410px))',
+                  overflow: 'hidden',
+                }}
+              >
+                <GridTable
+                  columns={columns}
+                  data={rows}
+                  useWillow={false}
+                  gridProps={{
+                    init: (api) => {
+                      api.on('select-row', (ev) => {
+                        if (ev?.id) {
+                          navigate(`${ev.id}`);
+                        }
+                      });
+                    },
+                  }}
+                />
               </div>
-            ) : (
-              <GridTable data={rows} columns={columns} />
-            )}
+            </Willow>
           </div>
         </div>
       </div>

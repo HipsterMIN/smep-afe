@@ -2,8 +2,10 @@ import Button from '@components/ui/Button.jsx';
 import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
+import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
-import { useEffect, useMemo, useState } from 'react';
+import { Willow } from '@svar-ui/react-grid';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const toDisplayText = (value) => {
@@ -12,7 +14,6 @@ const toDisplayText = (value) => {
 };
 const formatDateTime = (dateTime) => {
   if (!dateTime || dateTime === '-') return '-';
-  // 문자열에서 숫자만 추출 (예: 20260405123247 -> 2026-04-05 12:32)
   const cleaned = String(dateTime).replace(/\D/g, '');
   if (cleaned.length >= 12) {
     return `${cleaned.substring(0, 4)}-${cleaned.substring(4, 6)}-${cleaned.substring(6, 8)} ${cleaned.substring(8, 10)}:${cleaned.substring(10, 12)}`;
@@ -28,11 +29,9 @@ const getProgressRate = (row) => {
   if (total === 0) return '0.0';
 
   const rate = ((success + fail) / total) * 100;
-  // 소수점 첫째 자리까지 반올림 (JSP의 pattern=".0"과 동일)
   return Math.min(rate, 100).toFixed(1);
 };
 
-// 2. 오른쪽 식: 순수 성공률
 const getSuccessRate = (row) => {
   const total = row.totCnt || row.mSendCount || 0;
   const success = row.succCnt || row.tmsSendSucc || 0;
@@ -128,7 +127,6 @@ const EMAIL_SEND_COLUMNS = (navigate, totalCount) => [
     header: '진행률 / 성공률(%)',
     width: 130,
     cell: ({ row }) => {
-      // row가 안전하게 존재할 때만 함수를 호출하도록 방어벽을 쳐줍니다.
       const progress = row ? getProgressRate(row) : '0.0';
       const success = row ? getSuccessRate(row) : '0.0';
       return `${progress} / ${success}`;
@@ -136,64 +134,109 @@ const EMAIL_SEND_COLUMNS = (navigate, totalCount) => [
   },
 ];
 
+const createSearchParams = () => ({
+  category: '',
+  sendType: '',
+  sendStatus: '',
+  senderNm: '',
+  emsTitle: '',
+  startDate: '',
+  endDate: '',
+});
+
 export default function EmailSendList() {
   const navigate = useNavigate();
+  const gridViewportRef = useRef(null);
 
   const [rows, setRows] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [cursor, setCursor] = useState(null);
+  const [hasNext, setHasNext] = useState(true);
 
-  // 1. 초기값을 '전체'에서 빈 문자열('')로 수정 (options의 value와 매치)
-  const [searchParams, setSearchParams] = useState({
-    category: '',
-    sendType: '',
-    sendStatus: '',
-    senderNm: '',
-    emsTitle: '',
-    startDate: '',
-    endDate: '',
-  });
+  const loadingRef = useRef(false);
+  const appliedSearchParamsRef = useRef(createSearchParams());
+  const [searchParams, setSearchParams] = useState(createSearchParams);
 
-  const fetchEmailList = async () => {
+  const buildParams = (baseParams) => {
+    const params = { size: 20, ...baseParams };
+    const filtered = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== '') {
+        filtered[key] = value;
+      }
+    });
+    return filtered;
+  };
+
+  const fetchEmailList = async (nextCursor = null, reset = false) => {
+    if (loadingRef.current) return;
+    if (!reset && !hasNext) return;
+
+    loadingRef.current = true;
+    setLoading(true);
+
+    if (reset) {
+      appliedSearchParamsRef.current = { ...searchParams };
+    }
+
     try {
       setLoading(true);
 
-      // 백엔드로 보낼 파라미터 중 빈 값은 제외하고 깔끔하게 쿼리스트링 생성
-      const apiParams = {};
-      Object.entries(searchParams).forEach(([key, value]) => {
-        if (value !== null && value !== undefined && value !== '') {
-          apiParams[key] = value;
-        }
-      });
+      const params = reset ? searchParams : appliedSearchParamsRef.current;
+      const apiParams = buildParams(params);
+      if (nextCursor) apiParams.cursor = nextCursor;
+
+      // Object.keys(apiParams).forEach((key) => {
+      //   if (!apiParams[key]) delete apiParams[key];
+      // });
 
       const response = await http.get('/api/v1/notification/email/list', {
         params: apiParams,
       });
+      const page = response.data ?? {};
+      const list = Array.isArray(page.data) ? page.data : [];
 
-      if (response.data) {
-        const rawList =
-          response.data.list ||
-          (Array.isArray(response.data) ? response.data : []);
+      setRows((prev) => {
+        const merged = reset ? list : [...prev, ...list];
 
-        const mappedList = rawList.map((row, idx) => ({
-          ...row,
-          _rowIndex: idx + 1,
-        }));
+        const seen = new Set();
+        return merged
+          .filter((item) => {
+            const key = item.msgId;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          })
+          .map((row, idx) => ({
+            ...row,
+            id: String(row.msgId || idx),
+            _rowIndex: idx + 1,
+          }));
+      });
 
-        setRows(mappedList);
-        setTotalCount(response.data.totalCount || rawList.length || 0);
-      }
+      if (reset) setTotalCount(page?.totalCount ?? 0);
+      setCursor(page.nextCursor ?? null);
+      setHasNext(Boolean(page.hasNext));
     } catch (error) {
-      console.error('이메일 목록을 불러오는 중 오류가 발생했습니다.', error);
-      alert('데이터를 가져오는 데 실패했습니다.');
+      if (reset) setRows([]);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchEmailList();
+    fetchEmailList(null, true);
   }, []);
+
+  useGridInfiniteScroll({
+    viewportRef: gridViewportRef,
+    loading,
+    loadingRef,
+    hasNext,
+    onLoadMore: () => fetchEmailList(cursor, false),
+  });
 
   const columns = useMemo(
     () => EMAIL_SEND_COLUMNS(navigate, totalCount),
@@ -202,6 +245,12 @@ export default function EmailSendList() {
 
   const handleInputChange = (key, val) => {
     setSearchParams((prev) => ({ ...prev, [key]: val }));
+  };
+
+  const handleSearch = () => {
+    setCursor(null);
+    setHasNext(true);
+    fetchEmailList(null, true);
   };
 
   return (
@@ -261,7 +310,7 @@ export default function EmailSendList() {
                 <Button
                   btnType="menuSearch"
                   btnNames="검색"
-                  onClick={fetchEmailList}
+                  onClick={handleSearch}
                 />
               </div>
             </div>
@@ -273,7 +322,7 @@ export default function EmailSendList() {
                 menuSize="150px"
                 value={searchParams.senderNm}
                 onChange={(e) => handleInputChange('senderNm', e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && fetchEmailList()}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
               <MenuInputBox
                 menuType="input"
@@ -281,7 +330,7 @@ export default function EmailSendList() {
                 menuSize="300px"
                 value={searchParams.emsTitle}
                 onChange={(e) => handleInputChange('emsTitle', e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && fetchEmailList()}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
               {/* DatepickerBox에 value 속성 명시 및 handleInputChange 연동 */}
               <div className="ondatepickerbox">
@@ -313,13 +362,17 @@ export default function EmailSendList() {
           </div>
 
           <div className="ongrid-tableform">
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px' }}>
-                데이터 로딩 중...
+            <Willow>
+              <div
+                ref={gridViewportRef}
+                style={{
+                  height: 'max(420px, calc(100dvh - 410px))',
+                  overflow: 'hidden',
+                }}
+              >
+                <GridTable columns={columns} data={rows} useWillow={false} />
               </div>
-            ) : (
-              <GridTable data={rows} columns={columns} />
-            )}
+            </Willow>
           </div>
         </div>
       </div>
