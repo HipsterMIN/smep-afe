@@ -483,7 +483,7 @@ export const componentMap = {
     layout: AdminLayoutWithAuth,
     children: [
       {
-        path: ':id',
+        path: ':mSeq',
         component: SmsSendDetail, // SMS발송상세
       },
       {

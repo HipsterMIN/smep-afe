@@ -40,7 +40,7 @@ const getSendStatusLabel = (sendStatus) => {
 };
 
 const getResultLabel = (resultCd) => {
-  if (resultCd === 'S') return '성공';
+  if (resultCd === 'C') return '성공';
   if (resultCd === 'F') return '실패';
   if (resultCd === 'P') return '처리중';
   return toDisplayText(resultCd);
@@ -85,13 +85,13 @@ const DETAIL_COLUMNS = [
     dataAlign: 'center',
     cell: ({ row }) => getReadYnLabel(row?.readYn),
   },
-  {
-    id: 'failReason',
-    header: '실패사유',
-    flexgrow: 1,
-    dataAlign: 'left',
-    cell: ({ row }) => toDisplayText(row?.failReason),
-  },
+  // {
+  //   id: 'failReason',
+  //   header: '실패사유',
+  //   flexgrow: 1,
+  //   dataAlign: 'left',
+  //   cell: ({ row }) => toDisplayText(row?.failReason),
+  // },
 ];
 
 export default function EmailSendDetail() {
@@ -100,7 +100,7 @@ export default function EmailSendDetail() {
 
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
-
+  const [files, setFiles] = useState([]);
   const [detail, setDetail] = useState({
     msgId: '',
     emsTitle: '',
@@ -108,6 +108,7 @@ export default function EmailSendDetail() {
     senderNm: '',
     senderMail: '',
     categoryId: '',
+    categoryNm: '',
     sendType: '',
     sendStatus: '',
     totCnt: 0,
@@ -141,6 +142,7 @@ export default function EmailSendDetail() {
         senderNm: payload?.senderNm ?? '',
         senderMail: payload?.senderMail ?? '',
         categoryId: payload?.categoryId ?? '',
+        categoryNm: payload?.categoryNm ?? '',
         sendType: payload?.sendType ?? '',
         sendStatus: payload?.sendStatus ?? '',
         totCnt: payload?.totCnt ?? 0,
@@ -150,6 +152,8 @@ export default function EmailSendDetail() {
         sendDate: payload?.sendDate ?? '',
         memo: payload?.memo ?? '',
       });
+
+      fetchFiles();
     } catch (error) {
       console.error(
         '이메일 발송 상세를 불러오는 중 오류가 발생했습니다.',
@@ -158,6 +162,20 @@ export default function EmailSendDetail() {
       alert('이메일 발송 상세 정보를 가져오는 데 실패했습니다.');
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  const fetchFiles = async () => {
+    try {
+      const response = await http.get(
+        `/api/v1/notification/email/${msgId}/files`
+      );
+      const filePayload =
+        response?.data?.data ?? response?.data ?? response ?? [];
+
+      setFiles(Array.isArray(filePayload) ? filePayload : []);
+    } catch (error) {
+      console.error('첨부파일 목록을 불러오는 중 오류가 발생했습니다.', error);
     }
   };
 
@@ -246,7 +264,7 @@ export default function EmailSendDetail() {
                 </tr>
                 <tr>
                   <td>구분</td>
-                  <td>{toDisplayText(detail.categoryId)}</td>
+                  <td>{toDisplayText(detail.categoryNm)}</td>
                   <td>제목</td>
                   <td>{toDisplayText(detail.emsTitle)}</td>
                 </tr>
@@ -277,7 +295,31 @@ export default function EmailSendDetail() {
                   <td>발송 총건수</td>
                   <td>{toDisplayText(detail.totCnt)}</td>
                   <td rowSpan={3}>첨부파일</td>
-                  <td rowSpan={3}>-</td>
+                  <td rowSpan={3}>
+                    {files.length > 0 ? (
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                        }}
+                      >
+                        {files.map((file) => (
+                          <span
+                            key={file.fileId}
+                            style={{
+                              color: '#333333',
+                              wordBreak: 'break-all',
+                            }}
+                          >
+                            {file.originalFileNm || '-'}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      '-'
+                    )}
+                  </td>
                 </tr>
                 <tr>
                   <td>실패건수</td>
@@ -311,7 +353,7 @@ export default function EmailSendDetail() {
                 menuName="결과"
                 menuSize="140px"
                 options={[
-                  { value: 'S', label: '성공' },
+                  { value: 'C', label: '성공' },
                   { value: 'F', label: '실패' },
                   { value: 'P', label: '처리중' },
                 ]}

@@ -1,5 +1,4 @@
 import Button from '@components/ui/Button.jsx';
-import FileUpload from '@components/ui/FileUpload.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import RichEditor from '@components/ui/RichEditor.jsx';
 import http from '@lib/http.js';
@@ -17,7 +16,6 @@ export default function EmailForm({ mode = 'create' }) {
   const [content, setContent] = useState('');
   const [writer, setWriter] = useState('');
   const [createdAt, setCreatedAt] = useState('');
-  const [attachFiles, setAttachFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const formatDateTime = (value) => {
@@ -43,9 +41,6 @@ export default function EmailForm({ mode = 'create' }) {
       setContent(payload?.tplContent ?? '');
       setWriter(payload?.writer ?? '');
       setCreatedAt(formatDateTime(payload?.inDate));
-
-      // TODO 첨부파일 정책/상세 응답 구조 확정 시 attachFiles 세팅
-      setAttachFiles([]);
     } catch (error) {
       console.error('이메일 양식 상세 조회 실패:', error);
       alert('이메일 양식 상세 조회 중 오류가 발생했습니다.');
@@ -66,7 +61,6 @@ export default function EmailForm({ mode = 'create' }) {
     setContent('');
     setWriter('');
     setCreatedAt('');
-    setAttachFiles([]);
   }, [isUpdateMode, id]);
 
   const validate = () => {
@@ -86,7 +80,6 @@ export default function EmailForm({ mode = 'create' }) {
   const buildRequestBody = () => ({
     tplTitle: formName.trim(),
     tplContent: content,
-    // TODO 첨부파일 정책 확정 시 attachYn / files / attachmentIds 반영
   });
 
   const handleSave = async () => {
@@ -94,11 +87,6 @@ export default function EmailForm({ mode = 'create' }) {
 
     setLoading(true);
     try {
-      if (attachFiles.length > 0) {
-        // TODO 첨부파일 정책 확정 후 multipart 또는 별도 업로드 API 연동
-        console.warn('첨부파일 연동 TODO:', attachFiles);
-      }
-
       if (isUpdateMode) {
         await http.post(
           `/api/v1/notification/email/templates/update/${id}`,
@@ -196,23 +184,6 @@ export default function EmailForm({ mode = 'create' }) {
                       placeholder="내용을 입력하세요."
                       minHeight={280}
                     />
-                  </td>
-                </tr>
-                <tr>
-                  <td>첨부파일</td>
-                  <td>
-                    <div className="onflex onflexcolumn" style={{ gap: '8px' }}>
-                      <FileUpload
-                        mode="edit"
-                        maxFiles={5}
-                        fileType="attachment"
-                        files={attachFiles}
-                        onFilesChange={setAttachFiles}
-                      />
-                      <span style={{ fontSize: '12px', color: '#777' }}>
-                        첨부파일 기능은 정책 확정 후 연동 예정입니다.
-                      </span>
-                    </div>
                   </td>
                 </tr>
                 <tr>
