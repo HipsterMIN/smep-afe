@@ -6,7 +6,7 @@ import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import Popup from '@components/ui/Popup.jsx';
 import RadioButton from '@components/ui/RadioButton.jsx';
-import RichEditor from '@components/ui/RichEditor.jsx';
+import RichEditor from '@components/ui/SmepEditor.jsx';
 import http from '@lib/http.js';
 import { SUPPORT_BUSINESS_RELATED_ANNOUNCEMENT_TYPES } from '@pages/public-announcement/publicAnnouncementType.js';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';

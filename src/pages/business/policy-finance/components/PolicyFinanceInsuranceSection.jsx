@@ -1,5 +1,5 @@
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
-import RichEditor from '@components/ui/RichEditor.jsx';
+import RichEditor from '@components/ui/SmepEditor.jsx';
 import PropTypes from 'prop-types';
 
 export default function PolicyFinanceInsuranceSection({

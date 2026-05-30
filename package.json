@@ -19,6 +19,7 @@
     "sonar": "sonar-scanner -Dsonar.host.url=https://sonarqube.smes-tipa.go.kr -Dsonar.login=$SONAR_TOKEN -Dsonar.projectKey=smep-afe -Dsonar.exclusions=**/*.test.jsx,**/*.spec.jsx,**/node_modules/**,**/dist/**,**/publishing/**"
   },
   "dependencies": {
+    "@smep/smart-editor": "file:../smart-editor/smep-smart-editor-0.1.0.tgz",
     "@svar-ui/react-grid": "^2.3.2",
     "@tiptap/extension-image": "^2.8.0",
     "@tiptap/extension-link": "^2.8.0",

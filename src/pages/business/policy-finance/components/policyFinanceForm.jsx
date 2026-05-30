@@ -3,7 +3,7 @@ import Button from '@components/ui/Button.jsx';
 import CheckBox from '@components/ui/CheckBox.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import RadioButton from '@components/ui/RadioButton.jsx';
-import RichEditor from '@components/ui/RichEditor.jsx';
+import RichEditor from '@components/ui/SmepEditor.jsx';
 import http from '@lib/http.js';
 import PolicyFinanceGuaranteeSection from '@pages/business/policy-finance/components/PolicyFinanceGuaranteeSection.jsx';
 import PolicyFinanceInsuranceSection from '@pages/business/policy-finance/components/PolicyFinanceInsuranceSection.jsx';

@@ -3,7 +3,7 @@ import DatepickerBox from '@components/ui/DatepickerBox.jsx';
 import FileUpload from '@components/ui/FileUpload.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import RadioButton from '@components/ui/RadioButton.jsx';
-import RichEditor from '@components/ui/RichEditor.jsx';
+import RichEditor from '@components/ui/SmepEditor.jsx';
 import http from '@lib/http.js';
 import { useMenuStore } from '@store/useMenuStore';
 import { fetchAndConvertCommonCodes } from '@utils/commonUtils.js';

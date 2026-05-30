@@ -1,6 +1,6 @@
 import Button from '@components/ui/Button.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
-import RichEditor from '@components/ui/RichEditor.jsx';
+import RichEditor from '@components/ui/SmepEditor.jsx';
 import http from '@lib/http.js';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';

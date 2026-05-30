@@ -6,7 +6,7 @@ import FileUpload from '@components/ui/FileUpload.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import RadioButton from '@components/ui/RadioButton.jsx';
-import RichEditor from '@components/ui/RichEditor.jsx';
+import RichEditor from '@components/ui/SmepEditor.jsx';
 import SearchBox from '@components/ui/SearchBox.jsx';
 import TextareaBox from '@components/ui/TextareaBox.jsx';
 import http from '@lib/http.js';

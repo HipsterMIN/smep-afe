@@ -6,7 +6,7 @@ import FileUpload from '@components/ui/FileUpload.jsx';
 import GridTable from '@components/ui/GridTable.jsx';
 import MenuInputBox from '@components/ui/MenuInputBox.jsx';
 import Popup from '@components/ui/Popup.jsx';
-import RichEditor from '@components/ui/RichEditor.jsx';
+import RichEditor from '@components/ui/SmepEditor.jsx';
 import TextareaBox from '@components/ui/TextareaBox.jsx';
 import useGridInfiniteScroll from '@components/ui/useGridInfiniteScroll.js';
 import http from '@lib/http.js';
